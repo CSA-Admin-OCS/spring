@@ -85,6 +85,8 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
     public void save(Person person) {
         if (person.getPassword() == null || person.getPassword().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
+        } else if (!person.checkPassword()) {
+            throw new IllegalArgumentException("Password does not meet complexity requirements");
         }
         person.setPassword(passwordEncoder.encode(person.getPassword()));
         personJpaRepository.save(person);
@@ -93,6 +95,8 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
     public void save(Person person, Boolean samePassword) {
         if (person.getPassword() == null) { // this will occur if ADMIN_PASSWORD and DEFAULT_PASSWORD are not set in .env
             throw new IllegalArgumentException("Password cannot be null");
+        } else if (!person.checkPassword()) {
+            throw new IllegalArgumentException("Password does not meet complexity requirements");
         }
         if (!samePassword) {
             // Encode the password only if it's not the same as before

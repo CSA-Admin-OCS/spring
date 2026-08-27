@@ -512,4 +512,17 @@ public class Person extends Submitter implements Comparable<Person> {
         }
         return all;
     }
+
+    public boolean checkPassword() {
+        if (password.length() < 8) {
+            return false;
+        }
+
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasNumber = password.matches(".*[0-9].*");
+        boolean hasSpecial = password.matches(".*[`~!@#$%^&*()].*");
+
+        return hasUpper && hasLower && hasNumber && hasSpecial;
+    }
 }
