@@ -296,6 +296,14 @@ public class PersonApiController {
     @PostMapping("/person/create")
     public ResponseEntity<Object> postPerson(@RequestBody PersonDto personDto) {
 
+        if (GithubIdValidator.isStudentIdUsedAsGithubId(personDto.getUid())) {
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "Enter your GitHub ID, not your 7-digit student ID");
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+        }
+
         // Check if a person with this uid already exists
         if (personDto.getUid() != null && repository.existsByUid(personDto.getUid())) {
             HttpHeaders responseHeaders = new HttpHeaders();
