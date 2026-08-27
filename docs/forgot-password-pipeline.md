@@ -1,6 +1,6 @@
 # Forgot Password Pipeline
 
-How password reset works across `pages`, `spring`, and `flask` — the three independently-versioned pieces of the same full-stack app. Current as of 2026-08-20.
+How password reset works across `pages`, `spring`, and `flask` — the three independently-versioned pieces of the same full-stack app. Current as of 2026-08-27.
 
 > ### ⚠️ REQUIRED BEFORE THIS DEPLOYS TO PRODUCTION
 >
@@ -32,6 +32,8 @@ How password reset works across `pages`, `spring`, and `flask` — the three ind
 > ```
 >
 > (SQLite syntax shown, matching what's in local dev — adjust types for whatever production actually runs.)
+>
+> **Password complexity is now enforced at the same funnel both backends already use for every password change** (see "Password complexity" under Security mechanisms below). Any deployment's `DEFAULT_PASSWORD`, `ADMIN_PASSWORD`, `TEACHER_PASSWORD`, `USER_PASSWORD`, or Flask's equivalent env vars that doesn't satisfy the new rule (8+ chars, upper, lower, digit, one of `` `~!@#$%^&*() ``) will start failing on the next reset-to-default, seed-init, or Flask-sync call that uses it. The in-code fallback literals were updated to comply (`DefaultPassword123!`), but that only helps when the env var is unset — **check any already-configured production values before this ships.**
 
 ## Summary
 
@@ -106,7 +108,7 @@ sequenceDiagram
 
    **Every denial path returns an identical response body** (`{"verified":false}`), regardless of which check failed — this is deliberate, so the endpoint can't be used to enumerate valid uid/sid pairs. The specific reason is only ever written to the server log.
 
-4. **Step 3 — set a new password.** The frontend POSTs `{uid, resetToken, newPassword}` to `POST /mvc/person/reset/oauth/complete`. Spring validates and consumes the token (single-use — a second attempt with the same token fails), requires the password be at least 8 characters, BCrypt-hashes it, and saves it.
+4. **Step 3 — set a new password.** The frontend POSTs `{uid, resetToken, newPassword}` to `POST /mvc/person/reset/oauth/complete`. Spring checks the new password's complexity and, only if it passes, validates and consumes the token (single-use — a second attempt with the same token fails) — checking complexity first means a weak password never burns a token — then BCrypt-hashes it and saves it.
 
 5. **Cross-backend sync.** Immediately after saving, Spring calls `FlaskPasswordSync.syncPassword(uid, newPassword)` — a server-to-server POST to `flask`'s `POST /api/internal/sync-password`, authenticated by a static shared secret (`X-Internal-Sync-Key` header, compared via constant-time `hmac.compare_digest`). Flask re-hashes the password with PBKDF2-SHA256 and updates its own row. This call is best-effort: if it fails, Spring's reset has already succeeded and the request still returns success to the user — Flask just falls behind until the next successful reset syncs it again.
 
@@ -143,6 +145,7 @@ They don't call each other — an admin using Spring's button does not sync to F
 - **Rate limiting** — 3 requests per rolling 15-minute window per uid, shared between the OAuth and email-code flows, tracked in-process (acceptable given this deploys as a single Spring instance, per its `docker-compose.yml`).
 - **Enumeration resistance** — the OAuth verify endpoint's failure responses are indistinguishable regardless of cause (unknown uid vs. sid mismatch vs. bad token all return the same shape).
 - **Password storage** — Spring hashes with BCrypt; Flask hashes independently with PBKDF2-SHA256. They're separate hashes of the same plaintext, computed at sync time — not shared or convertible between the two backends.
+- **Password complexity** — every path that sets a *new* plaintext password (OAuth reset, signup, profile password change, and Flask's sync-from-Spring call) is required to satisfy the same rule end to end: 8+ characters, at least one uppercase letter, one lowercase letter, one digit, and one of `` `~!@#$%^&*() ``. Implemented three times, once per repo, all sharing the identical character set on purpose so a password one backend accepts is never rejected by another: Spring's `Person.checkPassword()` (hooked into `PersonDetailsService.save`, the same funnel used for `tokenVersion` bumping), Flask's `validate_password()` (hooked into `User.set_password`'s plaintext branch only), and `pages`' `getPasswordStrength()` (client-side check in the reset wizard's Step 3, `support.md`, and on the signup form, `login.md`). The check is skipped wherever a value flowing through these funnels is *not* a new plaintext password — an already-BCrypt/PBKDF2-hashed value being re-saved unchanged (an unrelated profile edit, or a verbatim data restore) would fail these rules by coincidence of its byte content, not because anything is actually wrong with it.
 - **Inter-service auth** — the Spring → Flask sync call is gated by a static shared secret (`INTERNAL_SYNC_KEY`), compared with a constant-time comparison on the Flask side. If unset, Flask returns `401` (fails closed) and Spring logs a warning rather than pretending to succeed. The bigger question for this call was never the auth — it's transport: the request body is `{uid, password}` with the **new password in plaintext**, and the shared secret alone doesn't protect data-in-transit the way TLS would. Whether that matters depends entirely on whether the call ever leaves loopback in production; the deployment evidence (see below) points to same-host today, but nothing enforced it. **Fixed:** `FlaskPasswordSync` now refuses the sync (logs and skips, doesn't fail the reset) unless `FLASK_URI` resolves to loopback (`localhost`/`127.0.0.1`, host parsed via `java.net.URI`, not string-prefix matching — a prefix check would wrongly pass a lookalike like `http://localhost.attacker.com`) or the scheme is `https://`. So even if `FLASK_URI` is ever pointed at a public host over plain HTTP, the plaintext password no longer goes out over the wire — the sync just gets skipped and logged instead. Deployment evidence for why loopback is the current reality: `spring/nginx_spring_8585_8589.conf` and `flask/nginx_flask_8587.conf` both front the *same* public IP and both proxy back to `localhost:<port>` — the standard single-box, two-app pattern, reinforced by both READMEs describing production deploys through the same "cockpit" admin panel. Neither repo contains any tracked config (`render.yaml`, `Procfile`, CI/CD, `.env.example`) that actually sets `FLASK_URI` for production, so this was inference from infra files, not a confirmed value — which is exactly why the code-level check was worth adding rather than just trusting the inference.
 - **API hardening** — Flask's general-purpose user endpoints (`GET /api/user`, create/update/delete responses) previously included the PBKDF2 password hash in their JSON bodies, readable by any logged-in user, not just admins. Fixed by stripping the `password` field before those responses go out; the admin-only backup/export endpoints still include it, since restoring from a backup needs the hash to round-trip.
 - **Ticket-creation rate limiting** — `POST /mvc/person/reset/ticket` is capped at 5 requests per 15 minutes per caller IP (see "Escape hatch" above). Also worth noting: the endpoint silently 500'd on every real request until this was verified, because `ResetTicket`'s `@GeneratedValue(strategy = GenerationType.AUTO)` resolved to sequence-table ID generation on this SQLite dialect, and no such sequence table exists (`ddl-auto=none`, schema managed by hand). Fixed by switching to `GenerationType.IDENTITY`, matching the convention every other SQLite-backed entity in this codebase already uses (e.g. `GameAttempt`). This had gone unnoticed because earlier manual testing inserted ticket rows directly via SQL rather than through the real endpoint.
@@ -155,6 +158,7 @@ These are real, open issues — not by-design tradeoffs:
 - ⚠️ **Production databases don't have the `token_version` column or the `reset_ticket` table yet.** Both were only migrated against local dev SQLite. Production Flask runs MySQL — a completely different database this session never touched. **See the callout at the top of this document for the exact SQL to run before deploying.** Until that runs, production logins/reset-ticket usage will break on the missing schema, not silently degrade.
 - **Spring's MVC `HttpSession` path isn't invalidated on password change** (see the scope note above) — only the JWT path is.
 - **`DEFAULT_PASSWORD`'s exposure window is unbounded.** There is no forced-password-change flag or mechanism anywhere in `Person`/`PersonDetailsService` — confirmed by grepping for it. An account reset via the email-code or admin-reset flow sits at the shared, guessable `DEFAULT_PASSWORD` indefinitely, until the user happens to log in and manually changes it. Being env-configured rather than hardcoded (see below) limits *some* exposure, but doesn't bound the window in time — an attacker who can trigger a reset (or knows one already happened) has an open account-takeover race against the legitimate user for as long as that user hasn't logged back in.
+- **Password complexity is enforced only where a new plaintext password is actually set — not retroactively.** Accounts whose current password predates this change (any hash already in the database) are never re-checked; the rule only applies going forward, at the next password-setting event for that account. This is expected, not a bug, but means the userbase won't be fully compliant with the new rule for a while.
 
 ## Deliberate non-issues
 
@@ -168,8 +172,8 @@ A few things that look like gaps but are intentional:
 
 | System | File | Role |
 |---|---|---|
-| pages | `navigation/authentication/support.md` | Reset wizard UI, ticket-request button |
-| pages | `navigation/authentication/login.md` | "Forgot Password?" entry point |
+| pages | `navigation/support.md` | Reset wizard UI, ticket-request button, `getPasswordStrength()` |
+| pages | `navigation/authentication/login.md` | "Forgot Password?" entry point, signup form's own `getPasswordStrength()` |
 | pages | `_layouts/profile.html` | "Forgot Password?" entry point (profile page) |
 | pages | `assets/js/api/config.js` | Shared `javaURI`, `GOOGLE_CLIENT_ID` |
 | spring | `mvc/person/PersonViewController.java` | All reset endpoints (OAuth, email-code, admin, tickets) |
@@ -184,10 +188,13 @@ A few things that look like gaps but are intentional:
 | spring | `security/JwtTokenUtil.java` | JWT issuance/validation, `tokenVersion` claim |
 | spring | `security/JwtRequestFilter.java` | JWT validation on `/api/**` only — see MVC-session scope note |
 | spring | `security/RateLimitFilter.java` | Global per-request rate limiter (not endpoint-specific) |
+| spring | `mvc/person/Person.java` (`checkPassword`) | Password complexity rule |
+| spring | `mvc/person/PersonDetailsService.java` (`save`) | Funnel where complexity is enforced (and `tokenVersion` bumped) |
+| spring | `src/test/.../PasswordCheckTest.java` | Unit tests for `checkPassword()` |
 | flask | `api/user.py` (`_InternalPasswordSync`) | Receives the sync call from Spring |
 | flask | `api/user.py` (`_Security`) | JWT issuance, `token_version` + `exp` claims |
 | flask | `api/authorize.py` | Session/JWT validation (`auth_required`), `token_version` check |
 | flask | `main.py` (`load_user`, `reset_password`) | Flask-Login session validation, admin reset-to-default route |
-| flask | `model/user.py` | Password hashing, `token_version`, `get_id()` |
+| flask | `model/user.py` (`validate_password`, `set_password`) | Password hashing, complexity rule, `token_version`, `get_id()` |
 | spring | `nginx_spring_8585_8589.conf` | Evidence for same-host topology (see "Inter-service auth") |
 | flask | `nginx_flask_8587.conf` | Evidence for same-host topology (see "Inter-service auth") |

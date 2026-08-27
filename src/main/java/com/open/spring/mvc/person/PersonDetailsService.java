@@ -86,15 +86,28 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
         if (person.getPassword() == null || person.getPassword().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
+        // Always a plaintext password here (new-account creation / seed init), so
+        // this is the only place in this overload where complexity applies.
+        if (!person.checkPassword()) {
+            throw new IllegalArgumentException("Password does not meet complexity requirements");
+        }
         person.setPassword(passwordEncoder.encode(person.getPassword()));
         personJpaRepository.save(person);
     }
-    
+
     public void save(Person person, Boolean samePassword) {
         if (person.getPassword() == null) { // this will occur if ADMIN_PASSWORD and DEFAULT_PASSWORD are not set in .env
             throw new IllegalArgumentException("Password cannot be null");
         }
         if (!samePassword) {
+            // Only check complexity when the password is actually changing -- when
+            // samePassword is true, person.getPassword() holds the existing BCrypt
+            // hash (re-saved unchanged for an unrelated profile edit), not a
+            // plaintext candidate, and checking a hash against these rules would
+            // fail unpredictably depending on its byte content.
+            if (!person.checkPassword()) {
+                throw new IllegalArgumentException("Password does not meet complexity requirements");
+            }
             // Encode the password only if it's not the same as before
             person.setPassword(passwordEncoder.encode(person.getPassword()));
             // Invalidates every JWT already issued to this person -- see the field

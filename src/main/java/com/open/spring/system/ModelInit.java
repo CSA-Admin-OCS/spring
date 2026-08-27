@@ -192,7 +192,7 @@ public class ModelInit {
                     
                     // Ensure password is not null or empty
                     if (person.getPassword() == null || person.getPassword().isEmpty()) {
-                        person.setPassword("defaultPassword123"); // Set a default password or handle differently
+                        person.setPassword("DefaultPassword123!"); // Must satisfy Person.checkPassword()
                     }
                     
                     personDetailsService.save(person);

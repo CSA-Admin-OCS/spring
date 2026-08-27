@@ -338,7 +338,9 @@ public class Person extends Submitter implements Comparable<Person> {
         ArrayList<Person> people = new ArrayList<>();
         final Dotenv dotenv = Dotenv.load();
 
-        String defaultPassword = envOrDefault(dotenv, "DEFAULT_PASSWORD", "defaultPassword123");
+        // Must satisfy checkPassword()'s complexity rule -- seed init goes through
+        // PersonDetailsService.save() like everything else.
+        String defaultPassword = envOrDefault(dotenv, "DEFAULT_PASSWORD", "DefaultPassword123!");
 
         // JSON-like list of person data using Map.ofEntries
         List<Map<String, Object>> personData = Arrays.asList(
@@ -511,5 +513,22 @@ public class Person extends Submitter implements Comparable<Person> {
             all.addAll(group.getSubmissions());
         }
         return all;
+    }
+
+    // Complexity rule shared across the whole password-reset pipeline (this field,
+    // flask's model/user.py validate_password, and pages' getPasswordStrength in
+    // support.md) -- keep the required special-character set identical across all
+    // three so a password accepted by one backend is never rejected by the other.
+    public boolean checkPassword() {
+        if (password == null || password.length() < 8) {
+            return false;
+        }
+
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasNumber = password.matches(".*[0-9].*");
+        boolean hasSpecial = password.matches(".*[`~!@#$%^&*()].*");
+
+        return hasUpper && hasLower && hasNumber && hasSpecial;
     }
 }
