@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -19,6 +18,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.SecurityFilterChain;
+
+import jakarta.servlet.DispatcherType;
 
 /*
  * MvcSecurityConfig.java
@@ -44,17 +45,17 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class MvcSecurityConfig {
 
-    @Value("${jwt.cookie.secure:true}")
-    private boolean cookieSecure;
-
-    @Value("${jwt.cookie.same-site:None}")
-    private String cookieSameSite;
-
-    @Value("${server.servlet.session.cookie.name:sess_java_spring}")
-    private String sessionCookieName;
+    // Cookie attributes live in CookieFactory -- see the comment there on why
+    // set and delete must be built from the same place.
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private CookieFactory cookieFactory;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     /**
      * MVC security: form login, session-based.
@@ -70,6 +71,15 @@ public class MvcSecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
+                // A container ERROR dispatch re-enters this chain with the URI rewritten
+                // to /error, which no longer matches the API chain's securityMatcher. Without
+                // this, every /api/** failure (500, 404, or a sendError from a filter) was
+                // re-authorized here as an anonymous request and answered with a 302 to the
+                // HTML login page -- the API request never saw its own error.
+                //
+                // This permits the DISPATCH TYPE, not a URL: a direct GET /error from outside
+                // arrives as a REQUEST dispatch and is still covered by the rules below.
+                .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.ASYNC).permitAll()
                 .requestMatchers("/mvc/person/search/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/person/create").permitAll()
                 .requestMatchers(HttpMethod.POST, "/mvc/person/create").permitAll()
@@ -97,9 +107,9 @@ public class MvcSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers("/authenticate", "/authenticateForm").permitAll()
                 .requestMatchers(HttpMethod.POST, "/authenticateForm").permitAll()
-                .requestMatchers("/api/person/create", "/api/person/create/").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/person/create").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/person/create/").permitAll()
+                // NOTE: /api/** and /authenticate are claimed by the API chain (@Order(1)),
+                // so any /api rule written here is unreachable. Authorization for those
+                // endpoints lives in SecurityConfig and nowhere else.
                 .requestMatchers("/mvc/synergy/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/gradebook").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_STUDENT")
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/view-grade-requests").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
@@ -118,6 +128,9 @@ public class MvcSecurityConfig {
                 .requestMatchers("/run/**").permitAll()  // Java runner endpoints - public access
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(
+                    new ApiAwareAuthenticationEntryPoint("/login", jwtAuthenticationEntryPoint)))
             .formLogin(form -> form
                 .loginPage("/login")
                 .successHandler((request, response, authentication) -> {
@@ -137,24 +150,9 @@ public class MvcSecurityConfig {
                         return;
                     }
 
-                    // Build JWT cookie with domain support for cross-subdomain requests
-                    ResponseCookie.ResponseCookieBuilder jwtCookieBuilder = ResponseCookie.from("jwt_java_spring", token)
-                        .httpOnly(true)
-                        .secure(cookieSecure)
-                        .path("/api")
-                        .maxAge(-1)
-                        .sameSite(cookieSameSite);
-                    
-                    // Add domain for cross-subdomain sharing (production and localhost)
-                    if (cookieSecure) {
-                        // Production: use .opencodingsociety.com domain
-                        jwtCookieBuilder.domain(".opencodingsociety.com");
-                    } else {
-                        // Development: use localhost domain
-                        jwtCookieBuilder.domain("localhost");
-                    }
-                    
-                    ResponseCookie jwtCookie = jwtCookieBuilder.build();
+                    // Built by CookieFactory so this cookie and the one logout deletes
+                    // always carry the same name, domain and path.
+                    ResponseCookie jwtCookie = cookieFactory.jwtCookie(token);
 
                     response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
                     response.sendRedirect("/mvc/person/read");
@@ -163,20 +161,10 @@ public class MvcSecurityConfig {
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .logoutSuccessHandler((request, response, authentication) -> {
-                    ResponseCookie sessionCookie = ResponseCookie.from(sessionCookieName, "")
-                        .httpOnly(true)
-                        .secure(cookieSecure)
-                        .path("/")
-                        .maxAge(0)
-                        .sameSite(cookieSameSite)
-                        .build();
-                    ResponseCookie jwtCookie = ResponseCookie.from("jwt_java_spring", "")
-                        .httpOnly(true)
-                        .secure(cookieSecure)
-                        .path("/api")
-                        .maxAge(0)
-                        .sameSite(cookieSameSite)
-                        .build();
+                    // Previously these were built inline without the domain that login sets,
+                    // so the browser kept the domain-scoped JWT and logout never took effect.
+                    ResponseCookie sessionCookie = cookieFactory.expiredSessionCookie();
+                    ResponseCookie jwtCookie = cookieFactory.expiredJwtCookie();
                     response.addHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
                     response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
                     response.sendRedirect("/login?logout");
