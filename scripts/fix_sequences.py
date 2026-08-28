@@ -17,8 +17,6 @@ Dry run by default; pass --apply to write.
 """
 
 import argparse
-import os
-import re
 import sys
 from pathlib import Path
 
@@ -29,18 +27,6 @@ SQLITE_DB = REPO / "volumes" / "sqlite.db"
 # is correct whichever optimizer is in play (pooled stores the upper bound of the
 # block, pooled-lo the lower), at the cost of skipping a few ids. That is free.
 ALLOCATION_SIZE = 50
-
-
-def load_env():
-    env_file = REPO / ".env"
-    if not env_file.exists():
-        return
-    for line in env_file.read_text().splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, _, value = line.partition("=")
-        os.environ.setdefault(key.strip(), value.strip())
 
 
 class Sqlite:
@@ -71,14 +57,15 @@ class Sqlite:
 class MySql:
     quote = "`"
 
-    def __init__(self, url, user, password):
-        import pymysql
-        m = re.match(r"jdbc:mysql://([^:/]+):?(\d+)?/([^?]+)", url)
-        if not m:
-            raise SystemExit(f"could not parse DB_URL: {url}")
-        host, port, db = m.group(1), int(m.group(2) or 3306), m.group(3)
-        self.conn = pymysql.connect(host=host, port=port, user=user,
-                                    password=password, database=db)
+    def __init__(self):
+        # Same driver, credentials and JDBC parsing as the other scripts in this
+        # directory -- see mysql_common.py. Imported here rather than at module
+        # scope so the sqlite path needs no MySQL driver at all.
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from mysql_common import get_mysql_config, get_mysql_connection
+
+        host, port, user, password, db = get_mysql_config()
+        self.conn = get_mysql_connection(host, port, user, password, db)
         self.db = db
         self.label = f"mysql {host}/{db}"
 
@@ -145,14 +132,8 @@ def main():
     ap.add_argument("--mysql", action="store_true", help="target the remote MySQL from DB_URL")
     args = ap.parse_args()
 
-    load_env()
-
     if args.mysql:
-        url = os.environ.get("DB_URL")
-        if not url:
-            raise SystemExit("DB_URL is not set (put it in .env or the environment)")
-        db = MySql(url, os.environ.get("DB_USERNAME", "admin"),
-                   os.environ.get("DB_PASSWORD", "admin"))
+        db = MySql()
     else:
         if not SQLITE_DB.exists():
             raise SystemExit(f"no sqlite database at {SQLITE_DB}")
