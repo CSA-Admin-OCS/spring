@@ -14,6 +14,7 @@ Dry run by default; pass --apply to write.
     ./scripts/fix_sequences.py                      # local sqlite, report only
     ./scripts/fix_sequences.py --apply              # local sqlite, repair
     ./scripts/fix_sequences.py --mysql --apply      # remote, repair (reads .env)
+    ./scripts/fix_sequences.py --db-url jdbc:mysql://host:3306/db --apply
 """
 
 import argparse
@@ -57,14 +58,27 @@ class Sqlite:
 class MySql:
     quote = "`"
 
-    def __init__(self):
+    def __init__(self, db_url=None):
         # Same driver, credentials and JDBC parsing as the other scripts in this
         # directory -- see mysql_common.py. Imported here rather than at module
         # scope so the sqlite path needs no MySQL driver at all.
         sys.path.insert(0, str(Path(__file__).resolve().parent))
-        from mysql_common import get_mysql_config, get_mysql_connection
+        from mysql_common import (get_mysql_config, get_mysql_connection,
+                                  load_env_file, parse_jdbc_url)
 
-        host, port, user, password, db = get_mysql_config()
+        if db_url:
+            # Explicit target for a one-off repair. Deliberately does not read or
+            # write DB_URL in .env: setting that would also repoint the local app
+            # at the same database, which is the kind of accident that put the id
+            # sequences out of step in the first place.
+            env = load_env_file()
+            user = env.get("DB_USERNAME")
+            password = env.get("DB_PASSWORD")
+            if not user or not password:
+                raise SystemExit("DB_USERNAME and DB_PASSWORD must be set in .env")
+            host, port, db = parse_jdbc_url(db_url)
+        else:
+            host, port, user, password, db = get_mysql_config()
         self.conn = get_mysql_connection(host, port, user, password, db)
         self.db = db
         self.label = f"mysql {host}/{db}"
@@ -129,11 +143,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--apply", action="store_true", help="write the repair (default: report only)")
-    ap.add_argument("--mysql", action="store_true", help="target the remote MySQL from DB_URL")
+    ap.add_argument("--mysql", action="store_true", help="target MySQL (DB_URL from .env)")
+    ap.add_argument("--db-url", metavar="JDBC_URL",
+                    help="repair this database for one run, without touching .env "
+                         "(implies --mysql; credentials still come from .env)")
     args = ap.parse_args()
 
-    if args.mysql:
-        db = MySql()
+    if args.mysql or args.db_url:
+        db = MySql(args.db_url)
     else:
         if not SQLITE_DB.exists():
             raise SystemExit(f"no sqlite database at {SQLITE_DB}")
