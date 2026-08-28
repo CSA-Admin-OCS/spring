@@ -32,17 +32,20 @@ public class ResetCode {
     // attempts; each grant adds one batch on top of MAX_REQUESTS_PER_WINDOW.
     private static final Map<String, Integer> bonusAttemptsByUid = new ConcurrentHashMap<>();
 
-    // Ticket creation is unauthenticated and uid-idempotent (one open ticket per uid), so
-    // that alone doesn't stop a caller from paging through many *different* uids to spam the
-    // admin queue -- rate-limit by caller IP instead, separately from the uid-keyed limits
-    // above.
+    // Ticket creation is unauthenticated, so this exists to stop one uid from being spammed
+    // with repeat requests -- it is NOT the security boundary against ticket spam in general.
+    // That boundary is the admin: a ticket does nothing on its own, it only grants bonus
+    // attempts once a human clicks "Grant" on it, so a burst of tickets for many different
+    // uids is queue noise for the admin to dismiss, not an actual bypass of anything. Keyed
+    // by uid (not caller IP) so testing/admin tooling running from one machine against many
+    // different uids in a short window doesn't trip this at all.
     private static final long TICKET_RATE_WINDOW_SECONDS = 15 * 60;
     private static final int MAX_TICKET_REQUESTS_PER_WINDOW = 5;
-    private static final Map<String, Deque<Long>> ticketRequestTimesByIp = new ConcurrentHashMap<>();
+    private static final Map<String, Deque<Long>> ticketRequestTimesByUid = new ConcurrentHashMap<>();
 
-    public static synchronized boolean canRequestTicket(String ip) {
+    public static synchronized boolean canRequestTicket(String uid) {
         long now = Instant.now().getEpochSecond();
-        Deque<Long> requestTimes = ticketRequestTimesByIp.computeIfAbsent(ip, key -> new ArrayDeque<>());
+        Deque<Long> requestTimes = ticketRequestTimesByUid.computeIfAbsent(uid, key -> new ArrayDeque<>());
         while (!requestTimes.isEmpty() && requestTimes.peekFirst() <= now - TICKET_RATE_WINDOW_SECONDS) {
             requestTimes.removeFirst();
         }

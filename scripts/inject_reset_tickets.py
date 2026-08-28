@@ -3,7 +3,7 @@
 endpoint, instead of hand-writing SQL against reset_ticket.
 
 Goes through the actual endpoint on purpose: it's idempotent per uid (won't
-double-create), rate-limited to 5 requests / 15 min per caller IP
+double-create), rate-limited to 5 requests / 15 min per uid
 (ResetCode.canRequestTicket), and its schema (GenerationType.IDENTITY) has
 already bitten one direct-SQL testing pass this session that never exercised
 the endpoint itself -- see forgot-password-pipeline.md's "Ticket-creation
@@ -41,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "uids",
         nargs="+",
-        help="GitHub uid(s) to raise a reset ticket for (max 5 per run -- see rate limit note below)",
+        help="GitHub uid(s) to raise a reset ticket for (max 5 requests per uid per 15 min)",
     )
     parser.add_argument(
         "--db-check",
@@ -96,7 +96,7 @@ STATUS_MEANING = {
     400: "bad request -- uid missing/blank",
     302: "REDIRECTED TO LOGIN -- endpoint is requiring auth, nothing was created. "
          "Check MvcSecurityConfig has POST /mvc/person/reset/ticket in permitAll().",
-    429: "rate-limited: 5 ticket-creation requests / 15 min per caller IP already used",
+    429: "rate-limited: 5 ticket-creation requests / 15 min for this uid already used",
 }
 
 
@@ -128,11 +128,13 @@ def print_db_check(db_path: Path, uids: list[str]) -> None:
 def main() -> int:
     args = parse_args()
 
-    if len(args.uids) > 5:
+    from collections import Counter
+    repeated = [uid for uid, count in Counter(args.uids).items() if count > 5]
+    if repeated:
         print(
-            f"Note: {len(args.uids)} uids given, but the endpoint only allows 5 "
-            "ticket-creation requests per 15 min per caller IP -- the rest will "
-            "come back 429 in this same run.\n"
+            f"Note: {repeated} repeated more than 5 times, but the endpoint only "
+            "allows 5 ticket-creation requests per 15 min per uid -- the rest will "
+            "come back 429 in this same run. Different uids don't share a budget.\n"
         )
 
     for uid in args.uids:
