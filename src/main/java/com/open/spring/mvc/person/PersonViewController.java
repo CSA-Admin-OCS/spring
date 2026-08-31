@@ -249,7 +249,15 @@ public class PersonViewController {
             return "person/update-roles";  // Return error if person not found
         }
 
-        System.out.println(roleName);
+        // addRoleToPerson silently does nothing when the role name has no person_role row,
+        // so the page would report success while changing nothing. ROLE_TESTER has been
+        // broken this way for a while; catch it here instead of adding another one.
+        if (repository.findRole(roleName) == null) {
+            logger.warn("AUDIT role_update_failed actor={} target={} role={} reason=role_not_seeded",
+                    userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "redirect:/mvc/person/update/roles/" + personToUpdate.getId() + "?error=unknown_role";
+        }
+
         repository.addRoleToPerson(roleDto.getUid(), roleName);  // Add the role to the person
         logger.info("AUDIT role_update actor={} target={} role={}", userDetails.getUsername(), roleDto.getUid(), roleName);
 
@@ -271,7 +279,7 @@ public class PersonViewController {
         Person personToUpdate = repository.getByUid(roleDto.getUid());
         if (personToUpdate == null) {
             logger.warn("AUDIT role_remove_failed actor={} target={} role={} reason=target_not_found", userDetails.getUsername(), roleDto.getUid(), roleName);
-            return "person/update-roles";
+            return "redirect:/mvc/person/read";
         }
 
         // Refuse to strip the last role off an account -- a person with no roles cannot

@@ -16,6 +16,12 @@
             </span>
         </p>
 
+        <div th:if="${param.error != null and param.error[0] == 'unknown_role'}"
+             class="alert alert-warning" role="alert">
+            That role does not exist in the database yet, so nothing was changed.
+            A role has to be present in <code>person_role</code> before it can be assigned.
+        </div>
+
         <form class="form-inline" action="#" th:object="${roleDto}" th:action="@{/mvc/person/update/role}" method="POST"
             onsubmit="(function(event){event.submitter.innerHTML='<span class=\'spinner-border spinner-border-sm\' role=\'status\' aria-hidden=\'true\'></span>';})(event)">
 

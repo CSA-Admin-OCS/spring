@@ -10,7 +10,9 @@ $(document).ready(function () {
     } else if ($('#groupTable').length) {
         table = $('#groupTable').DataTable({
             columnDefs: [
-                { targets: [5], visible: false } // Hide Import/Export (index 5) by default
+                { targets: [6], visible: false } // Hide Import/Export (index 6) by default
+                // NOTE: index-based, so inserting a column into group/read.html shifts this.
+                // Order: ID#, Name, Period, Members, Mentors, Action, Import/Export.
             ]
         });
     }

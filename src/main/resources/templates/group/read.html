@@ -28,8 +28,9 @@
             <button class="btn btn-secondary toggle-column active" data-column="1">Name</button>
             <button class="btn btn-secondary toggle-column active" data-column="2">Period</button>
             <button class="btn btn-secondary toggle-column active" data-column="3">Members</button>
-            <button class="btn btn-secondary toggle-column active" data-column="4">Action</button>
-            <button class="btn btn-secondary toggle-column inactive" data-column="5">Import/Export</button>
+            <button class="btn btn-secondary toggle-column active" data-column="4">Mentors</button>
+            <button class="btn btn-secondary toggle-column active" data-column="5">Action</button>
+            <button class="btn btn-secondary toggle-column inactive" data-column="6">Import/Export</button>
         </div>
         <br>
 
@@ -66,6 +67,7 @@
                         <th>Name</th>
                         <th>Period</th>
                         <th>Members</th>
+                        <th>Mentors</th>
                         <th>Action</th>
                         <th>Import/Export</th>
                     </tr>
@@ -85,6 +87,10 @@
                                 </ul>
                             </div>
                         </td>
+                        <!-- Filled by group-mentors.js. Not a th:each over group.groupMentors:
+                             the mentor relation ships separately, and a template expression for a
+                             field that does not exist yet would break this whole page. -->
+                        <td th:attr="data-mentor-cell=${group.id}">&#8230;</td>
                         <td>
                             <a th:href="@{/mvc/groups/update/{id}(id = ${group.id})}" class="btn btn-warning btn-sm"
                                 name="update">Update</a>
@@ -124,6 +130,8 @@
         th:src="@{/js/group/group-extraction.js}"></script>
     <script sec:authorize="hasRole('ROLE_ADMIN')" type="module" src="/static/js/group/group-importation.js"
         th:src="@{/js/group/group-importation.js}"></script>
+    <script sec:authorize="hasRole('ROLE_ADMIN')" type="module" src="/static/js/group/group-mentors.js"
+        th:src="@{/js/group/group-mentors.js}"></script>
     <!-- script for filtering columns-->
     <script type="text/javascript" src="/static/js/read-filter.js" th:src="@{/js/read-filter.js}"></script>
     <!-- script for updating overlay (used for update button)-->
