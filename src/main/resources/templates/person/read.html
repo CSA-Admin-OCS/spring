@@ -52,7 +52,7 @@
                         <tr th:each="ticket : ${tickets}">
                             <td th:text="${ticket.createdAt}">Requested At</td>
                             <td>
-                                <a th:href="'https://github.com/' + ${ticket.uid}" target="_blank"
+                                <a th:href="'https://github.com/' + ${ticket.uid}" target="_blank" rel="noopener noreferrer"
                                     th:text="${ticket.uid}">User UID</a>
                             </td>
                             <td th:text="${ticket.name}">Name</td>
@@ -101,7 +101,7 @@
                     <tr th:each="person : ${list}">
                         <td th:text="${person.id}">Person ID</td>
                         <td>
-                            <a th:href="'https://github.com/' + ${person.uid}" target="_blank"
+                            <a th:href="'https://github.com/' + ${person.uid}" target="_blank" rel="noopener noreferrer"
                                 th:text="${person.uid}">User UID</a>
                         </td>
                         <td th:text="${person.name}">Name</td>
@@ -112,7 +112,7 @@
                         </td>
                         <td>
                             <div class="profile-picture-container">
-                                <a id="profile-link-${person.id}" th:data-person-id="${person.id}" target="_blank">
+                                <a id="profile-link-${person.id}" th:data-person-id="${person.id}" target="_blank" rel="noopener noreferrer">
                                     <img id="profile-img-${person.id}"
                                         th:src="${#strings.isEmpty(person.pfp)} ? 'https://github.com/' + person.uid + '.png' : person.pfp"
                                         alt="Profile Picture"

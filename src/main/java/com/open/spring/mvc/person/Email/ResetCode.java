@@ -148,10 +148,22 @@ public class ResetCode {
         }
 
         Deque<Long> requestTimes = resetRequestTimesByUid.computeIfAbsent(uid, key -> new ArrayDeque<>());
-        int allowedRequests = MAX_REQUESTS_PER_WINDOW + bonusAttemptsByUid.getOrDefault(uid, 0);
+        int bonus = bonusAttemptsByUid.getOrDefault(uid, 0);
+        int allowedRequests = MAX_REQUESTS_PER_WINDOW + bonus;
         if (requestTimes.size() >= allowedRequests) {
             lastIssueReasonByUid.put(uid, "rate-limit");
             return false;
+        }
+
+        // This request only succeeds because of a bonus grant if the base window is already
+        // exhausted -- consume one bonus attempt in that case, so a grant is a one-time batch
+        // that runs out, not a permanent raise of the per-window ceiling.
+        if (requestTimes.size() >= MAX_REQUESTS_PER_WINDOW && bonus > 0) {
+            if (bonus <= 1) {
+                bonusAttemptsByUid.remove(uid);
+            } else {
+                bonusAttemptsByUid.put(uid, bonus - 1);
+            }
         }
 
         lastIssueReasonByUid.remove(uid);
@@ -163,7 +175,9 @@ public class ResetCode {
     }
 
     // Called by an admin resolving a reset ticket: lifts the rate limit by one batch of
-    // extraAttempts on top of the standard window, so the user can retry immediately.
+    // extraAttempts on top of the standard window. Each attempt drawn from this batch (i.e.
+    // each issuance beyond MAX_REQUESTS_PER_WINDOW) is consumed one at a time in
+    // canIssueResetCode, so this is a one-time allowance, not a permanent ceiling raise.
     public static synchronized void grantBonusAttempts(String uid, int extraAttempts) {
         bonusAttemptsByUid.merge(uid, extraAttempts, Integer::sum);
         logger.info("AUDIT reset_bonus_attempts_granted uid={} extraAttempts={} totalBonus={}",

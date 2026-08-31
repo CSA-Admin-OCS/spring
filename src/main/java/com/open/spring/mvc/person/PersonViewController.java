@@ -540,7 +540,10 @@ public class PersonViewController {
 
         Person personToReset = repository.getByUid(requestBody.getUid());
         if (personToReset == null) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            // Same 200 as a real ticket creation -- an unknown uid must not be
+            // distinguishable from a known one on this unauthenticated endpoint.
+            logger.warn("AUDIT reset_ticket_unknown_uid uid={}", requestBody.getUid());
+            return new ResponseEntity<>(HttpStatus.OK);
         }
 
         if (ticketRepository.findByUidAndResolvedFalse(personToReset.getUid()).isEmpty()) {
@@ -611,21 +614,25 @@ public class PersonViewController {
 
         Person personToReset = repository.getByUid(requestBody.getUid());
 
-        //person not found
+        //person not found -- same {"verified":false}/403 shape as every other denial below,
+        //so an unknown uid can't be distinguished from a real one that failed verification
         if (personToReset == null) {
-            return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
+            logger.warn("AUDIT oauth_reset_denied uid={} reason=not_found", requestBody.getUid());
+            return oauthResetDenied(HttpStatus.FORBIDDEN);
         }
 
         //don't allow people to reset the passwords of admins
         if (personToReset.getRoles().stream().anyMatch(role -> "ROLE_ADMIN".equals(role.getName()))) {
-            return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED);
+            logger.warn("AUDIT oauth_reset_denied uid={} reason=admin_account", personToReset.getUid());
+            return oauthResetDenied(HttpStatus.FORBIDDEN);
         }
 
         //dont allow people to reset password of default users (such as toby)
         Person[] databasePersons = Person.init();
         for (Person person : databasePersons) {
             if (person.getUid().equals(personToReset.getUid())) {
-                return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED);
+                logger.warn("AUDIT oauth_reset_denied uid={} reason=default_account", personToReset.getUid());
+                return oauthResetDenied(HttpStatus.FORBIDDEN);
             }
         }
 
