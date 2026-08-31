@@ -136,7 +136,19 @@ public class GroupsApiController {
             if (!hasAnyAuthority(authentication, "ROLE_ADMIN", "ROLE_TEACHER")
                     && hasAnyAuthority(authentication, "ROLE_MENTOR")) {
                 String mentorUid = ((UserDetails) authentication.getPrincipal()).getUsername();
-                groups = groupsRepository.findGroupsByMentorUid(mentorUid);
+                // Union of mentored groups and groups they belong to, so this listing agrees
+                // with the chat ACL (member OR mentor). Scoping to mentored groups alone made
+                // a student who is also a mentor lose every group they are a member of from
+                // the list, while still being allowed into those same chats by id.
+                // An external mentor has no memberships, so for them this is unchanged.
+                Map<Long, Groups> byId = new LinkedHashMap<>();
+                for (Groups g : groupsRepository.findGroupsByMentorUid(mentorUid)) {
+                    byId.put(g.getId(), g);
+                }
+                for (Groups g : groupsRepository.findGroupsByPersonUid(mentorUid)) {
+                    byId.putIfAbsent(g.getId(), g);
+                }
+                groups = new ArrayList<>(byId.values());
             } else {
                 groups = groupsRepository.findAll();
             }
