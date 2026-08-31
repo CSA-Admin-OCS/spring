@@ -5,7 +5,16 @@
 <th:block layout:fragment="body" th:remove="tag">
     <div class="container py-4">
         <!-- Roles Input Section -->
-        <h3>Add Role to User</h3> <!-- Header for Roles section -->
+        <h3>Manage Roles</h3> <!-- Header for Roles section -->
+
+        <p th:if="${person != null}">
+            <strong th:text="${person.name} + ' (' + ${person.uid} + ')'">User</strong><br>
+            Current roles:
+            <span th:if="${person.roles.isEmpty()}">none</span>
+            <span th:each="r, it : ${person.roles}">
+                <code th:text="${r.name}">ROLE</code><span th:if="${!it.last}">, </span>
+            </span>
+        </p>
 
         <form class="form-inline" action="#" th:object="${roleDto}" th:action="@{/mvc/person/update/role}" method="POST"
             onsubmit="(function(event){event.submitter.innerHTML='<span class=\'spinner-border spinner-border-sm\' role=\'status\' aria-hidden=\'true\'></span>';})(event)">
@@ -31,8 +40,18 @@
                 <input type="radio" id="role-student" name="roleName" value="ROLE_STUDENT">
                 <label for="role-student">Student</label><br>
 
+                <input type="radio" id="role-mentor" name="roleName" value="ROLE_MENTOR">
+                <label for="role-mentor">Mentor</label><br>
+
+                <input type="radio" id="role-pending" name="roleName" value="ROLE_PENDING">
+                <label for="role-pending">Pending</label><br>
+
             </div>
             <button class="btn btn-secondary btn-sm" type="submit">Add Role</button>
+            <!-- Same radio set, different action: promoting an account (e.g. Pending -> Mentor)
+                 needs a removal, and roles were add-only before this. -->
+            <button class="btn btn-outline-danger btn-sm" type="submit"
+                th:formaction="@{/mvc/person/remove/role}">Remove Role</button>
         </form>
     </div>
 </th:block>

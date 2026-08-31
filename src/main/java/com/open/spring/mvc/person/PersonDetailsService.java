@@ -159,6 +159,15 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
         }
     }
 
+    // Mirror of addRoleToPerson. Roles were additive-only, which left an approved mentor
+    // still carrying ROLE_PENDING; removal is what lets an admin actually promote an account.
+    public void removeRoleFromPerson(String uid, String roleName) {
+        Person person = personJpaRepository.findByUid(uid);
+        if (person != null) { // verify person
+            person.getRoles().removeIf(roleObj -> roleObj.getName().equals(roleName));
+        }
+    }
+
     public boolean existsByUid(String uid) {  // check if uid in db
         return personJpaRepository.existsByUid(uid);
     }

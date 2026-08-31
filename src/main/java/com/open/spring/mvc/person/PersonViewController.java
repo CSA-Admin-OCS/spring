@@ -256,6 +256,37 @@ public class PersonViewController {
         return "redirect:/mvc/person/read"; // Redirect to the read page after updating
     }
 
+    @PostMapping("/remove/role")
+    public String personRoleRemoveSave(Authentication authentication, @Valid PersonRoleDto roleDto,
+            @RequestParam("roleName") String roleName) {
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        boolean isAdmin = userDetails.getAuthorities().stream()
+            .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (!isAdmin) {
+            logger.warn("AUDIT role_remove_blocked actor={} target={} role={} reason=non_admin", userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "redirect:/e#Unauthorized";
+        }
+
+        Person personToUpdate = repository.getByUid(roleDto.getUid());
+        if (personToUpdate == null) {
+            logger.warn("AUDIT role_remove_failed actor={} target={} role={} reason=target_not_found", userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "person/update-roles";
+        }
+
+        // Refuse to strip the last role off an account -- a person with no roles cannot
+        // authenticate at all, and there is no UI to dig them back out.
+        if (personToUpdate.getRoles().size() <= 1 && personToUpdate.hasRoleWithName(roleName)) {
+            logger.warn("AUDIT role_remove_blocked actor={} target={} role={} reason=last_role", userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "redirect:/mvc/person/read";
+        }
+
+        repository.removeRoleFromPerson(roleDto.getUid(), roleName);
+        logger.info("AUDIT role_remove actor={} target={} role={}", userDetails.getUsername(), roleDto.getUid(), roleName);
+
+        return "redirect:/mvc/person/read";
+    }
+
     @Getter
     public static class PersonRolesDto {
         private String uid;
@@ -302,8 +333,12 @@ public class PersonViewController {
     
     @GetMapping("/update/roles/{id}")
     public String personUpdateRoles(@PathVariable("id") int id, Model model) {
-        PersonRoleDto roleDto = new PersonRoleDto(repository.get(id).getUid());
+        Person person = repository.get(id);
+        PersonRoleDto roleDto = new PersonRoleDto(person.getUid());
         model.addAttribute("roleDto", roleDto);
+        // Needed so the page can show which roles are already held -- otherwise "Remove Role"
+        // is a guess.
+        model.addAttribute("person", person);
         return "person/update-roles";
     }
 
@@ -319,6 +354,7 @@ public class PersonViewController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         PersonRoleDto roleDto = new PersonRoleDto(userDetails.getUsername());
         model.addAttribute("roleDto", roleDto);
+        model.addAttribute("person", repository.getByUid(userDetails.getUsername()));
         return "person/update-roles";
     }
 
