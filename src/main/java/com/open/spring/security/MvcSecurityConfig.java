@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,8 +18,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 /*
  * MvcSecurityConfig.java
@@ -56,6 +60,21 @@ public class MvcSecurityConfig {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
+    // Tracks every live MVC HttpSession by principal so a password reset can force-expire
+    // whatever session(s) that uid currently holds -- previously a known gap (the JWT path
+    // was covered via tokenVersion, but this form-login/session path was not). Registering
+    // HttpSessionEventPublisher is required for the registry to actually see session
+    // creation/destruction events.
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public ServletListenerRegistrationBean<HttpSessionEventPublisher> httpSessionEventPublisher() {
+        return new ServletListenerRegistrationBean<>(new HttpSessionEventPublisher());
+    }
+
     /**
      * MVC security: form login, session-based.
      */
@@ -68,7 +87,15 @@ public class MvcSecurityConfig {
             .securityMatcher("/**")
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                // maximumSessions(-1) means no cap is enforced -- this exists purely to get
+                // every session registered in sessionRegistry() so it can be force-expired
+                // elsewhere (PersonViewController, after a password reset), not to limit
+                // concurrent logins.
+                .sessionConcurrency(concurrency -> concurrency
+                    .sessionRegistry(sessionRegistry())
+                    .maximumSessions(-1)))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/mvc/person/search/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/person/create").permitAll()

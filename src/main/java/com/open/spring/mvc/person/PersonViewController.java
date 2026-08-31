@@ -17,6 +17,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -55,6 +57,9 @@ public class PersonViewController {
 
     @Autowired
     private ResetTicketJpaRepository ticketRepository;
+
+    @Autowired
+    private SessionRegistry sessionRegistry;
 
     //@Autowired
     //private PersonJpaRepository find;
@@ -709,7 +714,32 @@ public class PersonViewController {
         // account; failure here doesn't roll back or fail the Spring-side reset above.
         FlaskPasswordSync.syncPassword(personToReset.getUid(), requestBody.getNewPassword());
 
+        // Force-logout: kill any MVC HttpSession this uid currently holds (e.g. an admin
+        // portal tab logged in as this account elsewhere), closing the gap where password
+        // resets invalidated JWTs (tokenVersion) but not this session-based auth path. The
+        // requesting browser itself gets an explicit /logout call from the frontend on
+        // success (see support.md) since that's the only way to also clear its cookies.
+        invalidateActiveSessions(personToReset.getUid());
+
         return new ResponseEntity<Object>(HttpStatus.OK);
+    }
+
+    // Marks every SessionRegistry-tracked HttpSession for this uid as expired. Expiry isn't
+    // instant server-side destruction -- ConcurrentSessionFilter enforces it the next time
+    // that session is used, which is sufficient: the account is unusable via the old session
+    // from that point on, matching what a real logout accomplishes.
+    private void invalidateActiveSessions(String uid) {
+        for (Object principal : sessionRegistry.getAllPrincipals()) {
+            String principalUid = (principal instanceof UserDetails userDetails)
+                ? userDetails.getUsername()
+                : String.valueOf(principal);
+            if (!uid.equals(principalUid)) {
+                continue;
+            }
+            for (SessionInformation sessionInformation : sessionRegistry.getAllSessions(principal, false)) {
+                sessionInformation.expireNow();
+            }
+        }
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
