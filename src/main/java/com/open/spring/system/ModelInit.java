@@ -158,9 +158,24 @@ public class ModelInit {
                         }
                     } catch (Throwable t) {
                     }
+
+                    String createGroupMentors = buildGroupMentorsTableSql(conn);
+                    st.execute(createGroupMentors);
+                    System.out.println("Ensured 'group_mentors' table exists");
                 } catch (SQLException e) {
                     System.err.println("Failed to ensure manual tables: " + e.getMessage());
                 }
+            }
+
+            // Ensure MENTOR/PENDING roles exist so they can be assigned from the admin UI.
+            // Runs unconditionally (unlike the seed data below, which is skipped once the
+            // DB has people) because PersonDetailsService.addRoleToPerson silently no-ops
+            // when the person_role row is missing.
+            try {
+                ensureRoleExists("ROLE_MENTOR");
+                ensureRoleExists("ROLE_PENDING");
+            } catch (Exception e) {
+                System.err.println("Failed to ensure mentor/pending roles: " + e.getMessage());
             }
 
             if (new File("volumes/.skip-modelinit").exists()) {
@@ -372,6 +387,20 @@ public class ModelInit {
                 System.err.println("Error initializing Stats data: " + e.getMessage());
             }
         };
+    }
+
+    private String buildGroupMentorsTableSql(Connection connection) throws SQLException {
+        return "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "group_mentors") + " ("
+                + quoteIdentifier(connection, "group_id") + " BIGINT NOT NULL,"
+                + quoteIdentifier(connection, "person_id") + " BIGINT NOT NULL"
+                + ");";
+    }
+
+    private void ensureRoleExists(String roleName) {
+        if (roleJpaRepository.findByName(roleName) == null) {
+            roleJpaRepository.save(new PersonRole(roleName));
+            System.out.println("Seeded role " + roleName);
+        }
     }
 
     private boolean isSqliteDatabase() {

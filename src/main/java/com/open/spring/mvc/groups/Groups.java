@@ -36,6 +36,15 @@ public class Groups extends Submitter {
     @JsonIgnore
     private List<Person> groupMembers = new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "group_mentors",
+        joinColumns = @JoinColumn(name = "group_id"),
+        inverseJoinColumns = @JoinColumn(name = "person_id")
+    )
+    @JsonIgnore
+    private List<Person> groupMentors = new ArrayList<>();
+
     private String name;
     private String period;
     private String course;
@@ -66,5 +75,15 @@ public class Groups extends Submitter {
             this.groupMembers.remove(person);
             person.getGroups().remove(this);
         }
+    }
+
+    public void addMentor(Person person) {
+        if (!this.groupMentors.contains(person)) {
+            this.groupMentors.add(person);
+        }
+    }
+
+    public void removeMentor(Person person) {
+        this.groupMentors.remove(person);
     }
 }

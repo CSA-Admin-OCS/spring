@@ -173,7 +173,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/analytics/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/grades**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/plant/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
-                        .requestMatchers("/api/groups/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
+                        .requestMatchers("/api/groups/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR")
                         .requestMatchers("/api/grade-prediction/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/admin-evaluation/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/grades/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
@@ -205,6 +205,11 @@ public class SecurityConfig {
                         // OCS Analytics endpoints - require authentication to associate data with user
                         .requestMatchers("/api/ocs-analytics/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         // ===================================
+
+                        // A mentor needs their own profile (e.g. after login) but is deliberately
+                        // NOT added to the /api/** catch-all below -- that's what keeps ROLE_MENTOR
+                        // scoped to only the endpoints that explicitly grant it.
+                        .requestMatchers(HttpMethod.GET, "/api/person/get").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR")
 
                         // ========== DEFAULT: ALL OTHER API ENDPOINTS ==========
                         // Secure by default - any endpoint not explicitly listed above requires authentication
@@ -253,6 +258,8 @@ public class SecurityConfig {
         policy.put("/api/leaderboard/**", "permitAll");
         policy.put("/api/exports/**", "ROLE_ADMIN");
         policy.put("/api/imports/**", "ROLE_ADMIN");
+        policy.put("/api/groups/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
+        policy.put("GET /api/person/get", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
         policy.put("/api/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT");
         return Map.copyOf(policy);
     }

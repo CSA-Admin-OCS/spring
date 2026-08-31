@@ -28,6 +28,14 @@ public interface GroupsJpaRepository extends JpaRepository<Groups, Long> {
     @Query("SELECT g FROM Groups g JOIN g.groupMembers p WHERE p.id = :personId")
     List<Groups> findGroupsByPersonId(@Param("personId") Long personId);
 
+    // Find groups mentored by a specific person by id
+    @Query("SELECT g FROM Groups g JOIN g.groupMentors p WHERE p.id = :mentorId")
+    List<Groups> findGroupsByMentorId(@Param("mentorId") Long mentorId);
+
+    // Find groups mentored by a specific person by uid
+    @Query("SELECT g FROM Groups g JOIN g.groupMentors p WHERE p.uid = :mentorUid")
+    List<Groups> findGroupsByMentorUid(@Param("mentorUid") String mentorUid);
+
     @Query("SELECT DISTINCT g FROM Groups g LEFT JOIN FETCH g.groupMembers gm WHERE EXISTS (SELECT 1 FROM g.groupMembers p WHERE p.id = :personId) ORDER BY g.id")
     List<Groups> findGroupsByPersonIdWithMembers(@Param("personId") Long personId);
     
@@ -41,6 +49,13 @@ public interface GroupsJpaRepository extends JpaRepository<Groups, Long> {
                    "WHERE gm.group_id = :groupId " +
                    "ORDER BY p.id", nativeQuery = true)
     List<Object[]> findGroupMembersRaw(@Param("groupId") Long groupId);
+
+    // Get raw mentor data for a group (avoids Hibernate hydration issues)
+    @Query(value = "SELECT p.id, p.uid, p.name, p.email FROM group_mentors gm " +
+                   "JOIN person p ON gm.person_id = p.id " +
+                   "WHERE gm.group_id = :groupId " +
+                   "ORDER BY p.id", nativeQuery = true)
+    List<Object[]> findGroupMentorsRaw(@Param("groupId") Long groupId);
 
     // Find a group by exact name
     Optional<Groups> findByName(String name);

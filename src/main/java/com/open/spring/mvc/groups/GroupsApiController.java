@@ -9,6 +9,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,16 +92,55 @@ public class GroupsApiController {
         return groupMap;
     }
 
+    private List<Map<String, Object>> buildMentorsList(Long groupId) {
+        List<Map<String, Object>> mentorsList = new ArrayList<>();
+        List<Object[]> mentorRows = groupsRepository.findGroupMentorsRaw(groupId);
+
+        for (Object[] row : mentorRows) {
+            Map<String, Object> mentor = new LinkedHashMap<>();
+            mentor.put("id", ((Number) row[0]).longValue());
+            mentor.put("uid", (String) row[1]);
+            mentor.put("name", (String) row[2]);
+            mentor.put("email", (String) row[3]);
+            mentorsList.add(mentor);
+        }
+
+        return mentorsList;
+    }
+
+    // In-controller authority scan, mirroring PersonViewController's admin check --
+    // there is no @PreAuthorize on this controller's other endpoints.
+    private boolean hasAnyAuthority(Authentication authentication, String... roles) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
+            return false;
+        }
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        List<String> roleList = java.util.Arrays.asList(roles);
+        return userDetails.getAuthorities().stream()
+            .anyMatch(authority -> roleList.contains(authority.getAuthority()));
+    }
+
     // ===== GET Operations =====
 
     /**
-     * GET /api/groups - Get all groups with their members
+     * GET /api/groups - Get all groups with their members.
+     * Admin/teacher see every group; a mentor sees only the groups they mentor;
+     * every other authenticated role is unchanged (sees all groups, as before).
      */
     @GetMapping
     @Transactional(readOnly = true)
-    public ResponseEntity<List<Map<String, Object>>> getAllGroups() {
+    public ResponseEntity<List<Map<String, Object>>> getAllGroups(Authentication authentication) {
         try {
-            List<Groups> groups = groupsRepository.findAll();
+            List<Groups> groups;
+
+            if (!hasAnyAuthority(authentication, "ROLE_ADMIN", "ROLE_TEACHER")
+                    && hasAnyAuthority(authentication, "ROLE_MENTOR")) {
+                String mentorUid = ((UserDetails) authentication.getPrincipal()).getUsername();
+                groups = groupsRepository.findGroupsByMentorUid(mentorUid);
+            } else {
+                groups = groupsRepository.findAll();
+            }
+
             List<Map<String, Object>> result = new ArrayList<>();
 
             for (Groups group : groups) {
@@ -470,6 +511,162 @@ public class GroupsApiController {
             );
         }
     }
+
+    // ===== Group Mentors =====
+
+    /**
+     * GET /api/groups/{id}/mentors - Get the mentors for a group
+     */
+    @GetMapping("/{id}/mentors")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> getGroupMentors(@PathVariable Long id) {
+        Optional<Groups> groupOpt = groupsRepository.findById(id);
+        if (groupOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(buildMentorsList(id), HttpStatus.OK);
+    }
+
+    /**
+     * GET /api/groups/mentor/{personId} - Get all groups mentored by a specific person
+     */
+    @GetMapping("/mentor/{personId}")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> getGroupsByMentorId(@PathVariable Long personId) {
+        try {
+            Optional<Person> personOpt = personRepository.findById(personId);
+            if (personOpt.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            List<Groups> groups = groupsRepository.findGroupsByMentorId(personId);
+            List<Map<String, Object>> result = new ArrayList<>();
+
+            for (Groups group : groups) {
+                result.add(buildGroupResponse(group));
+            }
+
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * POST /api/groups/{id}/mentors/{personId} - Add a mentor to a group (admin/teacher only)
+     */
+    @PostMapping("/{id}/mentors/{personId}")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> addMentorToGroup(
+            @PathVariable Long id,
+            @PathVariable Long personId,
+            Authentication authentication) {
+        if (!hasAnyAuthority(authentication, "ROLE_ADMIN", "ROLE_TEACHER")) {
+            return new ResponseEntity<>(
+                Map.of("error", "Forbidden"),
+                HttpStatus.FORBIDDEN
+            );
+        }
+        try {
+            Optional<Groups> groupOpt = groupsRepository.findById(id);
+            if (groupOpt.isEmpty()) {
+                return new ResponseEntity<>(
+                    Map.of("error", "Group not found"),
+                    HttpStatus.NOT_FOUND
+                );
+            }
+
+            Optional<Person> personOpt = personRepository.findById(personId);
+            if (personOpt.isEmpty()) {
+                return new ResponseEntity<>(
+                    Map.of("error", "Person not found"),
+                    HttpStatus.NOT_FOUND
+                );
+            }
+
+            Groups group = groupOpt.get();
+            Person person = personOpt.get();
+
+            if (group.getGroupMentors().contains(person)) {
+                return new ResponseEntity<>(
+                    Map.of("error", "Person already a mentor of this group"),
+                    HttpStatus.CONFLICT
+                );
+            }
+
+            group.addMentor(person);
+            groupsRepository.save(group);
+
+            return new ResponseEntity<>(
+                Map.of("groupId", group.getId(), "mentors", buildMentorsList(id)),
+                HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                Map.of("error", e.getMessage()),
+                HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
+    /**
+     * DELETE /api/groups/{id}/mentors/{personId} - Remove a mentor from a group (admin/teacher only)
+     */
+    @DeleteMapping("/{id}/mentors/{personId}")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> removeMentorFromGroup(
+            @PathVariable Long id,
+            @PathVariable Long personId,
+            Authentication authentication) {
+        if (!hasAnyAuthority(authentication, "ROLE_ADMIN", "ROLE_TEACHER")) {
+            return new ResponseEntity<>(
+                Map.of("error", "Forbidden"),
+                HttpStatus.FORBIDDEN
+            );
+        }
+        try {
+            Optional<Groups> groupOpt = groupsRepository.findById(id);
+            if (groupOpt.isEmpty()) {
+                return new ResponseEntity<>(
+                    Map.of("error", "Group not found"),
+                    HttpStatus.NOT_FOUND
+                );
+            }
+
+            Optional<Person> personOpt = personRepository.findById(personId);
+            if (personOpt.isEmpty()) {
+                return new ResponseEntity<>(
+                    Map.of("error", "Person not found"),
+                    HttpStatus.NOT_FOUND
+                );
+            }
+
+            Groups group = groupOpt.get();
+            Person person = personOpt.get();
+
+            if (!group.getGroupMentors().contains(person)) {
+                return new ResponseEntity<>(
+                    Map.of("error", "Person is not a mentor of this group"),
+                    HttpStatus.CONFLICT
+                );
+            }
+
+            group.removeMentor(person);
+            groupsRepository.save(group);
+
+            return new ResponseEntity<>(
+                Map.of("groupId", group.getId(), "mentors", buildMentorsList(id)),
+                HttpStatus.OK
+            );
+        } catch (Exception e) {
+            return new ResponseEntity<>(
+                Map.of("error", e.getMessage()),
+                HttpStatus.BAD_REQUEST
+            );
+        }
+    }
+
     // ===== Group Grades (JSON blob) =====
 
     @GetMapping("/{id}/grades")

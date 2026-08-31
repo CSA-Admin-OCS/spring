@@ -4,9 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,23 +55,41 @@ public class GroupChatApiController {
         private String base64Data;
     }
 
-    // --- Auth helpers (commented out) ---
-    // private String getCurrentUsername() {
-    //     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    //     if (auth == null || !auth.isAuthenticated()) {
-    //         return null;
-    //     }
-    //     String name = auth.getName();
-    //     if (name == null || name.isBlank() || "anonymousUser".equals(name)) {
-    //         return null;
-    //     }
-    //     return name;
-    // }
-    //
-    // private boolean isMember(Groups group, String uid) {
-    //     return group.getGroupMembers().stream()
-    //             .anyMatch(member -> uid.equals(member.getUid()));
-    // }
+    // --- Auth helpers ---
+    private String getCurrentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return null;
+        }
+        String name = auth.getName();
+        if (name == null || name.isBlank() || "anonymousUser".equals(name)) {
+            return null;
+        }
+        return name;
+    }
+
+    private boolean isMember(Groups group, String uid) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            boolean isAdminOrTeacher = auth.getAuthorities().stream()
+                    .anyMatch(authority -> Set.of("ROLE_ADMIN", "ROLE_TEACHER").contains(authority.getAuthority()));
+            if (isAdminOrTeacher) {
+                return true;
+            }
+        }
+
+        // group.getGroupMembers()/getGroupMentors() are lazy and these endpoints aren't
+        // @Transactional, so read via the raw queries instead (same fix GroupsApiController
+        // already uses to avoid Hibernate hydration issues on this entity).
+        boolean isGroupMember = groupsRepository.findGroupMembersRaw(group.getId()).stream()
+                .anyMatch(row -> uid.equals((String) row[1]));
+        if (isGroupMember) {
+            return true;
+        }
+
+        return groupsRepository.findGroupMentorsRaw(group.getId()).stream()
+                .anyMatch(row -> uid.equals((String) row[1]));
+    }
 
     @GetMapping("/analytics/{personId}")
     public ResponseEntity<?> getUserAnalytics(@PathVariable Long personId) {
@@ -94,13 +115,13 @@ public class GroupChatApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // String currentUsername = getCurrentUsername();
-        // if (currentUsername == null) {
-        //     return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        // }
-        // if (!isMember(groupOpt.get(), currentUsername)) {
-        //     return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        // }
+        String currentUsername = getCurrentUsername();
+        if (currentUsername == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!isMember(groupOpt.get(), currentUsername)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         String groupName = groupOpt.get().getName();
         List<GroupChatMessage> messages = groupChatService.getMessages(groupName);
@@ -116,13 +137,13 @@ public class GroupChatApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // String currentUsername = getCurrentUsername();
-        // if (currentUsername == null) {
-        //     return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        // }
-        // if (!isMember(groupOpt.get(), currentUsername)) {
-        //     return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        // }
+        String currentUsername = getCurrentUsername();
+        if (currentUsername == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!isMember(groupOpt.get(), currentUsername)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         if (message == null || message.getName() == null || message.getMessage() == null) {
             return new ResponseEntity<>("name and message are required", HttpStatus.BAD_REQUEST);
@@ -164,13 +185,13 @@ public class GroupChatApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // String currentUsername = getCurrentUsername();
-        // if (currentUsername == null) {
-        //     return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        // }
-        // if (!isMember(groupOpt.get(), currentUsername)) {
-        //     return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        // }
+        String currentUsername = getCurrentUsername();
+        if (currentUsername == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!isMember(groupOpt.get(), currentUsername)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         String groupName = groupOpt.get().getName();
         List<Map<String, String>> files = groupChatService.listSharedFiles(groupName);
@@ -186,13 +207,13 @@ public class GroupChatApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        // String currentUsername = getCurrentUsername();
-        // if (currentUsername == null) {
-        //     return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        // }
-        // if (!isMember(groupOpt.get(), currentUsername)) {
-        //     return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        // }
+        String currentUsername = getCurrentUsername();
+        if (currentUsername == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        if (!isMember(groupOpt.get(), currentUsername)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
 
         if (request == null || request.getFilename() == null || request.getBase64Data() == null) {
             return new ResponseEntity<>("filename and base64Data are required", HttpStatus.BAD_REQUEST);
