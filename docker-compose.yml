@@ -9,3 +9,10 @@ services:
     volumes:
        - ./volumes:/app/volumes
     restart: unless-stopped
+
+  code_runner:
+    image: spring_runner
+    build: ./runner
+    cap_drop:
+      - ALL
+    restart: unless-stopped
