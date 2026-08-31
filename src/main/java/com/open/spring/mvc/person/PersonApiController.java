@@ -283,6 +283,7 @@ public class PersonApiController {
         private String name;
         private String pfp;
         private Boolean kasmServerNeeded;
+        private String idToken;
         // faceData removed: use POST /api/face/register (FaceApiController) instead.
     }
 
@@ -295,6 +296,20 @@ public class PersonApiController {
      */
     @PostMapping("/person/create")
     public ResponseEntity<Object> postPerson(@RequestBody PersonDto personDto) {
+
+        String verifiedEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
+        if (verifiedEmail == null) {
+            logger.warn("AUDIT signup_role uid={} role=none reason=invalid_token", personDto.getUid());
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "A valid Google ID token is required");
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.FORBIDDEN);
+        }
+        verifiedEmail = verifiedEmail.toLowerCase();
+        personDto.setEmail(verifiedEmail);
+
+        String roleName = verifiedEmail.endsWith("@stu.powayusd.com") ? "ROLE_USER" : "ROLE_PENDING";
 
         // Check if a person with this uid already exists
         if (personDto.getUid() != null && repository.existsByUid(personDto.getUid())) {
@@ -323,18 +338,22 @@ public class PersonApiController {
         }
 
         // Use canonical Spring Security role naming (ROLE_*) for new accounts.
-        PersonRole defaultRole = personDetailsService.findRole("ROLE_USER");
+        PersonRole defaultRole = personDetailsService.findRole(roleName);
         if (defaultRole == null) {
-            // Backward compatibility for deployments that still have legacy role names.
-            defaultRole = personDetailsService.findRole("USER");
+            // Backward compatibility only applies to the established user role.
+            if ("ROLE_USER".equals(roleName)) {
+                defaultRole = personDetailsService.findRole("USER");
+            }
         }
         if (defaultRole == null) {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setContentType(MediaType.APPLICATION_JSON);
             JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "Default role ROLE_USER is not configured");
+            responseObject.put("error", "Default role " + roleName + " is not configured");
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        logger.info("AUDIT signup_role uid={} role={}", personDto.getUid(), roleName);
 
         // A person object WITHOUT ID will create a new record in the database
         Person person = new Person(personDto.getEmail(), personDto.getUid(), personDto.getPassword(),
