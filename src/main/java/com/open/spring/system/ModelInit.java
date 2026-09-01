@@ -162,6 +162,17 @@ public class ModelInit {
                     String createGroupMentors = buildGroupMentorsTableSql(conn);
                     st.execute(createGroupMentors);
                     System.out.println("Ensured 'group_mentors' table exists");
+
+                    st.execute(buildCapstoneProjectTableSql(conn));
+                    System.out.println("Ensured 'capstone_project' table exists");
+                    st.execute(buildCapstoneMentorsTableSql(conn));
+                    System.out.println("Ensured 'capstone_mentors' table exists");
+
+                    // Hibernate's AUTO id generator allocates from a <table>_seq table;
+                    // without it the first insert fails with "no such table".
+                    st.execute(buildCapstoneSeqTableSql(conn));
+                    ensureCapstoneSeqSeeded(conn);
+                    System.out.println("Ensured 'capstone_project_seq' table exists");
                 } catch (SQLException e) {
                     System.err.println("Failed to ensure manual tables: " + e.getMessage());
                 }
@@ -394,6 +405,42 @@ public class ModelInit {
                 + quoteIdentifier(connection, "group_id") + " BIGINT NOT NULL,"
                 + quoteIdentifier(connection, "person_id") + " BIGINT NOT NULL"
                 + ");";
+    }
+
+    private String buildCapstoneProjectTableSql(Connection connection) throws SQLException {
+        return "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "capstone_project") + " ("
+                + quoteIdentifier(connection, "id") + " BIGINT NOT NULL,"
+                + quoteIdentifier(connection, "slug") + " VARCHAR(255) NOT NULL,"
+                + quoteIdentifier(connection, "title") + " VARCHAR(255),"
+                + quoteIdentifier(connection, "description") + " TEXT,"
+                + quoteIdentifier(connection, "url") + " VARCHAR(255),"
+                + "PRIMARY KEY (" + quoteIdentifier(connection, "id") + "),"
+                + "UNIQUE (" + quoteIdentifier(connection, "slug") + "))";
+    }
+
+    private String buildCapstoneMentorsTableSql(Connection connection) throws SQLException {
+        return "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "capstone_mentors") + " ("
+                + quoteIdentifier(connection, "capstone_id") + " BIGINT NOT NULL,"
+                + quoteIdentifier(connection, "person_id") + " BIGINT NOT NULL)";
+    }
+
+    private String buildCapstoneSeqTableSql(Connection connection) throws SQLException {
+        return "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "capstone_project_seq") + " ("
+                + quoteIdentifier(connection, "next_val") + " BIGINT)";
+    }
+
+    // Hibernate expects a seeded row to increment; an empty table makes it fall over.
+    private void ensureCapstoneSeqSeeded(Connection connection) throws SQLException {
+        String seq = quoteIdentifier(connection, "capstone_project_seq");
+        String nextVal = quoteIdentifier(connection, "next_val");
+        try (Statement check = connection.createStatement();
+             java.sql.ResultSet rs = check.executeQuery("SELECT COUNT(*) FROM " + seq)) {
+            if (rs.next() && rs.getInt(1) == 0) {
+                try (Statement insert = connection.createStatement()) {
+                    insert.execute("INSERT INTO " + seq + " (" + nextVal + ") VALUES (1)");
+                }
+            }
+        }
     }
 
     private void ensureRoleExists(String roleName) {

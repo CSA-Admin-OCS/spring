@@ -125,6 +125,7 @@ public class MvcSecurityConfig {
                 .requestMatchers("/mvc/bank/read").hasAuthority("ROLE_ADMIN")
                 .requestMatchers(HttpMethod.OPTIONS, "/ws-chat/**").permitAll()
                 .requestMatchers("/mvc/progress/read").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
+                .requestMatchers("/mvc/capstone/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
                 .requestMatchers("/ws-chat/**").permitAll()
                 .requestMatchers("/run/**").permitAll()  // Java runner endpoints - public access
                 .anyRequest().authenticated()
@@ -196,6 +197,7 @@ public class MvcSecurityConfig {
         policy.put("POST /mvc/person/update/role", "ROLE_ADMIN");
         policy.put("POST /mvc/person/update/roles", "ROLE_ADMIN");
         policy.put("POST /mvc/person/remove/role", "ROLE_ADMIN");
+        policy.put("/mvc/capstone/**", "ROLE_ADMIN|ROLE_TEACHER");
         policy.put("/mvc/person/delete/**", "ROLE_ADMIN");
         return Map.copyOf(policy);
     }
