@@ -1,4 +1,3 @@
-version: '3'
 services:
   web:
     image: java_springv1
@@ -13,6 +12,16 @@ services:
   code_runner:
     image: spring_runner
     build: ./runner
+    expose: 
+      - "8592"
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+  code_runner:
+    image: spring_runner
+    build: ./runner
+    expose: 
+      - "8592"
     cap_drop:
       - ALL
     restart: unless-stopped
