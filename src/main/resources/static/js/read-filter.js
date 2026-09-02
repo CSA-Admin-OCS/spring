@@ -4,7 +4,8 @@ $(document).ready(function () {
     if ($('#personTable').length) {
         table = $('#personTable').DataTable({
             columnDefs: [
-                { targets: [3, 4, 6, 8], visible: false } // Hide Email (index 3) and SID (index 6) by default
+                { targets: [3, 4, 6, 9], visible: false } // Hide Email (3), KSM (4), SID (6), Import/Export (9) by default
+                // NOTE: index-based. Order: ID#, UID, Name, Email, KSM, PFP, SID, Mentor, Action, Import/Export.
             ]
         });
     } else if ($('#groupTable').length) {

@@ -1,0 +1,69 @@
+# Trusted business email domains for the mentor signup flow's
+# optional "verify a business email" OAuth step.
+# One domain per line. Lines starting with # are ignored.
+# Matching is a case-insensitive suffix match, so "google.com" here
+# also matches "mail.google.com".
+# Edit this file directly and restart to add/remove trusted domains --
+# it will not be overwritten once it exists.
+
+google.com
+microsoft.com
+amazon.com
+apple.com
+meta.com
+ibm.com
+oracle.com
+salesforce.com
+adobe.com
+intel.com
+cisco.com
+nvidia.com
+qualcomm.com
+hp.com
+dell.com
+vmware.com
+sap.com
+workday.com
+servicenow.com
+atlassian.com
+netflix.com
+airbnb.com
+uber.com
+linkedin.com
+shopify.com
+jpmorgan.com
+jpmorganchase.com
+goldmansachs.com
+morganstanley.com
+bankofamerica.com
+wellsfargo.com
+citi.com
+blackrock.com
+visa.com
+mastercard.com
+paypal.com
+americanexpress.com
+capitalone.com
+schwab.com
+fidelity.com
+vanguard.com
+mckinsey.com
+bain.com
+bcg.com
+deloitte.com
+pwc.com
+ey.com
+kpmg.com
+accenture.com
+boeing.com
+lockheedmartin.com
+generalelectric.com
+ge.com
+tesla.com
+disney.com
+nike.com
+starbucks.com
+target.com
+walmart.com
+jnj.com
+pfizer.com

@@ -76,8 +76,9 @@
             <button class="btn btn-secondary toggle-column inactive" data-column="4">KSM</button>
             <button class="btn btn-secondary toggle-column active" data-column="5">PFP</button>
             <button class="btn btn-secondary toggle-column inactive" data-column="6">SID</button>
-            <button class="btn btn-secondary toggle-column active" data-column="7">Action</button>
-            <button class="btn btn-secondary toggle-column inactive" data-column="8">Import/Export</button>
+            <button class="btn btn-secondary toggle-column active" data-column="7">Mentor</button>
+            <button class="btn btn-secondary toggle-column active" data-column="8">Action</button>
+            <button class="btn btn-secondary toggle-column inactive" data-column="9">Import/Export</button>
         </div>
         <br>
 
@@ -93,6 +94,7 @@
                         <th>KSM</th>
                         <th>PFP</th>
                         <th>SID</th>
+                        <th>Mentor</th>
                         <th>Action</th>
                         <th>Import/Export</th>
                     </tr>
@@ -121,6 +123,9 @@
                             </div>
                         </td>
                         <td th:text="${person.sid}">Student ID</td>
+                        <td>
+                            <span th:if="${person.mentorEmailVerified}" class="badge bg-success">✔ Business email verified</span>
+                        </td>
                         <td>
                             <a th:href="@{/mvc/person/update/{id}(id = ${person.id})}" class="btn btn-warning btn-sm"
                                 name="update">Update</a>

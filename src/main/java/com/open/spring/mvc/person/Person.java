@@ -135,6 +135,13 @@ public class Person extends Submitter implements Comparable<Person> {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean kasmServerNeeded = false;
 
+    // Set when a mentor signup's optional business-email OAuth step verified an email
+    // whose domain is on TrustedDomains' whitelist. Purely informational for the admin
+    // dashboard (person/read.html) -- promotion to ROLE_MENTOR stays an explicit admin
+    // action via update-roles.html, this never auto-assigns the role.
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean mentorEmailVerified = false;
+
     @Column(nullable = true)
     private String sid;
 
@@ -238,7 +245,13 @@ public class Person extends Submitter implements Comparable<Person> {
         this.pfp = pfp;
         this.roles.add(role);
 
-        this.timeEntries = new Tinkle(this, "");
+        // Tinkle (bathroom-queue tracking) requires a non-null, unique sid -- only
+        // meaningful for students. Mentor signups have no sid, so skip creating one
+        // rather than inventing a placeholder value that would collide across mentors
+        // (Tinkle.sid is a unique column) or misrepresent a non-student account.
+        if (sid != null && !sid.isBlank()) {
+            this.timeEntries = new Tinkle(this, "");
+        }
         // Create a Bank for this person
         this.banks = new Bank(this);
     }

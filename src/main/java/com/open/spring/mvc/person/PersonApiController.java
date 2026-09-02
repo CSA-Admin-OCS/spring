@@ -284,6 +284,9 @@ public class PersonApiController {
         private String pfp;
         private Boolean kasmServerNeeded;
         private String idToken;
+        // "mentor" opts into the no-idToken mentor signup path below; anything else
+        // (including null) falls through to the existing student behavior unchanged.
+        private String accountType;
         // faceData removed: use POST /api/face/register (FaceApiController) instead.
     }
 
@@ -297,19 +300,60 @@ public class PersonApiController {
     @PostMapping("/person/create")
     public ResponseEntity<Object> postPerson(@RequestBody PersonDto personDto) {
 
-        String verifiedEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
-        if (verifiedEmail == null) {
-            logger.warn("AUDIT signup_role uid={} role=none reason=invalid_token", personDto.getUid());
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A valid Google ID token is required");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.FORBIDDEN);
-        }
-        verifiedEmail = verifiedEmail.toLowerCase();
-        personDto.setEmail(verifiedEmail);
+        // Explicit opt-in match, not an opt-out default: only the literal string
+        // "mentor" takes the no-idToken path below. Null, "student", a typo, or any
+        // other existing caller falls straight through to the unchanged student
+        // behavior -- a missing/wrong accountType can never buy the weaker path.
+        boolean isMentorSignup = "mentor".equalsIgnoreCase(personDto.getAccountType());
+        String roleName;
+        boolean mentorEmailVerified = false;
 
-        String roleName = verifiedEmail.endsWith("@stu.powayusd.com") ? "ROLE_USER" : "ROLE_PENDING";
+        if (!isMentorSignup) {
+            String verifiedEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
+            if (verifiedEmail == null) {
+                logger.warn("AUDIT signup_role uid={} role=none reason=invalid_token", personDto.getUid());
+                HttpHeaders responseHeaders = new HttpHeaders();
+                responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+                JSONObject responseObject = new JSONObject();
+                responseObject.put("error", "A valid Google ID token is required");
+                return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.FORBIDDEN);
+            }
+            verifiedEmail = verifiedEmail.toLowerCase();
+            personDto.setEmail(verifiedEmail);
+            roleName = verifiedEmail.endsWith("@stu.powayusd.com") ? "ROLE_USER" : "ROLE_PENDING";
+        } else {
+            // Mentor signup: OAuth is optional. If an idToken was sent (the optional
+            // "verify a business email" step), it's still verified server-side like
+            // any other token -- never trust a claimed email -- and an invalid token
+            // is still a real failure, not silently ignored. Its absence is not an
+            // error; the mentor can sign up with just uid/email/password.
+            if (personDto.getIdToken() != null && !personDto.getIdToken().isBlank()) {
+                String verifiedBusinessEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
+                if (verifiedBusinessEmail == null) {
+                    logger.warn("AUDIT signup_role uid={} role=none reason=invalid_mentor_token", personDto.getUid());
+                    HttpHeaders responseHeaders = new HttpHeaders();
+                    responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    JSONObject responseObject = new JSONObject();
+                    responseObject.put("error", "The provided Google ID token could not be verified");
+                    return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.FORBIDDEN);
+                }
+                verifiedBusinessEmail = verifiedBusinessEmail.toLowerCase();
+                personDto.setEmail(verifiedBusinessEmail);
+                mentorEmailVerified = TrustedDomains.isTrusted(verifiedBusinessEmail);
+            } else {
+                if (personDto.getEmail() == null || personDto.getEmail().isBlank()) {
+                    HttpHeaders responseHeaders = new HttpHeaders();
+                    responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+                    JSONObject responseObject = new JSONObject();
+                    responseObject.put("error", "Email is required");
+                    return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+                }
+                personDto.setEmail(personDto.getEmail().toLowerCase());
+            }
+            // Mentor signups always land in ROLE_PENDING pending admin review -- never
+            // auto-ROLE_USER, regardless of email domain.
+            roleName = "ROLE_PENDING";
+        }
 
         // Check if a person with this uid already exists
         if (personDto.getUid() != null && repository.existsByUid(personDto.getUid())) {
@@ -353,11 +397,13 @@ public class PersonApiController {
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        logger.info("AUDIT signup_role uid={} role={}", personDto.getUid(), roleName);
+        logger.info("AUDIT signup_role uid={} role={} mentor={} businessEmailVerified={}",
+                personDto.getUid(), roleName, isMentorSignup, mentorEmailVerified);
 
         // A person object WITHOUT ID will create a new record in the database
         Person person = new Person(personDto.getEmail(), personDto.getUid(), personDto.getPassword(),
                 personDto.getSid(), personDto.getName(), "/images/default.png", true, defaultRole);
+        person.setMentorEmailVerified(mentorEmailVerified);
 
         try {
             personDetailsService.save(person);
