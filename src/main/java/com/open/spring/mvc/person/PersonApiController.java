@@ -297,6 +297,17 @@ public class PersonApiController {
      * @return A ResponseEntity containing a success message if the Person entity is
      *         created, or a BAD_REQUEST status if not created.
      */
+    // Shared shape for every error response in postPerson -- both the pre-existing
+    // uniqueness checks below and the mentor-signup branch use this instead of each
+    // hand-building the same HttpHeaders/JSONObject boilerplate.
+    private ResponseEntity<Object> personCreateError(HttpStatus status, String message) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject responseObject = new JSONObject();
+        responseObject.put("error", message);
+        return new ResponseEntity<>(responseObject.toString(), responseHeaders, status);
+    }
+
     @PostMapping("/person/create")
     public ResponseEntity<Object> postPerson(@RequestBody PersonDto personDto) {
 
@@ -312,11 +323,7 @@ public class PersonApiController {
             String verifiedEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
             if (verifiedEmail == null) {
                 logger.warn("AUDIT signup_role uid={} role=none reason=invalid_token", personDto.getUid());
-                HttpHeaders responseHeaders = new HttpHeaders();
-                responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-                JSONObject responseObject = new JSONObject();
-                responseObject.put("error", "A valid Google ID token is required");
-                return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.FORBIDDEN);
+                return personCreateError(HttpStatus.FORBIDDEN, "A valid Google ID token is required");
             }
             verifiedEmail = verifiedEmail.toLowerCase();
             personDto.setEmail(verifiedEmail);
@@ -331,22 +338,14 @@ public class PersonApiController {
                 String verifiedBusinessEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
                 if (verifiedBusinessEmail == null) {
                     logger.warn("AUDIT signup_role uid={} role=none reason=invalid_mentor_token", personDto.getUid());
-                    HttpHeaders responseHeaders = new HttpHeaders();
-                    responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-                    JSONObject responseObject = new JSONObject();
-                    responseObject.put("error", "The provided Google ID token could not be verified");
-                    return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.FORBIDDEN);
+                    return personCreateError(HttpStatus.FORBIDDEN, "The provided Google ID token could not be verified");
                 }
                 verifiedBusinessEmail = verifiedBusinessEmail.toLowerCase();
                 personDto.setEmail(verifiedBusinessEmail);
                 mentorEmailVerified = TrustedDomains.isTrusted(verifiedBusinessEmail);
             } else {
                 if (personDto.getEmail() == null || personDto.getEmail().isBlank()) {
-                    HttpHeaders responseHeaders = new HttpHeaders();
-                    responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-                    JSONObject responseObject = new JSONObject();
-                    responseObject.put("error", "Email is required");
-                    return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+                    return personCreateError(HttpStatus.BAD_REQUEST, "Email is required");
                 }
                 personDto.setEmail(personDto.getEmail().toLowerCase());
             }
@@ -357,28 +356,16 @@ public class PersonApiController {
 
         // Check if a person with this uid already exists
         if (personDto.getUid() != null && repository.existsByUid(personDto.getUid())) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with uid '" + personDto.getUid() + "' already exists");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "A person with uid '" + personDto.getUid() + "' already exists");
         }
 
         // Check if a person with this email already exists
         if (personDto.getEmail() != null && repository.existsByEmail(personDto.getEmail())) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with email '" + personDto.getEmail() + "' already exists");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "A person with email '" + personDto.getEmail() + "' already exists");
         }
 
         if (personDto.getSid() != null && !personDto.getSid().isBlank() && tinkleRepository.findBySid(personDto.getSid()).isPresent()) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with sid '" + personDto.getSid() + "' already exists");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "A person with sid '" + personDto.getSid() + "' already exists");
         }
 
         // Use canonical Spring Security role naming (ROLE_*) for new accounts.
@@ -390,11 +377,7 @@ public class PersonApiController {
             }
         }
         if (defaultRole == null) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "Default role " + roleName + " is not configured");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+            return personCreateError(HttpStatus.INTERNAL_SERVER_ERROR, "Default role " + roleName + " is not configured");
         }
 
         logger.info("AUDIT signup_role uid={} role={} mentor={} businessEmailVerified={}",
@@ -408,11 +391,7 @@ public class PersonApiController {
         try {
             personDetailsService.save(person);
         } catch (DataIntegrityViolationException e) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
         }
 
         HttpHeaders responseHeaders = new HttpHeaders();

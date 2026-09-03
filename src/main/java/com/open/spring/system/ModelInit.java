@@ -1,10 +1,6 @@
 package com.open.spring.system;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -194,7 +190,7 @@ public class ModelInit {
             }
 
             try {
-                ensureMentorDomainsSeeded();
+                com.open.spring.mvc.person.TrustedDomains.ensureSeeded();
             } catch (Exception e) {
                 System.err.println("Failed to seed mentor-trusted-domains.txt: " + e.getMessage());
             }
@@ -458,56 +454,6 @@ public class ModelInit {
             roleJpaRepository.save(new PersonRole(roleName));
             System.out.println("Seeded role " + roleName);
         }
-    }
-
-    // Writes a starter mentor-trusted-domains.txt on first boot only -- never overwrites
-    // it if it already exists, so an admin's edits survive restarts. See TrustedDomains
-    // for how this file is read at signup time.
-    private void ensureMentorDomainsSeeded() throws IOException {
-        Path file = com.open.spring.mvc.person.TrustedDomains.DOMAINS_FILE;
-        if (Files.exists(file)) {
-            return;
-        }
-        Path parent = file.getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
-
-        String[] starterDomains = {
-            // Tech
-            "google.com", "microsoft.com", "amazon.com", "apple.com", "meta.com",
-            "ibm.com", "oracle.com", "salesforce.com", "adobe.com", "intel.com",
-            "cisco.com", "nvidia.com", "qualcomm.com", "hp.com", "dell.com",
-            "vmware.com", "sap.com", "workday.com", "servicenow.com", "atlassian.com",
-            "netflix.com", "airbnb.com", "uber.com", "linkedin.com", "shopify.com",
-            // Finance
-            "jpmorgan.com", "jpmorganchase.com", "goldmansachs.com", "morganstanley.com",
-            "bankofamerica.com", "wellsfargo.com", "citi.com", "blackrock.com",
-            "visa.com", "mastercard.com", "paypal.com", "americanexpress.com",
-            "capitalone.com", "schwab.com", "fidelity.com", "vanguard.com",
-            // Consulting / professional services
-            "mckinsey.com", "bain.com", "bcg.com", "deloitte.com", "pwc.com",
-            "ey.com", "kpmg.com", "accenture.com",
-            // Other well-known
-            "boeing.com", "lockheedmartin.com", "generalelectric.com", "ge.com",
-            "tesla.com", "disney.com", "nike.com", "starbucks.com", "target.com",
-            "walmart.com", "jnj.com", "pfizer.com",
-        };
-
-        StringBuilder content = new StringBuilder();
-        content.append("# Trusted business email domains for the mentor signup flow's\n");
-        content.append("# optional \"verify a business email\" OAuth step.\n");
-        content.append("# One domain per line. Lines starting with # are ignored.\n");
-        content.append("# Matching is a case-insensitive suffix match, so \"google.com\" here\n");
-        content.append("# also matches \"mail.google.com\".\n");
-        content.append("# Edit this file directly and restart to add/remove trusted domains --\n");
-        content.append("# it will not be overwritten once it exists.\n\n");
-        for (String domain : starterDomains) {
-            content.append(domain).append('\n');
-        }
-
-        Files.writeString(file, content.toString(), StandardCharsets.UTF_8);
-        System.out.println("Seeded starter " + file + " (" + starterDomains.length + " domains)");
     }
 
     private boolean isSqliteDatabase() {
