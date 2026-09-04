@@ -40,7 +40,7 @@
                     placeholder="Student ID#">
             </div>
 
-            <div class="form-group mb-2 mr-sm-2">
+            <div class="form-group mb-2 mr-sm-2" sec:authorize="!hasRole('ROLE_MENTOR')">
                 <label for="kasmServerNeeded">Request Kasm Server:</label>
                 <input class="form-check-input mb-2 mr-sm-2" type="checkbox" th:field="*{kasmServerNeeded}"
                     id="kasmServerNeeded">
