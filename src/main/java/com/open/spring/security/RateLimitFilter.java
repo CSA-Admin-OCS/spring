@@ -17,19 +17,33 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    @Value("${security.rate-limit.requests-per-minute:20}")
+    @Value("${security.rate-limit.requests-per-minute:1000}")
     private int requestsPerMinute;
 
-    @Value("${security.rate-limit.admin-requests-per-minute:1000}")
+    @Value("${security.rate-limit.admin-requests-per-minute:5000}")
     private int adminRequestsPerMinute;
+
+    @Value("${security.rate-limit.exempt-paths:}")
+    private String exemptPaths;
 
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
     private final Map<String, Integer> userLimits = new ConcurrentHashMap<>();
     private final Map<String, Boolean> activeUsers = new ConcurrentHashMap<>();
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String requestPath = request.getRequestURI();
+
+        return Set.of(exemptPaths.split(","))
+                .stream()
+                .map(String::trim)
+                .anyMatch(requestPath::equals);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -72,6 +73,9 @@ public class PersonApiController {
 
     @Autowired
     private TinkleJPARepository tinkleRepository;
+
+    @Value("${DEFAULT_PASSWORD:defaultPassword123}")
+    private String defaultPassword;
 
     /**
      * Retrieves a Person entity by current user of JWT token.
@@ -296,29 +300,66 @@ public class PersonApiController {
     @PostMapping("/person/create")
     public ResponseEntity<Object> postPerson(@RequestBody PersonDto personDto) {
 
-        // Check if a person with this uid already exists
-        if (personDto.getUid() != null && repository.existsByUid(personDto.getUid())) {
+        if (personDto == null) {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setContentType(MediaType.APPLICATION_JSON);
             JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with uid '" + personDto.getUid() + "' already exists");
+            responseObject.put("error", "Invalid request body");
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+        }
+
+        String uid = personDto.getUid() == null ? null : personDto.getUid().trim();
+        String email = personDto.getEmail() == null ? null : personDto.getEmail().trim();
+        String name = personDto.getName() == null ? null : personDto.getName().trim();
+        String sid = personDto.getSid() == null ? null : personDto.getSid().trim();
+
+        if (uid == null || uid.isBlank()) {
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "uid is required");
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+        }
+
+        if (email == null || email.isBlank()) {
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "email is required");
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+        }
+
+        if (name == null || name.isBlank()) {
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "name is required");
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+        }
+
+        // Check if a person with this uid already exists
+        if (repository.existsByUid(uid)) {
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "A person with uid '" + uid + "' already exists");
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
         }
 
         // Check if a person with this email already exists
-        if (personDto.getEmail() != null && repository.existsByEmail(personDto.getEmail())) {
+        if (repository.existsByEmail(email)) {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setContentType(MediaType.APPLICATION_JSON);
             JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with email '" + personDto.getEmail() + "' already exists");
+            responseObject.put("error", "A person with email '" + email + "' already exists");
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
         }
 
-        if (personDto.getSid() != null && !personDto.getSid().isBlank() && tinkleRepository.findBySid(personDto.getSid()).isPresent()) {
+        if (sid != null && !sid.isBlank() && tinkleRepository.findBySid(sid).isPresent()) {
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setContentType(MediaType.APPLICATION_JSON);
             JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with sid '" + personDto.getSid() + "' already exists");
+            responseObject.put("error", "A person with sid '" + sid + "' already exists");
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
         }
 
@@ -336,9 +377,43 @@ public class PersonApiController {
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        // A person object WITHOUT ID will create a new record in the database
-        Person person = new Person(personDto.getEmail(), personDto.getUid(), personDto.getPassword(),
-                personDto.getSid(), personDto.getName(), "/images/default.png", true, defaultRole);
+        String rawPassword = personDto.getPassword();
+        if (rawPassword == null || rawPassword.isBlank()) {
+            rawPassword = defaultPassword;
+        }
+        if (rawPassword == null || rawPassword.isBlank()) {
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "Password is required and no DEFAULT_PASSWORD is configured");
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        String profilePicture = personDto.getPfp();
+        if (profilePicture != null) {
+            profilePicture = profilePicture.trim();
+        }
+        if (profilePicture == null) {
+            profilePicture = "";
+        }
+
+        // Transitional behavior: keep legacy default until kasm is removed from schema.
+        boolean kasmServerNeeded = true;
+
+        // Build core person only; feature entities are initialized lazily in their own flows.
+        Person person = new Person();
+        person.setEmail(email);
+        person.setUid(uid);
+        person.setPassword(rawPassword);
+        person.setSid(sid);
+        person.setName(name);
+        person.setPfp(profilePicture);
+        person.setKasmServerNeeded(kasmServerNeeded);
+        person.getRoles().add(defaultRole);
+
+        // Non-critical feature entities should be created lazily in their own flows.
+        person.setBanks(null);
+        person.setTimeEntries(null);
 
         try {
             personDetailsService.save(person);
@@ -348,13 +423,21 @@ public class PersonApiController {
             JSONObject responseObject = new JSONObject();
             responseObject.put("error", "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            logger.error("Person create failed for uid={} email={}", uid, email, e);
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "Unable to create user");
+            responseObject.put("message", e.getMessage());
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         JSONObject responseObject = new JSONObject();
-        responseObject.put("response", personDto.getEmail() + " is created successfully");
+        responseObject.put("response", email + " is created successfully");
 
         return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.OK);
     }

@@ -31,6 +31,9 @@ import jakarta.servlet.http.HttpServletResponse;
 @RestController
 public class JwtApiController {
 
+	private static final String JWT_COOKIE_NAME = "jwt_java_spring";
+	private static final String JWT_COOKIE_PATH = "/api";
+
 	@Autowired
 	private AuthenticationManager authenticationManager;
 
@@ -54,6 +57,15 @@ public class JwtApiController {
 
 	@Value("${server.servlet.session.cookie.name:sess_java_spring}")
 	private String sessionCookieName;
+
+	@Value("${server.servlet.session.cookie.secure:true}")
+	private boolean sessionCookieSecure;
+
+	@Value("${server.servlet.session.cookie.same-site:None}")
+	private String sessionCookieSameSite;
+
+	@Value("${server.servlet.session.cookie.domain:}")
+	private String sessionCookieDomain;
 
 	@PostMapping("/authenticate")
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody Person authenticationRequest, HttpServletRequest request) throws Exception {
@@ -87,21 +99,14 @@ public class JwtApiController {
 		// For production: require HTTPS and SameSite=None; Secure
 		// Domain is set to .opencodingsociety.com to allow sharing across subdomains
 		// (spring.opencodingsociety.com, pages.opencodingsociety.com, etc.)
-		ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from("jwt_java_spring", token)
+		ResponseCookie.ResponseCookieBuilder cookieBuilder = ResponseCookie.from(JWT_COOKIE_NAME, token)
 			.httpOnly(true)
 			.secure(cookieSecure)
-			.path("/api")
+			.path(JWT_COOKIE_PATH)
 			.maxAge(cookieMaxAge)  // Configured via jwt.cookie.max-age in application.properties
 			.sameSite(cookieSameSite);
-		
-		// Add domain for cross-subdomain sharing (production and localhost)
-		if (cookieSecure) {
-			// Production: use .opencodingsociety.com domain
-			cookieBuilder.domain(".opencodingsociety.com");
-		} else {
-			// Development: use localhost domain
-			cookieBuilder.domain("localhost");
-		}
+
+		applyJwtCookieScope(cookieBuilder);
 		
 		ResponseCookie tokenCookie = cookieBuilder.build();
 
@@ -150,24 +155,48 @@ public class JwtApiController {
 			logoutHandler.logout(request, response, authentication);
 
 			// Expire the JWT token immediately by setting a past expiration date
-			ResponseCookie jwtCookie = ResponseCookie.from("jwt_java_spring", "")
+			ResponseCookie.ResponseCookieBuilder jwtCookieBuilder = ResponseCookie.from(JWT_COOKIE_NAME, "")
 					.httpOnly(true)
 					.secure(cookieSecure)
-					.path("/api")
+					.path(JWT_COOKIE_PATH)
 					.maxAge(0)  // Set maxAge to 0 to expire the cookie immediately
-					.sameSite(cookieSameSite)
-					.build();
-
-			ResponseCookie sessionCookie = ResponseCookie.from(sessionCookieName, "")
+					.sameSite(cookieSameSite);
+			applyJwtCookieScope(jwtCookieBuilder);
+			ResponseCookie jwtCookie = jwtCookieBuilder.build();
+			ResponseCookie jwtHostOnlyCookie = ResponseCookie.from(JWT_COOKIE_NAME, "")
 					.httpOnly(true)
 					.secure(cookieSecure)
-					.path("/")
+					.path(JWT_COOKIE_PATH)
 					.maxAge(0)
 					.sameSite(cookieSameSite)
 					.build();
+
+			ResponseCookie.ResponseCookieBuilder sessionCookieBuilder = ResponseCookie.from(sessionCookieName, "")
+					.httpOnly(true)
+					.secure(sessionCookieSecure)
+					.path("/")
+					.maxAge(0)
+					.sameSite(sessionCookieSameSite);
+			if (!sessionCookieDomain.isBlank()) {
+				sessionCookieBuilder.domain(sessionCookieDomain);
+			}
+			ResponseCookie sessionCookie = sessionCookieBuilder.build();
 	
 			// Set the cookies in the response to effectively "remove" them
 			response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+			response.addHeader(HttpHeaders.SET_COOKIE, jwtHostOnlyCookie.toString());
+			if (!cookieSecure) {
+				// Cleanup for legacy local dev cookies that were created with Domain=localhost.
+				ResponseCookie jwtLegacyLocalhostCookie = ResponseCookie.from(JWT_COOKIE_NAME, "")
+						.httpOnly(true)
+						.secure(false)
+						.path(JWT_COOKIE_PATH)
+						.maxAge(0)
+						.sameSite(cookieSameSite)
+						.domain("localhost")
+						.build();
+				response.addHeader(HttpHeaders.SET_COOKIE, jwtLegacyLocalhostCookie.toString());
+			}
 			response.addHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
 	
 			// Optional: You can also clear the "Authorization" header if needed
@@ -177,6 +206,12 @@ public class JwtApiController {
 			return "redirect:/home";
 		}
 }
+
+	private void applyJwtCookieScope(ResponseCookie.ResponseCookieBuilder cookieBuilder) {
+		if (cookieSecure) {
+			cookieBuilder.domain(".opencodingsociety.com");
+		}
+	}
 
 }
 
