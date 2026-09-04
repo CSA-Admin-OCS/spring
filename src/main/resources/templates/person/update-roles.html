@@ -11,9 +11,7 @@
             <strong th:text="${person.name} + ' (' + ${person.uid} + ')'">User</strong><br>
             Current roles:
             <span th:if="${person.roles.isEmpty()}">none</span>
-            <span th:each="r, it : ${person.roles}">
-                <code th:text="${r.name}">ROLE</code><span th:if="${!it.last}">, </span>
-            </span>
+            <span th:each="r : ${person.roles}" class="badge bg-secondary me-1" th:text="${r.name}">ROLE</span>
         </p>
 
         <div th:if="${param.error != null and param.error[0] == 'unknown_role'}"
@@ -29,29 +27,38 @@
                 <input type="text" th:field="*{uid}" id="uid" placeholder="Uid Address" required>
             </div>
 
-            <div class="form-group mb-2 mr-sm-2" style="margin-bottom: 10px;">
-
-                <input type="radio" name="roleName" id="role-user" value="ROLE_USER" checked>
-                <label for="role-user">User</label><br>
-
-                <input type="radio" id="role-admin" name="roleName" value="ROLE_ADMIN">
-                <label for="role-admin">Admin</label><br>
-
-                <input type="radio" id="role-tester" name="roleName" value="ROLE_TESTER">
-                <label for="role-tester">Tester</label><br>
-
-                <input type="radio" id="role-teacher" name="roleName" value="ROLE_TEACHER">
-                <label for="role-teacher">Teacher</label><br>
-
-                <input type="radio" id="role-student" name="roleName" value="ROLE_STUDENT">
-                <label for="role-student">Student</label><br>
-
-                <input type="radio" id="role-mentor" name="roleName" value="ROLE_MENTOR">
-                <label for="role-mentor">Mentor</label><br>
-
-                <input type="radio" id="role-pending" name="roleName" value="ROLE_PENDING">
-                <label for="role-pending">Pending</label><br>
-
+            <div class="mb-2">
+                <!-- No radio defaults to checked: a click on Add/Remove Role with nothing
+                     picked must fail visibly (browser blocks submit via `required`) rather
+                     than silently applying whichever role used to be the hardcoded default. -->
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="roleName" id="role-user" value="ROLE_USER" required>
+                    <label class="form-check-label" for="role-user">User</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="role-admin" name="roleName" value="ROLE_ADMIN">
+                    <label class="form-check-label" for="role-admin">Admin</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="role-tester" name="roleName" value="ROLE_TESTER">
+                    <label class="form-check-label" for="role-tester">Tester</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="role-teacher" name="roleName" value="ROLE_TEACHER">
+                    <label class="form-check-label" for="role-teacher">Teacher</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="role-student" name="roleName" value="ROLE_STUDENT">
+                    <label class="form-check-label" for="role-student">Student</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="role-mentor" name="roleName" value="ROLE_MENTOR">
+                    <label class="form-check-label" for="role-mentor">Mentor</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" id="role-pending" name="roleName" value="ROLE_PENDING">
+                    <label class="form-check-label" for="role-pending">Pending</label>
+                </div>
             </div>
             <button class="btn btn-secondary btn-sm" type="submit">Add Role</button>
             <!-- Same radio set, different action: promoting an account (e.g. Pending -> Mentor)

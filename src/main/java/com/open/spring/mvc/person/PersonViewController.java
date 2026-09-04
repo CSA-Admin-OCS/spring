@@ -58,6 +58,9 @@ public class PersonViewController {
     @Autowired
     private ResetTicketJpaRepository ticketRepository;
 
+    @Autowired
+    private MentorTicketJpaRepository mentorTicketRepository;
+
     //@Autowired
     //private PersonJpaRepository find;
 
@@ -79,6 +82,7 @@ public class PersonViewController {
             List<Person> list = repository.listAll();  // Fetch all persons
             model.addAttribute("list", list);  // Add the list to the model for the view
             model.addAttribute("tickets", ticketRepository.findByResolvedFalseOrderByIdDesc());
+            model.addAttribute("mentorTickets", mentorTicketRepository.findByResolvedFalseOrderByIdDesc());
         }
         else {
             Person person = repository.getByUid(userDetails.getUsername());  // Fetch the person by email
@@ -618,6 +622,62 @@ public class PersonViewController {
 
         logger.warn("AUDIT reset_ticket_granted admin={} target_uid={} batch={}",
                 authentication.getName(), ticket.getUid(), TICKET_GRANT_BATCH_SIZE);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // Admin approves a mentor signup from the portal: does the ROLE_PENDING -> ROLE_MENTOR
+    // promotion directly (add then remove, same order removeRoleFromPerson's own comment
+    // calls out -- roles were add-only before that method existed) and closes the ticket.
+    @PostMapping("/mentor/ticket/{id}/approve")
+    public ResponseEntity<Object> approveMentorTicket(@PathVariable Long id, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (!isAdmin) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        MentorTicket ticket = mentorTicketRepository.findById(id).orElse(null);
+        if (ticket == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (ticket.isResolved()) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+
+        repository.addRoleToPerson(ticket.getUid(), "ROLE_MENTOR");
+        repository.removeRoleFromPerson(ticket.getUid(), "ROLE_PENDING");
+        ticket.markResolved(true);
+        mentorTicketRepository.save(ticket);
+
+        logger.warn("AUDIT mentor_ticket_approved admin={} target_uid={}",
+                authentication.getName(), ticket.getUid());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // Admin denies a mentor signup: closes the ticket without touching roles, leaving the
+    // account in ROLE_PENDING exactly as any other rejected request -- the admin still has
+    // the existing Update Roles page for anything further (e.g. removing the account).
+    @PostMapping("/mentor/ticket/{id}/deny")
+    public ResponseEntity<Object> denyMentorTicket(@PathVariable Long id, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (!isAdmin) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        MentorTicket ticket = mentorTicketRepository.findById(id).orElse(null);
+        if (ticket == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (ticket.isResolved()) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+
+        ticket.markResolved(false);
+        mentorTicketRepository.save(ticket);
+
+        logger.warn("AUDIT mentor_ticket_denied admin={} target_uid={}",
+                authentication.getName(), ticket.getUid());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

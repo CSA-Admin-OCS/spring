@@ -73,6 +73,9 @@ public class PersonApiController {
     @Autowired
     private TinkleJPARepository tinkleRepository;
 
+    @Autowired
+    private MentorTicketJpaRepository mentorTicketRepository;
+
     /**
      * Retrieves a Person entity by current user of JWT token.
      * 
@@ -392,6 +395,17 @@ public class PersonApiController {
             personDetailsService.save(person);
         } catch (DataIntegrityViolationException e) {
             return personCreateError(HttpStatus.CONFLICT, "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
+        }
+
+        // Every mentor signup raises an approval ticket, not just the ones with a verified
+        // business email -- ROLE_PENDING alone doesn't distinguish a mentor request from any
+        // other pending signup, so without this an admin has no way to find who asked to be
+        // a mentor. The ticket is what update-roles.html was standing in for before: an admin
+        // approves it here, which does the ROLE_PENDING -> ROLE_MENTOR promotion directly.
+        if (isMentorSignup) {
+            mentorTicketRepository.save(
+                    new MentorTicket(person.getUid(), person.getName(), personDto.getEmail(), mentorEmailVerified));
+            logger.info("AUDIT mentor_ticket_created uid={} emailVerified={}", person.getUid(), mentorEmailVerified);
         }
 
         HttpHeaders responseHeaders = new HttpHeaders();

@@ -67,6 +67,43 @@
             </div>
         </div>
 
+        <!-- Mentor Approval Requests: one raised automatically per mentor signup (see
+             PersonApiController#postPerson). Approve promotes ROLE_PENDING -> ROLE_MENTOR
+             directly; deny just closes the ticket and leaves the account in ROLE_PENDING. -->
+        <div sec:authorize="hasRole('ROLE_ADMIN')" class="mb-4" th:if="${mentorTickets != null and !mentorTickets.isEmpty()}">
+            <h5>Mentor Approval Requests</h5>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Requested</th>
+                            <th>UID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ticket : ${mentorTickets}">
+                            <td th:text="${ticket.createdAt}">Requested At</td>
+                            <td th:text="${ticket.uid}">User UID</td>
+                            <td th:text="${ticket.name}">Name</td>
+                            <td>
+                                <span th:text="${ticket.email}">Email</span>
+                                <span th:if="${ticket.emailVerified}" class="badge bg-success">verified</span>
+                            </td>
+                            <td>
+                                <button class="btn btn-success btn-sm"
+                                    th:attr="data-id=${ticket.id}" onclick="resolveMentorTicket(this, 'approve')">Approve</button>
+                                <button class="btn btn-outline-danger btn-sm"
+                                    th:attr="data-id=${ticket.id}" onclick="resolveMentorTicket(this, 'deny')">Deny</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Column visibility toggle buttons -->
         <div class="d-flex flex-wrap mb-3">
             <button class="btn btn-secondary toggle-column active" data-column="0">ID#</button>
@@ -245,6 +282,30 @@
                 .catch(() => {
                     alert('Network error.');
                     btn.disabled = false;
+                });
+        }
+    </script>
+
+    <script>
+        function resolveMentorTicket(btn, action) {
+            const id = btn.getAttribute('data-id');
+            const row = btn.closest('tr');
+            row.querySelectorAll('button').forEach(b => b.disabled = true);
+            fetch('/mvc/person/mentor/ticket/' + id + '/' + action, { method: 'POST' })
+                .then(res => {
+                    if (res.ok) {
+                        row.remove();
+                        if (action === 'approve') {
+                            location.reload();
+                        }
+                    } else {
+                        alert('Could not ' + action + ' mentor request (status ' + res.status + ').');
+                        row.querySelectorAll('button').forEach(b => b.disabled = false);
+                    }
+                })
+                .catch(() => {
+                    alert('Network error.');
+                    row.querySelectorAll('button').forEach(b => b.disabled = false);
                 });
         }
     </script>
