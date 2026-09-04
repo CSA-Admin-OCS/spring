@@ -173,6 +173,19 @@ public class ModelInit {
                     st.execute(buildCapstoneSeqTableSql(conn));
                     ensureCapstoneSeqSeeded(conn);
                     System.out.println("Ensured 'capstone_project_seq' table exists");
+
+                    // Person.mentorEmailVerified is a new field and ddl-auto=none, so an
+                    // existing database has no column for it and every person read fails
+                    // with "no such column: person.mentor_email_verified". Same shape as the
+                    // adventure.details migration above: additive, and a no-op once applied.
+                    try {
+                        st.execute("ALTER TABLE " + quoteIdentifier(conn, "person")
+                                + " ADD COLUMN " + quoteIdentifier(conn, "mentor_email_verified")
+                                + " BOOLEAN DEFAULT FALSE");
+                        System.out.println("Added 'mentor_email_verified' column to 'person' table");
+                    } catch (SQLException ignore) {
+                        // column already exists; nothing to do
+                    }
                 } catch (SQLException e) {
                     System.err.println("Failed to ensure manual tables: " + e.getMessage());
                 }
