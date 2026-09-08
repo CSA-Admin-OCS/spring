@@ -68,7 +68,7 @@ public class ResetCode {
         }
     }
 
-    // Same env-then-.env resolution order as FlaskPasswordSync/GoogleIdTokenVerifier: plain
+    // Same env-then-.env resolution order as GoogleIdTokenVerifier: plain
     // System.getenv() only sees real OS environment variables, not Spring's own
     // spring.config.import=.env mechanism, so a Dotenv fallback is required for local dev
     // where the secret only lives in .env.

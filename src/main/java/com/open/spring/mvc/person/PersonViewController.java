@@ -717,9 +717,10 @@ public class PersonViewController {
 
         logger.info("AUDIT oauth_reset_completed uid={}", personToReset.getUid());
 
-        // Best-effort sync to Flask so both backends' passwords stay in sync for this
-        // account; failure here doesn't roll back or fail the Spring-side reset above.
-        FlaskPasswordSync.syncPassword(personToReset.getUid(), requestBody.getNewPassword());
+        // Flask's copy of this password is synced by the frontend calling Flask's own
+        // /api/reset-password directly with this same resetToken -- not by Spring pushing
+        // it there. Flask verifies the token's HMAC locally (shared RESET_TOKEN_SECRET, no
+        // network call back to Spring) and owns that write; see docs/forgot-password-pipeline.md.
 
         // Force-logout: kill any MVC HttpSession this uid currently holds (e.g. an admin
         // portal tab logged in as this account elsewhere), closing the gap where password
