@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -17,8 +18,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 /*
  * MvcSecurityConfig.java
@@ -44,6 +48,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class MvcSecurityConfig {
 
+    private static final String JWT_COOKIE_NAME = "jwt_java_spring";
+    private static final String JWT_COOKIE_PATH = "/api";
+
     @Value("${jwt.cookie.secure:true}")
     private boolean cookieSecure;
 
@@ -53,8 +60,32 @@ public class MvcSecurityConfig {
     @Value("${server.servlet.session.cookie.name:sess_java_spring}")
     private String sessionCookieName;
 
+    @Value("${server.servlet.session.cookie.secure:true}")
+    private boolean sessionCookieSecure;
+
+    @Value("${server.servlet.session.cookie.same-site:None}")
+    private String sessionCookieSameSite;
+
+    @Value("${server.servlet.session.cookie.domain:}")
+    private String sessionCookieDomain;
+
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    // Tracks every live MVC HttpSession by principal so a password reset can force-expire
+    // whatever session(s) that uid currently holds -- previously a known gap (the JWT path
+    // was covered via tokenVersion, but this form-login/session path was not). Registering
+    // HttpSessionEventPublisher is required for the registry to actually see session
+    // creation/destruction events.
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public ServletListenerRegistrationBean<HttpSessionEventPublisher> httpSessionEventPublisher() {
+        return new ServletListenerRegistrationBean<>(new HttpSessionEventPublisher());
+    }
 
     /**
      * MVC security: form login, session-based.
@@ -67,9 +98,22 @@ public class MvcSecurityConfig {
             // Everything that is NOT handled by the API chain
             .securityMatcher("/**")
             .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            // Protect directory mutations while preserving legacy MVC form behavior.
+            .csrf(csrf -> csrf.requireCsrfProtectionMatcher(request ->
+                org.springframework.security.web.csrf.CsrfFilter.DEFAULT_CSRF_MATCHER.matches(request)
+                    && new org.springframework.security.web.util.matcher.AntPathRequestMatcher(
+                        "/mvc/directory/**").matches(request)))
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                // maximumSessions(-1) means no cap is enforced -- this exists purely to get
+                // every session registered in sessionRegistry() so it can be force-expired
+                // elsewhere (PersonViewController, after a password reset), not to limit
+                // concurrent logins.
+                .sessionConcurrency(concurrency -> concurrency
+                    .sessionRegistry(sessionRegistry())
+                    .maximumSessions(-1)))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/mvc/directory", "/mvc/directory/**").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/mvc/person/search/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/person/create").permitAll()
                 .requestMatchers(HttpMethod.POST, "/mvc/person/create").permitAll()
@@ -79,11 +123,6 @@ public class MvcSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/mvc/person/reset/check").permitAll()
                 .requestMatchers(HttpMethod.POST, "/mvc/person/reset/oauth/verify").permitAll()
                 .requestMatchers(HttpMethod.POST, "/mvc/person/reset/oauth/complete").permitAll()
-                // Must be public: raised by a user who's rate-limited and, by definition,
-                // not logged in. /reset/ticket/{id}/grant is deliberately NOT here -- it
-                // falls through to anyRequest().authenticated() + the controller's own
-                // ROLE_ADMIN check below, same as /mvc/person/reset/admin/{id}.
-                .requestMatchers(HttpMethod.POST, "/mvc/person/reset/ticket").permitAll()
                 .requestMatchers("/mvc/person/read/**").authenticated()
                 .requestMatchers("/mvc/person/cookie-clicker").authenticated()
                 .requestMatchers(HttpMethod.GET,"/mvc/person/update/user").authenticated()
@@ -95,11 +134,6 @@ public class MvcSecurityConfig {
                 .requestMatchers("/mvc/bathroom/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                .requestMatchers("/authenticate", "/authenticateForm").permitAll()
-                .requestMatchers(HttpMethod.POST, "/authenticateForm").permitAll()
-                .requestMatchers("/api/person/create", "/api/person/create/").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/person/create").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/person/create/").permitAll()
                 .requestMatchers("/mvc/synergy/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/gradebook").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_STUDENT")
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/view-grade-requests").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
@@ -138,21 +172,14 @@ public class MvcSecurityConfig {
                     }
 
                     // Build JWT cookie with domain support for cross-subdomain requests
-                    ResponseCookie.ResponseCookieBuilder jwtCookieBuilder = ResponseCookie.from("jwt_java_spring", token)
+                    ResponseCookie.ResponseCookieBuilder jwtCookieBuilder = ResponseCookie.from(JWT_COOKIE_NAME, token)
                         .httpOnly(true)
                         .secure(cookieSecure)
-                        .path("/api")
+                        .path(JWT_COOKIE_PATH)
                         .maxAge(-1)
                         .sameSite(cookieSameSite);
-                    
-                    // Add domain for cross-subdomain sharing (production and localhost)
-                    if (cookieSecure) {
-                        // Production: use .opencodingsociety.com domain
-                        jwtCookieBuilder.domain(".opencodingsociety.com");
-                    } else {
-                        // Development: use localhost domain
-                        jwtCookieBuilder.domain("localhost");
-                    }
+
+                    applyJwtCookieScope(jwtCookieBuilder);
                     
                     ResponseCookie jwtCookie = jwtCookieBuilder.build();
 
@@ -163,22 +190,49 @@ public class MvcSecurityConfig {
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .logoutSuccessHandler((request, response, authentication) -> {
-                    ResponseCookie sessionCookie = ResponseCookie.from(sessionCookieName, "")
+                    ResponseCookie.ResponseCookieBuilder sessionCookieBuilder = ResponseCookie.from(sessionCookieName, "")
                         .httpOnly(true)
-                        .secure(cookieSecure)
+                        .secure(sessionCookieSecure)
                         .path("/")
                         .maxAge(0)
-                        .sameSite(cookieSameSite)
-                        .build();
-                    ResponseCookie jwtCookie = ResponseCookie.from("jwt_java_spring", "")
+                        .sameSite(sessionCookieSameSite);
+                    if (!sessionCookieDomain.isBlank()) {
+                        sessionCookieBuilder.domain(sessionCookieDomain);
+                    }
+                    ResponseCookie sessionCookie = sessionCookieBuilder.build();
+
+                    ResponseCookie.ResponseCookieBuilder jwtCookieBuilder = ResponseCookie.from(JWT_COOKIE_NAME, "")
                         .httpOnly(true)
                         .secure(cookieSecure)
-                        .path("/api")
+                        .path(JWT_COOKIE_PATH)
+                        .maxAge(0)
+                        .sameSite(cookieSameSite);
+                    applyJwtCookieScope(jwtCookieBuilder);
+                    ResponseCookie jwtCookie = jwtCookieBuilder.build();
+                    ResponseCookie jwtHostOnlyCookie = ResponseCookie.from(JWT_COOKIE_NAME, "")
+                        .httpOnly(true)
+                        .secure(cookieSecure)
+                        .path(JWT_COOKIE_PATH)
                         .maxAge(0)
                         .sameSite(cookieSameSite)
                         .build();
+
+                    if (!cookieSecure) {
+                        // Cleanup for legacy local dev cookies that were created with Domain=localhost.
+                        ResponseCookie jwtLegacyLocalhostCookie = ResponseCookie.from(JWT_COOKIE_NAME, "")
+                            .httpOnly(true)
+                            .secure(false)
+                            .path(JWT_COOKIE_PATH)
+                            .maxAge(0)
+                            .sameSite(cookieSameSite)
+                            .domain("localhost")
+                            .build();
+                        response.addHeader(HttpHeaders.SET_COOKIE, jwtLegacyLocalhostCookie.toString());
+                    }
+
                     response.addHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
                     response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+                    response.addHeader(HttpHeaders.SET_COOKIE, jwtHostOnlyCookie.toString());
                     response.sendRedirect("/login?logout");
                 }));
 
@@ -188,11 +242,8 @@ public class MvcSecurityConfig {
     @Bean(name = "mvcEndpointRolePolicy")
     public Map<String, String> mvcEndpointRolePolicy() {
         Map<String, String> policy = new LinkedHashMap<>();
+        policy.put("/mvc/directory/**", "ROLE_ADMIN (CSRF required for mutations)");
         policy.put("GET/POST /login", "permitAll");
-        policy.put("/authenticate", "permitAll");
-        policy.put("/authenticateForm", "permitAll");
-        policy.put("/api/person/create", "permitAll");
-        policy.put("/api/person/create/", "permitAll");
         policy.put("GET/POST /mvc/person/create", "permitAll");
         policy.put("GET /mvc/person/reset", "permitAll");
         policy.put("GET /mvc/person/reset/check", "permitAll");
@@ -200,13 +251,17 @@ public class MvcSecurityConfig {
         policy.put("POST /mvc/person/reset/check", "permitAll");
         policy.put("POST /mvc/person/reset/oauth/verify", "permitAll");
         policy.put("POST /mvc/person/reset/oauth/complete", "permitAll");
-        policy.put("POST /mvc/person/reset/ticket", "permitAll");
-        policy.put("POST /mvc/person/reset/ticket/{id}/grant", "authenticated + ROLE_ADMIN (controller check)");
         policy.put("GET /mvc/person/update/user", "authenticated");
         policy.put("POST /mvc/person/update", "authenticated (+ controller ownership checks)");
         policy.put("POST /mvc/person/update/role", "ROLE_ADMIN");
         policy.put("POST /mvc/person/update/roles", "ROLE_ADMIN");
         policy.put("/mvc/person/delete/**", "ROLE_ADMIN");
         return Map.copyOf(policy);
+    }
+
+    private void applyJwtCookieScope(ResponseCookie.ResponseCookieBuilder cookieBuilder) {
+        if (cookieSecure) {
+            cookieBuilder.domain(".opencodingsociety.com");
+        }
     }
 }

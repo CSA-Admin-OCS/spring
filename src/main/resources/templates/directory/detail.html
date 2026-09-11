@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account details</title>
+  <link rel="stylesheet" th:href="@{/css/directory.css}">
+</head>
+<body>
+<main>
+  <nav aria-label="Directory navigation"><a th:href="@{/mvc/person/read}">Back to administration</a></nav>
+  <h1 th:text="${account.name}">Account details</h1>
+  <p th:if="${message}" th:text="${message}" role="status"></p>
+  <dl>
+    <dt>ID</dt><dd th:text="${account.id}"></dd>
+    <dt>Name</dt><dd th:text="${account.name}"></dd>
+    <dt>Email</dt><dd th:text="${account.email}"></dd>
+    <dt>School</dt><dd th:text="${account.school}"></dd>
+    <dt>Student ID</dt><dd th:text="${account.studentID}"></dd>
+    <dt>GitHub username</dt><dd th:text="${account.githubUsername}"></dd>
+    <dt>Account type</dt><dd th:text="${account.accountType}"></dd>
+    <dt>Joined (UTC)</dt><dd th:text="${account.createdAt}"></dd>
+  </dl>
+  <p>
+    <a th:href="@{/mvc/directory}">Back to directory</a>
+    <a th:href="@{/mvc/directory/{id}/edit(id=${account.id})}">Edit account</a>
+  </p>
+  <form method="post"
+        th:action="@{/mvc/directory/{id}/delete(id=${account.id})}">
+    <p>Deleting removes this directory entry. It does not delete a login account.</p>
+    <button type="submit">Delete directory entry</button>
+  </form>
+</main>
+</body>
+</html>
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account directory</title>
+  <link rel="stylesheet" th:href="@{/css/directory.css}">
+</head>
+<body>
+<main>
+  <nav aria-label="Directory navigation"><a th:href="@{/mvc/person/read}">Back to administration</a></nav>
+  <h1>Account directory</h1>
+  <p th:if="${message}" th:text="${message}" role="status"></p>
+  <p><a th:href="@{/mvc/directory/new}">Add account</a></p>
+  <p th:if="${#lists.isEmpty(accounts)}">No accounts yet. Add the first account.</p>
+  <table th:unless="${#lists.isEmpty(accounts)}">
+    <caption>Students and guests</caption>
+    <thead><tr>
+      <th scope="col">Name</th><th scope="col">School</th>
+      <th scope="col">Student ID</th><th scope="col">GitHub</th>
+      <th scope="col">Type</th><th scope="col">Joined (UTC)</th>
+      <th scope="col">Actions</th>
+    </tr></thead>
+    <tbody><tr th:each="account : ${accounts}">
+      <td th:text="${account.name}"></td>
+      <td th:text="${account.school}"></td>
+      <td th:text="${account.studentID}"></td>
+      <td th:text="${account.githubUsername}"></td>
+      <td th:text="${account.accountType}"></td>
+      <td th:text="${account.createdAt}"></td>
+      <td>
+        <a th:href="@{/mvc/directory/{id}(id=${account.id})}">View</a>
+        <a th:href="@{/mvc/directory/{id}/edit(id=${account.id})}">Edit</a>
+      </td>
+    </tr></tbody>
+  </table>
+</main>
+</body>
+</html>
+

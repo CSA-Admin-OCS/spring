@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Edit directory account</title>
+  <link rel="stylesheet" th:href="@{/css/directory.css}">
+</head>
+<body>
+<main>
+  <nav aria-label="Directory navigation"><a th:href="@{/mvc/person/read}">Back to administration</a></nav>
+  <h1 th:text="${editingId == null ? 'Add account' : 'Edit account'}"></h1>
+  <form method="post" th:object="${account}"
+        th:action="${editingId == null} ? @{/mvc/directory} : @{/mvc/directory/{id}(id=${editingId})}">
+    <div th:if="${#fields.hasErrors('*')}" role="alert">
+      <p>Please correct these fields:</p>
+      <ul><li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li></ul>
+    </div>
+    <p>
+      <label for="name">Name (required)</label>
+      <input id="name" th:field="*{name}" required maxlength="100" autocomplete="name">
+    </p>
+    <p>
+      <label for="email">Email (required)</label>
+      <input id="email" type="email" th:field="*{email}" required
+             maxlength="254" autocomplete="email">
+    </p>
+    <p>
+      <label for="school">School (optional)</label>
+      <input id="school" th:field="*{school}" maxlength="120">
+    </p>
+    <p>
+      <label for="studentID">Student ID (optional)</label>
+      <input id="studentID" th:field="*{studentID}" maxlength="40">
+    </p>
+    <p>
+      <label for="githubUsername">GitHub username (optional)</label>
+      <input id="githubUsername" th:field="*{githubUsername}" maxlength="39">
+    </p>
+    <p>
+      <label for="accountType">Account type</label>
+      <select id="accountType" th:field="*{accountType}" required>
+        <option th:each="type : ${accountTypes}" th:value="${type}" th:text="${type}"></option>
+      </select>
+    </p>
+    <button type="submit">Save account</button>
+    <a th:href="@{/mvc/directory}">Cancel</a>
+  </form>
+</main>
+</body>
+</html>
+
