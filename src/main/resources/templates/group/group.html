@@ -152,25 +152,33 @@
                 </div>
 
 
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="groupNameInput" class="form-label">Group Name</label>
-                        <input type="text" class="form-control" id="groupNameInput" placeholder="Enter group name">
+                <form id="createGroupForm">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="groupNameInput" class="form-label">Group Name</label>
+                            <input type="text" class="form-control" id="groupNameInput" placeholder="Enter group name" required>
+                        </div>
+
+
+                        <div class="mb-3">
+                            <label for="groupPeriodInput" class="form-label">Group Period</label>
+                            <input type="text" class="form-control" id="groupPeriodInput" placeholder="Enter group period">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="groupCourseInput" class="form-label">Course</label>
+                            <input type="text" class="form-control" id="groupCourseInput" placeholder="Enter course">
+                        </div>
+
+                        <div id="createGroupError" class="alert alert-danger d-none" role="alert"></div>
                     </div>
 
 
-                    <div class="mb-3">
-                        <label for="groupPeriodInput" class="form-label">Group Period</label>
-                        <input type="text" class="form-control" id="groupPeriodInput" placeholder="Enter group period">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-secondary" id="createGroupBtn">Create Group</button>
                     </div>
-
-                </div>
-
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-secondary" id="createGroupBtn">Create Group</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -502,37 +510,44 @@
         });
 
         // Create group handler
-        document.getElementById("createGroupBtn").addEventListener("click", function () {
-            const groupName = document.getElementById("groupNameInput").value;
-            const groupPeriod = document.getElementById("groupPeriodInput").value;
+        document.getElementById("createGroupForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
 
-            if (!groupName || groupName.trim() === "") {
-                alert("Please enter a group name.");
-                return;
-            }
+            const groupName = document.getElementById("groupNameInput").value.trim();
+            const groupPeriod = document.getElementById("groupPeriodInput").value.trim();
+            const groupCourse = document.getElementById("groupCourseInput").value.trim();
+            const createButton = document.getElementById("createGroupBtn");
+            const errorElement = document.getElementById("createGroupError");
 
-            // Create group with name and period only
-            fetch(javaURL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: groupName,
-                    period: groupPeriod
-                })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error("Failed to create group");
-                return response.json();
-            })
-            .then(() => {
-                alert("Group created successfully!");
-                $('#createGroupModal').modal('hide');
+            errorElement.classList.add("d-none");
+            errorElement.textContent = "";
+            createButton.disabled = true;
+
+            try {
+                const response = await fetch(javaURL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name: groupName,
+                        period: groupPeriod,
+                        course: groupCourse,
+                        memberIds: []
+                    })
+                });
+
+                const responseBody = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(responseBody.error || `Failed to create group (HTTP ${response.status})`);
+                }
+
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("createGroupModal")).hide();
                 location.reload();
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error("Error creating group:", error);
-                alert("An error occurred. See console.");
-            });
+                errorElement.textContent = error.message;
+                errorElement.classList.remove("d-none");
+                createButton.disabled = false;
+            }
         });
 
         // Open edit modal and pre-fill
