@@ -125,6 +125,11 @@ public class MvcSecurityConfig {
                 .requestMatchers(HttpMethod.POST,"/mvc/person/update").authenticated()
                 .requestMatchers(HttpMethod.POST,"/mvc/person/update/role").hasAuthority("ROLE_ADMIN")
                 .requestMatchers(HttpMethod.POST,"/mvc/person/update/roles").hasAuthority("ROLE_ADMIN")
+                // Must come before the broader /mvc/person/delete/** ROLE_ADMIN rule below --
+                // matchers are evaluated in order, first match wins. Self-service account
+                // deletion needs only authentication; the endpoint itself checks the caller
+                // is deleting their own account (password + confirmation phrase).
+                .requestMatchers(HttpMethod.POST, "/mvc/person/delete/self").authenticated()
                 .requestMatchers("/mvc/person/delete/**").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/mvc/bathroom/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/login").permitAll()
@@ -249,6 +254,7 @@ public class MvcSecurityConfig {
         policy.put("POST /mvc/person/update", "authenticated (+ controller ownership checks)");
         policy.put("POST /mvc/person/update/role", "ROLE_ADMIN");
         policy.put("POST /mvc/person/update/roles", "ROLE_ADMIN");
+        policy.put("POST /mvc/person/delete/self", "authenticated (+ password + confirmation phrase)");
         policy.put("/mvc/person/delete/**", "ROLE_ADMIN");
         return Map.copyOf(policy);
     }
