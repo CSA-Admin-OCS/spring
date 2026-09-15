@@ -271,6 +271,69 @@ public class PersonApiController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @Getter
+    public static class SelfDeleteRequestBody {
+        private String confirmUid;
+        private String currentPassword;
+    }
+
+    // Self-service account deletion. Lives here on the JWT-authenticated /api/** surface,
+    // not the session-based /mvc/**, deliberately -- regular users only ever get a JWT
+    // cookie (see login.md, which calls POST /authenticate), never an MVC HttpSession, so
+    // an /mvc/person/delete/self endpoint would be unreachable by any real user despite
+    // looking reasonable at a glance (that was a real bug caught by an actual browser
+    // test, not just curl against the endpoint directly with a manually-established session).
+    //
+    // Gated by re-entering the current password (not just whatever JWT the caller is
+    // holding) and typing the account's own uid as a confirmation phrase -- both checked
+    // server-side, not trusted from a frontend that already let the user click through a
+    // confirmation page. This is the authoritative-then-sync pattern already established
+    // for password reset: the frontend calls Flask's own /api/user/delete-self first, then
+    // this endpoint to sync Spring's copy, never a Spring <-> Flask network call (see
+    // docs/forgot-password-pipeline.md, "Architecture: no backend-to-backend sync").
+    @PostMapping("/person/delete/self")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Object> deleteSelf(Authentication authentication, @RequestBody SelfDeleteRequestBody requestBody) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Person personToDelete = repository.findByUid(userDetails.getUsername());
+        if (personToDelete == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        // Same protection as the admin delete endpoints -- deleting the last admin would
+        // lock everyone out of the admin portal with no way back in.
+        if (personToDelete.hasRoleWithName("ROLE_ADMIN")) {
+            long adminCount = repository.findAll().stream()
+                    .filter(p -> p.hasRoleWithName("ROLE_ADMIN"))
+                    .count();
+            if (adminCount < 2) {
+                logger.warn("AUDIT self_delete_denied uid={} reason=last_admin", personToDelete.getUid());
+                return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            }
+        }
+
+        if (requestBody == null || requestBody.getConfirmUid() == null
+                || !requestBody.getConfirmUid().equals(personToDelete.getUid())) {
+            logger.warn("AUDIT self_delete_denied uid={} reason=phrase_mismatch", personToDelete.getUid());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        if (requestBody.getCurrentPassword() == null
+                || !passwordEncoder.matches(requestBody.getCurrentPassword(), personToDelete.getPassword())) {
+            logger.warn("AUDIT self_delete_denied uid={} reason=bad_password", personToDelete.getUid());
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        logger.warn("AUDIT self_delete uid={}", personToDelete.getUid());
+        repository.deleteById(personToDelete.getId());
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     /*
      * DTO (Data Transfer Object) to support POST request for postPerson method
      * .. represents the data in the request body

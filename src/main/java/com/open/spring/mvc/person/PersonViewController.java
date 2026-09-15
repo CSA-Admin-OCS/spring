@@ -386,53 +386,6 @@ public class PersonViewController {
         return "redirect:/mvc/person/read";  // Redirect to the read page after deletion
     }
 
-    @Getter
-    public static class SelfDeleteRequestBody {
-        private String confirmUid;
-        private String currentPassword;
-    }
-
-    // Self-service account deletion, gated by re-entering the current password (not just
-    // whatever session/JWT the caller happens to be holding) and typing the account's own
-    // uid as a confirmation phrase -- both checked server-side, not trusted from a frontend
-    // that already let the user click through a confirmation page. This is the authoritative
-    // delete; the frontend calls Flask's own /api/user/delete-self first (see support.md-style
-    // account-deletion page), and syncs Spring by calling this endpoint second, matching the
-    // Flask-first pattern already established for password reset (see
-    // docs/forgot-password-pipeline.md, "Architecture: no backend-to-backend sync").
-    @PostMapping("/delete/self")
-    public ResponseEntity<Object> deleteSelf(Authentication authentication, @RequestBody SelfDeleteRequestBody requestBody) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        Person personToDelete = repository.getByUid(userDetails.getUsername());
-        if (personToDelete == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-
-        // Same protection as the admin delete endpoints -- deleting the last admin would
-        // lock everyone out of the admin portal with no way back in.
-        if (personToDelete.hasRoleWithName("ROLE_ADMIN") && numAdmins() < 2) {
-            logger.warn("AUDIT self_delete_denied uid={} reason=last_admin", personToDelete.getUid());
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-
-        if (requestBody == null || requestBody.getConfirmUid() == null
-                || !requestBody.getConfirmUid().equals(personToDelete.getUid())) {
-            logger.warn("AUDIT self_delete_denied uid={} reason=phrase_mismatch", personToDelete.getUid());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        if (requestBody.getCurrentPassword() == null
-                || !passwordEncoder.matches(requestBody.getCurrentPassword(), personToDelete.getPassword())) {
-            logger.warn("AUDIT self_delete_denied uid={} reason=bad_password", personToDelete.getUid());
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
-
-        logger.warn("AUDIT self_delete uid={}", personToDelete.getUid());
-        repository.delete(personToDelete.getId());
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 /// "Reset" Post and Get mappings
 
