@@ -11,7 +11,7 @@
   <nav aria-label="Directory navigation"><a th:href="@{/mvc/person/read}">Back to administration</a></nav>
   <h1>Account directory</h1>
   <p th:if="${message}" th:text="${message}" role="status"></p>
-  <p><a th:href="@{/mvc/directory/new}">Add account</a></p>
+  <p><a th:href="@{/mvc/data/directory/new}">Add account</a></p>
   <p th:if="${#lists.isEmpty(accounts)}">No accounts yet. Add the first account.</p>
   <table th:unless="${#lists.isEmpty(accounts)}">
     <caption>Students and guests</caption>
@@ -29,8 +29,8 @@
       <td th:text="${account.accountType}"></td>
       <td th:text="${account.createdAt}"></td>
       <td>
-        <a th:href="@{/mvc/directory/{id}(id=${account.id})}">View</a>
-        <a th:href="@{/mvc/directory/{id}/edit(id=${account.id})}">Edit</a>
+        <a th:href="@{/mvc/data/directory/{id}(id=${account.id})}">View</a>
+        <a th:href="@{/mvc/data/directory/{id}/edit(id=${account.id})}">Edit</a>
       </td>
     </tr></tbody>
   </table>

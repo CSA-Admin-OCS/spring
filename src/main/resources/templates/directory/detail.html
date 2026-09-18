@@ -22,11 +22,11 @@
     <dt>Joined (UTC)</dt><dd th:text="${account.createdAt}"></dd>
   </dl>
   <p>
-    <a th:href="@{/mvc/directory}">Back to directory</a>
-    <a th:href="@{/mvc/directory/{id}/edit(id=${account.id})}">Edit account</a>
+    <a th:href="@{/mvc/data/directory}">Back to directory</a>
+    <a th:href="@{/mvc/data/directory/{id}/edit(id=${account.id})}">Edit account</a>
   </p>
   <form method="post"
-        th:action="@{/mvc/directory/{id}/delete(id=${account.id})}">
+        th:action="@{/mvc/data/directory/{id}/delete(id=${account.id})}">
     <p>Deleting removes this directory entry. It does not delete a login account.</p>
     <button type="submit">Delete directory entry</button>
   </form>

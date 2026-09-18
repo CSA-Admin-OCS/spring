@@ -11,7 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/mvc/directory")
+@RequestMapping("/mvc/data/directory")
 public class DirectoryAccountController {
     private final DirectoryAccountRepository repository;
 
@@ -56,7 +56,7 @@ public class DirectoryAccountController {
         if (errors.hasErrors()) return form(account, null, model);
         DirectoryAccount saved = repository.save(account);
         redirect.addFlashAttribute("message", "Account created.");
-        return "redirect:/mvc/directory/" + saved.getId();
+        return "redirect:/mvc/data/directory/" + saved.getId();
     }
 
     @GetMapping("/{id}/edit")
@@ -74,14 +74,14 @@ public class DirectoryAccountController {
         copyEditableFields(submitted, existing);
         repository.save(existing);
         redirect.addFlashAttribute("message", "Account updated.");
-        return "redirect:/mvc/directory/" + id;
+        return "redirect:/mvc/data/directory/" + id;
     }
 
     @PostMapping("/{id}/delete")
     String delete(@PathVariable Long id, RedirectAttributes redirect) {
         repository.delete(requireAccount(id));
         redirect.addFlashAttribute("message", "Account deleted.");
-        return "redirect:/mvc/directory";
+        return "redirect:/mvc/data/directory";
     }
 
     private DirectoryAccount requireAccount(Long id) {

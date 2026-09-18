@@ -14,7 +14,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
@@ -97,12 +96,18 @@ public class MvcSecurityConfig {
         http
             // Everything that is NOT handled by the API chain
             .securityMatcher("/**")
-            .cors(Customizer.withDefaults())
+            // An explicit empty allowlist rejects cross-origin MVC requests,
+            // independently of the API's credentialed CORS configuration.
+            .cors(cors -> cors.configurationSource(request ->
+                new org.springframework.web.cors.CorsConfiguration()))
             // Protect directory mutations while preserving legacy MVC form behavior.
             .csrf(csrf -> csrf.requireCsrfProtectionMatcher(request ->
                 org.springframework.security.web.csrf.CsrfFilter.DEFAULT_CSRF_MATCHER.matches(request)
                     && new org.springframework.security.web.util.matcher.AntPathRequestMatcher(
-                        "/mvc/directory/**").matches(request)))
+                        "/mvc/data/**").matches(request)
+                    || org.springframework.security.web.csrf.CsrfFilter.DEFAULT_CSRF_MATCHER.matches(request)
+                        && ("/login".equals(request.getServletPath())
+                            || "/logout".equals(request.getServletPath()))))
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 // maximumSessions(-1) means no cap is enforced -- this exists purely to get
@@ -113,7 +118,9 @@ public class MvcSecurityConfig {
                     .sessionRegistry(sessionRegistry())
                     .maximumSessions(-1)))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/mvc/directory", "/mvc/directory/**").hasAuthority("ROLE_ADMIN")
+                // Preserve error status codes (including anonymous login CSRF failures).
+                .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
+                .requestMatchers("/mvc/data", "/mvc/data/**").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/mvc/person/search/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/person/create").permitAll()
                 .requestMatchers(HttpMethod.POST, "/mvc/person/create").permitAll()
@@ -242,7 +249,7 @@ public class MvcSecurityConfig {
     @Bean(name = "mvcEndpointRolePolicy")
     public Map<String, String> mvcEndpointRolePolicy() {
         Map<String, String> policy = new LinkedHashMap<>();
-        policy.put("/mvc/directory/**", "ROLE_ADMIN (CSRF required for mutations)");
+        policy.put("/mvc/data/directory/**", "ROLE_ADMIN (CSRF required for mutations)");
         policy.put("GET/POST /login", "permitAll");
         policy.put("GET/POST /mvc/person/create", "permitAll");
         policy.put("GET /mvc/person/reset", "permitAll");

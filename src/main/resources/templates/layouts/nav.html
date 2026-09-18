@@ -101,7 +101,7 @@
                 <div sec:authorize="isAuthenticated()">
                     <ul class="navbar-nav">
                         <li class="nav-item" sec:authorize="hasAuthority('ROLE_ADMIN')">
-                            <a class="nav-link" th:href="@{/mvc/directory}">Account directory</a>
+                            <a class="nav-link" th:href="@{/mvc/data/directory}">Account directory</a>
                         </li>
                         <!-- Admin-only link -->
                         <li class="nav-item dropdown" sec:authorize="hasRole('ROLE_ADMIN')">
@@ -181,7 +181,11 @@
                                     <p style="font-size:0.75em;margin:1px" sec:authorize="hasRole('TESTER')">TESTER</p>
                                 </div>
                             </li>
-                            <li><a class="dropdown-item active" th:href='@{/logout}'>Logout</a></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button class="dropdown-item active" type="submit">Logout</button>
+                                </form>
+                            </li>
                         </ul>
                     </div>
                 </th:block>

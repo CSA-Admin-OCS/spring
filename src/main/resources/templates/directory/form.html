@@ -11,7 +11,7 @@
   <nav aria-label="Directory navigation"><a th:href="@{/mvc/person/read}">Back to administration</a></nav>
   <h1 th:text="${editingId == null ? 'Add account' : 'Edit account'}"></h1>
   <form method="post" th:object="${account}"
-        th:action="${editingId == null} ? @{/mvc/directory} : @{/mvc/directory/{id}(id=${editingId})}">
+        th:action="${editingId == null} ? @{/mvc/data/directory} : @{/mvc/data/directory/{id}(id=${editingId})}">
     <div th:if="${#fields.hasErrors('*')}" role="alert">
       <p>Please correct these fields:</p>
       <ul><li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li></ul>
@@ -44,7 +44,7 @@
       </select>
     </p>
     <button type="submit">Save account</button>
-    <a th:href="@{/mvc/directory}">Cancel</a>
+    <a th:href="@{/mvc/data/directory}">Cancel</a>
   </form>
 </main>
 </body>

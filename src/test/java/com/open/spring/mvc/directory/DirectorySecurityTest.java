@@ -62,7 +62,7 @@ class DirectorySecurityTest {
     }
 
     @Test void onlyAdministratorsCanRead() throws Exception {
-        for (String path : new String[]{"/mvc/directory", "/mvc/directory/new", "/mvc/directory/1/edit"}) {
+        for (String path : new String[]{"/mvc/data/directory", "/mvc/data/directory/new", "/mvc/data/directory/1/edit"}) {
             MockHttpServletResponse anonymous = new MockHttpServletResponse();
             filters.doFilter(request("GET", path, null), anonymous, (req, res) -> fail("Anonymous access"));
             assertEquals(302, anonymous.getStatus());
@@ -76,23 +76,56 @@ class DirectorySecurityTest {
     }
 
     @Test void mutationsRequireValidSessionToken() throws Exception {
-        for (String path : new String[]{"/mvc/directory", "/mvc/directory/1", "/mvc/directory/1/delete"}) {
+        for (String path : new String[]{"/mvc/data/directory", "/mvc/data/directory/1", "/mvc/data/directory/1/delete"}) {
             MockHttpServletResponse denied = new MockHttpServletResponse();
             filters.doFilter(request("POST", path, "ROLE_ADMIN"), denied, (req, res) -> fail("Missing CSRF accepted"));
             assertEquals(403, denied.getStatus());
         }
-        MockHttpServletRequest get = request("GET", "/mvc/directory/new", "ROLE_ADMIN");
+        MockHttpServletRequest get = request("GET", "/mvc/data/directory/new", "ROLE_ADMIN");
         String[] token = new String[2];
         filters.doFilter(get, new MockHttpServletResponse(), (req, res) -> {
             CsrfToken csrf = (CsrfToken) req.getAttribute("_csrf");
             token[0] = csrf.getParameterName();
             token[1] = csrf.getToken();
         });
-        MockHttpServletRequest post = request("POST", "/mvc/directory", null);
+        MockHttpServletRequest post = request("POST", "/mvc/data/directory", null);
         post.setSession(get.getSession());
         post.addParameter(token[0], token[1]);
         MockHttpServletResponse allowed = new MockHttpServletResponse();
         filters.doFilter(post, allowed, (req, res) -> res.getWriter().write("saved"));
         assertEquals("saved", allowed.getContentAsString());
+    }
+
+    @Test void crossOriginRequestsAreRejectedEvenFromApiAllowedOrigins() throws Exception {
+        for (String method : new String[]{"GET", "POST", "OPTIONS"}) {
+            MockHttpServletRequest crossOrigin = request(method, "/mvc/data/directory", "ROLE_ADMIN");
+            crossOrigin.addHeader("Origin", "http://localhost:4500");
+            if (method.equals("OPTIONS")) crossOrigin.addHeader("Access-Control-Request-Method", "POST");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            filters.doFilter(crossOrigin, response, (req, res) -> fail("Cross-origin access"));
+            assertEquals(403, response.getStatus());
+            assertNull(response.getHeader("Access-Control-Allow-Origin"));
+        }
+        MockHttpServletRequest sameOrigin = request("GET", "/mvc/data/directory", "ROLE_ADMIN");
+        sameOrigin.addHeader("Origin", "http://localhost");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filters.doFilter(sameOrigin, response, (req, res) -> res.getWriter().write("allowed"));
+        assertEquals("allowed", response.getContentAsString());
+    }
+
+    @Test void loginAndLogoutRequireCsrfTokens() throws Exception {
+        for (String path : new String[]{"/login", "/logout"}) {
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            filters.doFilter(request("POST", path, null), response, (req, res) -> fail("Missing CSRF accepted"));
+            assertEquals(403, response.getStatus());
+        }
+    }
+
+    @Test void anonymousErrorDispatchPreservesTheOriginalError() throws Exception {
+        MockHttpServletRequest error = request("POST", "/error", null);
+        error.setDispatcherType(jakarta.servlet.DispatcherType.ERROR);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filters.doFilter(error, response, (req, res) -> res.getWriter().write("error page"));
+        assertEquals("error page", response.getContentAsString());
     }
 }
