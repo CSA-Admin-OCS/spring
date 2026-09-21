@@ -19,6 +19,8 @@
         <org.thymeleaf.extras.springsecurity-version>3.1.3.RELEASE</org.thymeleaf.extras.springsecurity-version>
         <nz.net.ultraq.thymeleaflayout-version>3.3.0</nz.net.ultraq.thymeleaflayout-version>
         <thymeleaf-extras-java8time-version>3.0.4.RELEASE</thymeleaf-extras-java8time-version>
+        <!-- Docker endpoint for the Testcontainers-based MySQL migration test (override: -Ddocker.host=...) -->
+        <docker.host>unix:///var/run/docker.sock</docker.host>
     </properties>
 
     <repositories>
@@ -98,6 +100,31 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Schema migrations (versioned SQL/Java under src/main/resources/db/migration) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
         </dependency>
         <!-- View dependencies -->
         <dependency>
@@ -315,6 +342,15 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <DOCKER_HOST>${docker.host}</DOCKER_HOST>
+                    </environmentVariables>
                 </configuration>
             </plugin>
             <plugin>

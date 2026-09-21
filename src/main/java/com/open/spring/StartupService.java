@@ -1,5 +1,6 @@
 package com.open.spring;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.util.List;
 
 import org.springframework.boot.ApplicationRunner;
@@ -12,6 +13,7 @@ import com.open.spring.mvc.groups.GroupsJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
+@ConditionalOnProperty(name = "app.bootstrap.enabled", havingValue = "true", matchIfMissing = true)
 @Component
 @RequiredArgsConstructor
 public class StartupService {

@@ -178,8 +178,16 @@ Two deployment shapes are supported, and the scripts handle both. See
 **SQLite deployment** below for the current one; the MySQL procedure that follows applies
 once `DB_URL` is set and RDS becomes the live database again.
 
+> **Where does `backup` run?** It reaches over the network only when the target is
+> MySQL. On SQLite the database is a file on the server's disk, so `backup` has to run
+> **on the server**. From a laptop, use `python3 scripts/db_migrate.py pull`, which runs
+> the backup on cockpit over ssh and copies the result into `volumes/backups/` locally.
+> Running `backup` on a laptop with `DB_URL` unset backs up the *laptop's* `volumes/sqlite.db`.
+
 Note: the MySQL procedure assumes production is on RDS. Be sure all PRs are merged, pulled
 and tested before you touch production either way.
+
+### MySQL deployment (historical -- applies only when `DB_URL` points at RDS)
 
 0. Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` in `.env` (pointing at production RDS) and
    create a venv with `mysql-connector-python` installed. `mysqldump` must be on PATH.
@@ -194,6 +202,11 @@ and tested before you touch production either way.
 
    The backup lands in `volumes/backups/mysql_backup_<timestamp>.db`. Do not proceed if
    this command fails -- an incomplete backup is not a valid migration source.
+
+   Known data quirk: RDS holds MySQL zero-dates (`0000-00-00 00:00:00`) in the NOT NULL
+   `ocs_analytics.created_at` and `progress.last_updated` columns. The backup reads
+   temporal columns as text so those rows survive verbatim; a restore into a MySQL with
+   `NO_ZERO_DATE` in `sql_mode` will reject them until the data is cleaned.
 
 2. Point your local app at that backup (or at `volumes/sqlite.db`) and TEST TEST TEST.
    Make sure the new code works with real production data.
@@ -242,8 +255,26 @@ The `mysqldump` safety dump taken before any destructive run is the faster rollb
 
 ## SQLite deployment (current state)
 
-With `DB_URL` unset, production data lives in `volumes/sqlite.db`. The sequence is the
-same shape as the MySQL one, and `db_migrate.py` picks the SQLite code paths for you:
+With `DB_URL` unset, production data lives in `volumes/sqlite.db` **on cockpit**. The
+sequence is the same shape as the MySQL one, and `db_migrate.py` picks the SQLite code
+paths for you.
+
+**On your laptop first** -- get a copy of production and test the new code against it:
+
+```bash
+python3 scripts/db_migrate.py status              # confirm Mode: SQLITE (DB_URL commented out)
+python3 scripts/db_migrate.py check               # type maps still round-trip
+python3 scripts/db_migrate.py pull --install      # ssh cockpit, run backup there, copy it here,
+                                                  # install it as volumes/sqlite.db
+./mvnw spring-boot:run                            # TEST TEST TEST on real data
+```
+
+`pull` defaults to ssh host `cockpit` and repo path `open/spring`; override with
+`--host` and `--remote-path`. Without `--install` it only lands the file in
+`volumes/backups/` and prints the `cp` to run. With `--install` it backs up your current
+local database first.
+
+**On cockpit, in `open/spring`** -- the actual migration:
 
 ```bash
 python3 scripts/db_migrate.py status              # confirm Mode: SQLITE
@@ -254,6 +285,9 @@ python3 scripts/db_migrate.py init                # fresh schema from the JPA en
 python3 scripts/db_migrate.py restore --backup-file volumes/backups/sqlite_backup_<ts>.db
 docker compose up -d --build
 ```
+
+`init` runs Spring Boot through `./mvnw` outside Docker, so the server needs Java 21 and
+network access for Maven.
 
 `backup` uses SQLite's online backup API, not a file copy. The database runs in WAL mode,
 so a `cp` of `sqlite.db` can silently miss everything still sitting in the `-wal` file.
@@ -280,7 +314,8 @@ docker compose up -d
 | --- | --- |
 | `status` | Prints the configured target and what is currently in it |
 | `check` | Round-trips the schema through both translators and fails if they disagree |
-| `backup` | Verified backup of the live database (MySQL or SQLite) |
+| `backup` | Verified backup of the live database (MySQL or SQLite); on SQLite, run it on the server |
+| `pull` | Runs `backup` on the server over ssh and copies the file here (SQLite only) |
 | `init` | Rebuilds the schema on the target with Hibernate |
 | `restore` | Loads a backup back into the target |
 

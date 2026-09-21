@@ -169,7 +169,7 @@ public class Person extends Submitter implements Comparable<Person> {
      * GradesJsonConverter.
      */
     @Convert(converter = GradesJsonConverter.class)
-    @Column(name = "gradesJson", columnDefinition = "text")
+    @Column(name = "grades_json", columnDefinition = "text")
     private List<Map<String, Object>> gradesJson = new ArrayList<>();
 
     //////////////////////////////////////////////////////////////////////////////////

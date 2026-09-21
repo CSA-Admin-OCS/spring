@@ -4,8 +4,6 @@ import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,8 +37,6 @@ public class AssignmentViewController {
     @Autowired
     private AssignmentSubmissionJPA submissionRepo;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private FileHandler fileHandler;
@@ -109,32 +105,10 @@ public class AssignmentViewController {
         // Assignment.id is @GeneratedValue; setting it manually causes merge/stale-state issues.
         // Keep customId as a tolerated input for backward-compatible form posts, but ignore it.
 
-        normalizeAssignmentSequenceForSqlite();
         assignmentRepository.save(assignment);
         return "redirect:/mvc/assignments/tracker-v2";
     }
 
-    /**
-     * Repairs SQLite sequence drift/corruption for assignment IDs.
-     * Some local DBs end up with multiple rows in assignment_seq, which can cause duplicate PK inserts.
-     */
-    private void normalizeAssignmentSequenceForSqlite() {
-        try {
-            Long maxId = jdbcTemplate.queryForObject("SELECT COALESCE(MAX(\"id\"), 0) FROM \"assignment\"", Long.class);
-            Integer seqRows = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"assignment_seq\"", Integer.class);
-            Long minNext = jdbcTemplate.queryForObject("SELECT MIN(\"next_val\") FROM \"assignment_seq\"", Long.class);
-
-            long max = maxId == null ? 0L : maxId;
-            long targetNext = Math.max(max + 1L, minNext == null ? 1L : minNext);
-
-            if (seqRows == null || seqRows != 1 || minNext == null || minNext <= max) {
-                jdbcTemplate.update("DELETE FROM \"assignment_seq\"");
-                jdbcTemplate.update("INSERT INTO \"assignment_seq\"(\"next_val\") VALUES (?)", targetNext);
-            }
-        } catch (DataAccessException ignored) {
-            // Non-SQLite environments or DBs without assignment_seq should skip this silently.
-        }
-    }
 
     @GetMapping("/tracker-v2/file/{id}")
     public ResponseEntity<?> downloadAssignmentResourceFile(

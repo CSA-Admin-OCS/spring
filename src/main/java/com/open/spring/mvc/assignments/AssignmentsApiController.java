@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.open.spring.mvc.S3uploads.FileHandler;
 import com.open.spring.mvc.groups.GroupsJpaRepository;
@@ -65,8 +63,6 @@ public class AssignmentsApiController {
     @Autowired
     private FileHandler fileHandler;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     @Getter
     @Setter
@@ -150,7 +146,6 @@ public class AssignmentsApiController {
         requireTeacherOrAdmin(userDetails);
         logger.debug("createAssignment called with name='{}' type='{}' points={} dueDate='{}' by user={}", name, type, points, dueDate, userDetails==null?"<anon>":userDetails.getUsername());
         Assignment newAssignment = new Assignment(name, type, description, points, dueDate);
-        normalizeAssignmentSequenceForSqlite();
         Assignment savedAssignment = assignmentRepo.save(newAssignment);
         return new ResponseEntity<>(new AssignmentDto(savedAssignment), HttpStatus.CREATED);
     }
@@ -261,7 +256,6 @@ public class AssignmentsApiController {
                 resolvedDueDate
             );
             
-            normalizeAssignmentSequenceForSqlite();
             Assignment savedAssignment = assignmentRepo.save(newAssignment);
             logger.info("Auto-created assignment with ID: " + savedAssignment.getId() + " for contentUrl: " + contentUrl);
             AssignmentDto dto = new AssignmentDto(savedAssignment);
@@ -279,29 +273,6 @@ public class AssignmentsApiController {
         public String url;
     }
 
-    /**
-     * Repairs SQLite sequence drift/corruption for assignment IDs before inserts.
-     * Some deployed databases keep assignment_seq behind the current max(id), which causes
-     * duplicate primary key inserts when Hibernate asks SQLite for the next value.
-     */
-    private void normalizeAssignmentSequenceForSqlite() {
-        try {
-            Long maxId = jdbcTemplate.queryForObject("SELECT COALESCE(MAX(\"id\"), 0) FROM \"assignment\"", Long.class);
-            Integer seqRows = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM \"assignment_seq\"", Integer.class);
-            Long nextVal = jdbcTemplate.queryForObject("SELECT MIN(\"next_val\") FROM \"assignment_seq\"", Long.class);
-
-            long max = maxId == null ? 0L : maxId;
-            long targetNext = Math.max(max + 1L, nextVal == null ? 1L : nextVal);
-
-            if (seqRows == null || seqRows != 1 || nextVal == null || nextVal <= max) {
-                jdbcTemplate.update("DELETE FROM \"assignment_seq\"");
-                jdbcTemplate.update("INSERT INTO \"assignment_seq\"(\"next_val\") VALUES (?)", targetNext);
-                logger.info("Normalized assignment_seq to next_val={} (max assignment id={})", targetNext, max);
-            }
-        } catch (DataAccessException ignored) {
-            // Non-SQLite environments or DBs without assignment_seq can skip this silently.
-        }
-    }
 
     /**
      * Attach or update a URL resource on an existing assignment by ID.

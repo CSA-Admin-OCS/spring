@@ -1,8 +1,6 @@
 package com.open.spring.mvc.gradePrediction;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,8 +33,6 @@ import smile.regression.RandomForest;
 public class GradeTrainingController {
     @Autowired
     private GradeTrainingRepository repository;
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
     private RandomForest model;
     private HashMap<Object, Object> encoders;
     @Data
@@ -61,11 +55,6 @@ public class GradeTrainingController {
     @GetMapping("/train")
     public ResponseEntity<?> train() {
         try {
-            jdbcTemplate.execute((ConnectionCallback<Void>) connection -> {
-                String sql = buildCreateTableSql(connection);
-                connection.createStatement().execute(sql);
-                return null;
-            });
             String jsonPath = "src/main/java/com/open/spring/mvc/gradePrediction/fake-records-new-new.json";
             File jsonFile = new File(jsonPath);
             JsonNode rootNodeFromFile = objectMapper.readTree(jsonFile);
@@ -191,42 +180,4 @@ public class GradeTrainingController {
         return ResponseEntity.ok(repository.findAll());
     }
 
-    private String buildCreateTableSql(Connection connection) throws SQLException {
-        String tableName = quoteIdentifier(connection, "grade_training");
-        String idColumn = isMySqlDatabase(connection)
-            ? quoteIdentifier(connection, "id") + " BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"
-            : quoteIdentifier(connection, "id") + " INTEGER PRIMARY KEY AUTOINCREMENT";
-
-        return "CREATE TABLE IF NOT EXISTS " + tableName + " ("
-            + idColumn + ", "
-            + quoteIdentifier(connection, "student_id") + " INTEGER, "
-            + quoteIdentifier(connection, "attendance") + " REAL, "
-            + quoteIdentifier(connection, "work_habits") + " REAL, "
-            + quoteIdentifier(connection, "behavior") + " REAL, "
-            + quoteIdentifier(connection, "timeliness") + " REAL, "
-            + quoteIdentifier(connection, "tech_sense") + " REAL, "
-            + quoteIdentifier(connection, "tech_talk") + " REAL, "
-            + quoteIdentifier(connection, "tech_growth") + " REAL, "
-            + quoteIdentifier(connection, "advocacy") + " REAL, "
-            + quoteIdentifier(connection, "communication") + " REAL, "
-            + quoteIdentifier(connection, "integrity") + " REAL, "
-            + quoteIdentifier(connection, "organization") + " REAL, "
-            + quoteIdentifier(connection, "final_grade") + " INTEGER"
-            + ")";
-    }
-
-    private boolean isMySqlDatabase(Connection connection) throws SQLException {
-        String url = connection.getMetaData().getURL();
-        return url != null && url.startsWith("jdbc:mysql:");
-    }
-
-    private String quoteIdentifier(Connection connection, String identifier) throws SQLException {
-        String quote = connection.getMetaData().getIdentifierQuoteString();
-        if (quote == null || quote.isBlank()) {
-            return identifier;
-        }
-
-        String safeIdentifier = identifier.replace(quote, quote + quote);
-        return quote + safeIdentifier + quote;
-    }
 }

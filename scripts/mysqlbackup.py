@@ -249,6 +249,32 @@ def count_mysql_rows(mysql_conn, table_name):
         cursor.close()
 
 
+_TEMPORAL_TYPES = ("datetime", "timestamp", "date", "time", "year")
+
+
+def _select_expression(mysql_conn, table_name):
+    """Column expressions for SELECT: temporal columns are CAST to CHAR so
+    zero-dates and out-of-range dates come back as the exact text MySQL holds
+    instead of None."""
+    cursor = mysql_conn.cursor()
+    try:
+        cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
+        exprs = []
+        for row in cursor.fetchall():
+            name, col_type = row[0], row[1]
+            if isinstance(name, (bytes, bytearray)):
+                name = name.decode("utf-8")
+            if isinstance(col_type, (bytes, bytearray)):
+                col_type = col_type.decode("utf-8")
+            if col_type.lower().startswith(_TEMPORAL_TYPES):
+                exprs.append(f"CAST(`{name}` AS CHAR) AS `{name}`")
+            else:
+                exprs.append(f"`{name}`")
+        return exprs
+    finally:
+        cursor.close()
+
+
 def copy_table_data(mysql_conn, sqlite_conn, table_name):
     """Copy data from MySQL table to SQLite table.
 
@@ -261,8 +287,11 @@ def copy_table_data(mysql_conn, sqlite_conn, table_name):
     try:
         source_rows = count_mysql_rows(mysql_conn, table_name)
 
-        # Fetch all data from MySQL
-        mysql_cursor.execute(f"SELECT * FROM `{table_name}`")
+        # Fetch all data from MySQL. Temporal columns are read as text: the
+        # connector turns MySQL zero-dates ('0000-00-00 00:00:00') into None,
+        # which then fails NOT NULL in SQLite and lost every row of the table.
+        select_list = ", ".join(_select_expression(mysql_conn, table_name))
+        mysql_cursor.execute(f"SELECT {select_list} FROM `{table_name}`")
         columns = [desc[0] for desc in mysql_cursor.description]
         rows = [tuple(_to_sqlite_value(v) for v in row) for row in mysql_cursor.fetchall()]
 

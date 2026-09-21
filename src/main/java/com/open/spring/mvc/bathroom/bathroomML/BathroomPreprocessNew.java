@@ -1,5 +1,6 @@
 package com.open.spring.mvc.bathroom.bathroomML;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import tech.tablesaw.api.Table;
 /**
  * Aggregates data per person and generates labeled training data for ML.
  */
+@ConditionalOnProperty(name = "app.bootstrap.enabled", havingValue = "true", matchIfMissing = true)
 @Component
 public class BathroomPreprocessNew {
     @Autowired

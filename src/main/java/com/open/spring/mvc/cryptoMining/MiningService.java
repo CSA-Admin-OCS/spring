@@ -1,6 +1,7 @@
 package com.open.spring.mvc.cryptoMining;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +40,10 @@ public class MiningService {
     @Autowired
     private BankJpaRepository bankRepository;
 
+    /** false in schema-tool / test mode: never mine or settle balances during a migration. */
+    @Value("${app.bootstrap.enabled:true}")
+    private boolean bootstrapEnabled;
+
     // Fine-tune constants
     public static final double HASH_TO_BTC_RATE = 0.0001; // Current rate
     public static final double DIFFICULTY_FACTOR = 1.0;
@@ -50,6 +55,9 @@ public class MiningService {
     @Scheduled(fixedRate = MINING_INTERVAL)
     @Transactional
     public void processMining() {
+        if (!bootstrapEnabled) {
+            return;
+        }
         System.out.println("\n=== Mining Process Started ===");
         
         List<MiningUser> activeMiners = miningUserRepository.findAll().stream()
@@ -93,6 +101,9 @@ public class MiningService {
     @Scheduled(fixedRate = BALANCE_TRANSFER_INTERVAL)
     @Transactional
     public void processPendingBalances() {
+        if (!bootstrapEnabled) {
+            return;
+        }
         System.out.println("\n=== Processing Pending Balances ===");
         
         List<MiningUser> miners = miningUserRepository.findAll();

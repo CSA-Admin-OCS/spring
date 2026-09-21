@@ -33,6 +33,9 @@ BACKUP_DIR = PROJECT_ROOT / "volumes" / "backups"
 # MySQL DDL and source row count for each table.
 META_TABLE = "__migration_meta__"
 
+# Tables that are never data: Flyway's history, SQLite's own bookkeeping, backup metadata.
+SKIP_TABLES = {"flyway_schema_history", "sqlite_sequence", META_TABLE}
+
 try:
     from mysql.connector import Error as MySQLError
 except ImportError:  # driver absent -- only the offline commands can run

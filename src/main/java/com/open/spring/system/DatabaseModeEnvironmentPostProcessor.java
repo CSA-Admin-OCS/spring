@@ -16,7 +16,15 @@ public class DatabaseModeEnvironmentPostProcessor implements EnvironmentPostProc
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        // DB_URL is what .env sets; spring.datasource.url covers explicit overrides
+        // (tests, --spring.datasource.url=... on the schema tool) when DB_URL is blank.
         String dbUrl = environment.getProperty("DB_URL", "").trim();
+        if (dbUrl.isEmpty()) {
+            String dsUrl = environment.getProperty("spring.datasource.url", "").trim();
+            if (!dsUrl.startsWith("${")) {
+                dbUrl = dsUrl;
+            }
+        }
         boolean mysqlMode = dbUrl.startsWith("jdbc:mysql:");
 
         Map<String, Object> overrides = new HashMap<>();
@@ -25,7 +33,7 @@ public class DatabaseModeEnvironmentPostProcessor implements EnvironmentPostProc
             overrides.put("spring.jpa.database-platform", "org.hibernate.dialect.MySQLDialect");
         } else {
             overrides.put("spring.datasource.driver-class-name", "org.sqlite.JDBC");
-            overrides.put("spring.jpa.database-platform", "org.hibernate.community.dialect.SQLiteDialect");
+            overrides.put("spring.jpa.database-platform", "com.open.spring.system.SQLiteValidatingDialect");
         }
 
         MutablePropertySources sources = environment.getPropertySources();

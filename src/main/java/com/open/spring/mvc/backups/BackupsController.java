@@ -235,8 +235,15 @@ public class BackupsController {
      * This method will be called just before the server stops.
      * Performs both full database backup and specific endpoint backups.
      */
+    /** false in schema-tool / test mode: never write shutdown exports. */
+    @Value("${app.bootstrap.enabled:true}")
+    private boolean bootstrapEnabled;
+
     @EventListener
     public void handleContextClose(ContextClosedEvent event) {
+        if (!bootstrapEnabled) {
+            return;
+        }
         System.out.println("Server is stopping. Starting backup process...");
 
         try {

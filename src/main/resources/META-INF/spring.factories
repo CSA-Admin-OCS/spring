@@ -1,0 +1,2 @@
+# EnvironmentPostProcessors are discovered through spring.factories (not .imports files)
+org.springframework.boot.env.EnvironmentPostProcessor=com.open.spring.system.DatabaseModeEnvironmentPostProcessor

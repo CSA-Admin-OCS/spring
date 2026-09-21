@@ -1,5 +1,6 @@
 package com.open.spring.mvc.cryptoMining;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+@ConditionalOnProperty(name = "app.bootstrap.enabled", havingValue = "true", matchIfMissing = true)
 @Component
 public class DataInitializer implements CommandLineRunner {
     @Autowired

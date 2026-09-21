@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Iterator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,6 +31,10 @@ import lombok.NoArgsConstructor;
 @RestController
 @RequestMapping("/bank")
 public class BankApiController {
+
+    /** false in schema-tool / test mode: never apply loan interest during a migration. */
+    @Value("${app.bootstrap.enabled:true}")
+    private boolean bootstrapEnabled;
 
     @Autowired
     private BankService bankService;
@@ -245,6 +250,9 @@ public class BankApiController {
     
     @Scheduled(fixedRate = 86400000)
     public void scheduledInterestApplication() {
+        if (!bootstrapEnabled) {
+            return;
+        }
         try {
             applyInterestToAllLoans();
         } catch (Exception e) {

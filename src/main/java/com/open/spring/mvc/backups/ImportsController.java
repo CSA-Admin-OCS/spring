@@ -78,6 +78,10 @@ public class ImportsController {
     @Value("${server.port:8585}")
     private String serverPort;
 
+    /** false in schema-tool / test mode: no startup pragmas or integrity check. */
+    @Value("${app.bootstrap.enabled:true}")
+    private boolean bootstrapEnabled;
+
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
     private final ObjectMapper objectMapper = new ObjectMapper().setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -105,6 +109,9 @@ public class ImportsController {
      */
     @EventListener(ApplicationReadyEvent.class)
     public synchronized void initializeOnStartup() {
+        if (!bootstrapEnabled) {
+            return;
+        }
         try (Connection connection = dataSource.getConnection()) {
             if (isSqliteDatabase(connection)) {
                 // Enable WAL mode for better concurrency
@@ -482,9 +489,8 @@ public class ImportsController {
                     List<Map<String, Object>> tableData = entry.getValue();
                     
                     if (!tableName.endsWith("_seq") && !tableData.isEmpty() && !existingTables.contains(tableName)) {
-                        System.out.println("Pre-creating table: " + tableName);
-                        Set<String> columns = tableData.get(0).keySet();
-                        createTable(connection, tableName, columns);
+                        System.out.println("Skipping table " + tableName + ": not in the schema "
+                                + "(restore never creates tables; run ./dev.sh migrate spring upgrade)");
                     }
                 }
                 
@@ -869,21 +875,28 @@ public class ImportsController {
             return;
         }
     
-        Set<String> columns = tableData.get(0).keySet();
-        
         if (!tableExists(connection, tableName)) {
-            System.out.println("Table " + tableName + " doesn't exist. Creating it now...");
-            createTable(connection, tableName, columns);
+            System.out.println("Skipping table " + tableName + ": not in the schema "
+                    + "(restore never creates tables; run ./dev.sh migrate spring upgrade)");
+            return;
         }
-        
+
+        // Restore never alters the schema: load the columns both sides share and report the rest.
         Set<String> existingColumns = getExistingColumns(connection, tableName);
-        for (String column : columns) {
-            if (!existingColumns.contains(column)) {
-                System.out.println("Adding missing column: " + column + " to table: " + tableName);
-                addColumn(connection, tableName, column);
+        Set<String> columns = new java.util.LinkedHashSet<>();
+        for (String column : tableData.get(0).keySet()) {
+            if (existingColumns.contains(column)) {
+                columns.add(column);
+            } else {
+                System.out.println("Warning: column " + tableName + "." + column
+                        + " is not in the schema; its values are not restored");
             }
         }
-        
+        if (columns.isEmpty()) {
+            System.out.println("Skipping table " + tableName + ": no columns in common with the schema");
+            return;
+        }
+
         String sql = buildInsertQuery(connection, tableName, columns);
     
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -944,105 +957,22 @@ public class ImportsController {
     }
 
     private void ensureTableExists(Connection connection, String tableName, List<Map<String, Object>> tableData, boolean removeExcessData) throws SQLException {
-        if (tableData.isEmpty()) {
-            System.out.println("No data provided for table: " + tableName + ". Creating with basic structure.");
-            if (!tableExists(connection, tableName)) {
-                String sql = buildBasicTableSql(connection, tableName);
-                try (Statement stmt = connection.createStatement()) {
-                    stmt.execute(sql);
-                    System.out.println("Created basic table structure for: " + tableName);
-                }
-            }
+        // Restore never creates tables or columns (schema is owned by Flyway); only report.
+        if (!tableExists(connection, tableName)) {
+            System.out.println("Table " + tableName + " is not in the schema; its rows are skipped "
+                    + "(run ./dev.sh migrate spring upgrade if a migration should have created it)");
             return;
         }
-
-        Set<String> columnsInJson = tableData.get(0).keySet();
-        
-        boolean tableExists = tableExists(connection, tableName);
-        
-        if (!tableExists) {
-            System.out.println("Creating new table: " + tableName + " with columns: " + columnsInJson);
-            createTable(connection, tableName, columnsInJson);
-        } else {
-            Set<String> existingColumns = getExistingColumns(connection, tableName);
-            
-            for (String column : columnsInJson) {
-                if (!existingColumns.contains(column)) {
-                    System.out.println("Adding column: " + column + " to table: " + tableName);
-                    addColumn(connection, tableName, column);
-                }
+        if (tableData.isEmpty()) {
+            return;
+        }
+        Set<String> existingColumns = getExistingColumns(connection, tableName);
+        for (String column : tableData.get(0).keySet()) {
+            if (!existingColumns.contains(column)) {
+                System.out.println("Warning: column " + tableName + "." + column
+                        + " is not in the schema; its values are not restored");
             }
         }
-    }
-
-    private void createTable(Connection connection, String tableName, Set<String> columns) throws SQLException {
-        StringBuilder sqlBuilder = new StringBuilder("CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, tableName) + " (");
-        
-        boolean hasIdColumn = columns.stream().anyMatch(col -> col.equalsIgnoreCase("id"));
-        
-        for (String column : columns) {
-            sqlBuilder.append(buildColumnDefinition(connection, column, hasIdColumn)).append(",");
-        }
-        
-        if (columns.size() > 0) {
-            sqlBuilder.deleteCharAt(sqlBuilder.length() - 1);
-        }
-        
-        sqlBuilder.append(")");
-        
-        String sql = sqlBuilder.toString();
-        System.out.println("Creating table with SQL: " + sql);
-        
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(sql);
-            System.out.println("Successfully created table: " + tableName);
-        } catch (SQLException e) {
-            System.err.println("Error creating table " + tableName + ": " + e.getMessage());
-            throw e;
-        }
-    }
-
-    private void addColumn(Connection connection, String tableName, String columnName) throws SQLException {
-        String sql = "ALTER TABLE " + quoteIdentifier(connection, tableName) + " ADD COLUMN " + buildColumnDefinition(connection, columnName, false);
-        try (Statement statement = connection.createStatement()) {
-            statement.execute(sql);
-        }
-    }
-
-    private String buildBasicTableSql(Connection connection, String tableName) throws SQLException {
-        return "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, tableName) + " ("
-            + buildColumnDefinition(connection, "id", true) + ", "
-            + quoteIdentifier(connection, "name") + " TEXT, "
-            + quoteIdentifier(connection, "description") + " TEXT, "
-            + quoteIdentifier(connection, "created_date") + " TEXT"
-            + ")";
-    }
-
-    private String buildColumnDefinition(Connection connection, String columnName, boolean idColumnPresent) throws SQLException {
-        String quotedColumn = quoteIdentifier(connection, columnName);
-        String lowerColumn = columnName.toLowerCase();
-
-        if (columnName.equalsIgnoreCase("id") && idColumnPresent) {
-            if (isMySqlDatabase(connection)) {
-                return quotedColumn + " BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY";
-            }
-            return quotedColumn + " INTEGER PRIMARY KEY AUTOINCREMENT";
-        } else if (lowerColumn.endsWith("_id") || lowerColumn.equals("id")) {
-            return quotedColumn + " INTEGER";
-        } else if (lowerColumn.contains("date") || lowerColumn.contains("time")) {
-            return quotedColumn + " TEXT";
-        } else if (lowerColumn.contains("is_") || lowerColumn.startsWith("has_") ||
-                   lowerColumn.equals("active") || lowerColumn.equals("enabled")) {
-            return quotedColumn + " BOOLEAN";
-        } else if (lowerColumn.contains("count") || lowerColumn.contains("number") ||
-                   lowerColumn.contains("amount") || lowerColumn.contains("quantity")) {
-            return quotedColumn + " INTEGER";
-        } else if (lowerColumn.contains("price") || lowerColumn.contains("cost") ||
-                   lowerColumn.contains("rate")) {
-            return quotedColumn + " REAL";
-        }
-
-        return quotedColumn + " TEXT";
     }
 
     private boolean isMySqlDatabase(Connection connection) throws SQLException {
