@@ -308,9 +308,11 @@ worse: `restore` carries only the columns both schemas share, so anything a migr
 computes or backfills is silently replaced by column defaults.
 
 `docker compose down` is not optional. Flyway on SQLite has no cross-process lock, and
-`verify` refuses to run while port 8585 is live. Check too that nothing else writes to
-`volumes/` while the migration runs -- the `database-automator` container bind-mounts that
-directory, and the port check does not know about it.
+`verify` refuses to run while port 8585 is live. That port check is the only guard, so
+confirm nothing *else* on the host writes to `volumes/` either -- it would not be noticed.
+On cockpit the `database-automator` container bind-mounts that directory but does so
+read-only (`rw=false`), so it is safe to leave running; verify the mode rather than
+assuming it if the compose file changes.
 
 `verify` runs Spring Boot through `./mvnw` outside Docker, so the server needs Java 21 and
 network access for Maven. Do not pass `--jar` after a `git pull`: that runs the previous
