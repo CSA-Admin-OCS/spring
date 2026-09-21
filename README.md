@@ -189,6 +189,13 @@ and tested before you touch production either way.
 
 ### MySQL deployment (historical -- applies only when `DB_URL` points at RDS)
 
+> This section predates Flyway and is kept for the backup/restore detail, which is still
+> how disaster recovery works on MySQL. **The schema change itself is now `verify`, not
+> `init` + `restore`** -- the migrations ship per-vendor SQL and apply to MySQL in place,
+> exactly as they do on SQLite. Read the SQLite section below for the current procedure.
+> MySQL DDL is not transactional, so a failed migration there needs `repair` rather than a
+> rollback of the statement.
+
 0. Set `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` in `.env` (pointing at production RDS) and
    create a venv with `mysql-connector-python` installed. `mysqldump` must be on PATH.
 
@@ -263,11 +270,15 @@ paths for you.
 
 ```bash
 python3 scripts/db_migrate.py status              # confirm Mode: SQLITE (DB_URL commented out)
-python3 scripts/db_migrate.py check               # type maps still round-trip
+./mvnw test                                       # migration chain on a fresh database
 python3 scripts/db_migrate.py pull --install      # ssh cockpit, run backup there, copy it here,
                                                   # install it as volumes/sqlite.db
+python3 scripts/db_migrate.py verify              # rehearse the migration on real data
 ./mvnw spring-boot:run                            # TEST TEST TEST on real data
 ```
+
+Run `verify` *before* starting the app. Flyway migrates at every startup, so booting the
+app first applies the migrations silently and you lose the reconciliation report.
 
 `pull` defaults to ssh host `cockpit` and repo path `open/spring`; override with
 `--host` and `--remote-path`. Without `--install` it only lands the file in
@@ -278,24 +289,36 @@ local database first.
 
 ```bash
 python3 scripts/db_migrate.py status              # confirm Mode: SQLITE
-python3 scripts/db_migrate.py backup              # must exit 0
-docker compose down
+docker compose down                               # required, see below
 git pull
-python3 scripts/db_migrate.py init                # fresh schema from the JPA entities
-python3 scripts/db_migrate.py restore --backup-file volumes/backups/sqlite_backup_<ts>.db
+python3 scripts/db_migrate.py verify              # backs up, migrates in place, reconciles
 docker compose up -d --build
+python3 scripts/db_migrate.py check               # all applied, entities match the schema
 ```
 
-`init` runs Spring Boot through `./mvnw` outside Docker, so the server needs Java 21 and
-network access for Maven.
+`verify` must print `VERIFY PASSED` before you bring the app back up. It snapshots every
+table, applies the pending migrations, snapshots again, and fails if any table lost rows
+or changed content without a migration declaring it. `upgrade` is the same thing without
+the reconciliation; prefer `verify` on production.
+
+**Do not use `init` + `restore` for a schema change.** Flyway alters the database in
+place, so the data never leaves the server and there is nothing to reload. That pair is
+the disaster-recovery path (see below) and using it for a routine migration is strictly
+worse: `restore` carries only the columns both schemas share, so anything a migration
+computes or backfills is silently replaced by column defaults.
+
+`docker compose down` is not optional. Flyway on SQLite has no cross-process lock, and
+`verify` refuses to run while port 8585 is live. Check too that nothing else writes to
+`volumes/` while the migration runs -- the `database-automator` container bind-mounts that
+directory, and the port check does not know about it.
+
+`verify` runs Spring Boot through `./mvnw` outside Docker, so the server needs Java 21 and
+network access for Maven. Do not pass `--jar` after a `git pull`: that runs the previous
+build's jar, which does not contain the migrations you just pulled.
 
 `backup` uses SQLite's online backup API, not a file copy. The database runs in WAL mode,
 so a `cp` of `sqlite.db` can silently miss everything still sitting in the `-wal` file.
-
-`restore` keeps the schema `init` just built and loads only the columns both sides share.
-Columns added by your change take their defaults; columns and tables removed by it are
-listed explicitly rather than being dropped in silence. `*_seq` tables come across intact,
-so Hibernate keeps allocating ids where it left off instead of restarting at 1.
+Because it is an online backup, `pull` is safe against a running production app.
 
 Rolling back is a file copy, because the backup *is* a complete database:
 
@@ -312,12 +335,20 @@ docker compose up -d
 
 | Command | What it does |
 | --- | --- |
-| `status` | Prints the configured target and what is currently in it |
-| `check` | Round-trips the schema through both translators and fails if they disagree |
-| `backup` | Verified backup of the live database (MySQL or SQLite); on SQLite, run it on the server |
-| `pull` | Runs `backup` on the server over ssh and copies the file here (SQLite only) |
-| `init` | Rebuilds the schema on the target with Hibernate |
-| `restore` | Loads a backup back into the target |
+| `status` | Prints the configured target, what is in it, and Flyway's view of it |
+| `check` | Flyway validate + Hibernate validate; non-zero if the schema and entities disagree |
+| `new` | Scaffolds the next migration for both vendors (`--java` for one Java migration) |
+| `upgrade` | Backs up, then applies pending migrations |
+| `verify` | `upgrade` plus a row-count and checksum reconciliation; use this on production |
+| `repair` | `flyway repair` after a failed migration |
+| `roundtrip` | DR: checks the backup/restore type maps still round-trip |
+| `backup` | DR: verified backup of the live database; on SQLite, run it on the server |
+| `pull` | DR: runs `backup` on the server over ssh and copies the file here (SQLite only) |
+| `init` | DR: wipes and rebuilds the schema from V1..Vn (destructive) |
+| `restore` | DR: loads a backup back into the target (destructive) |
+
+The `DR` commands are disaster recovery -- a corrupted database, resetting a development
+machine, or rolling back. A routine schema change uses `new` then `verify`.
 
 Underneath, `mysqlbackup.py` / `mysqlrestore.py` (MySQL) and `sqlite_migrate.py` (SQLite)
 hold the backup and restore implementations and can be run directly -- `db_migrate.py` calls straight into them, so
@@ -326,18 +357,23 @@ parsing `DB_URL`, opening connections, the backup metadata table name) lives in
 `mysql_common.py`, so the two scripts cannot disagree about which database they are
 talking to.
 
-**Why `check` exists.** The MySQL-to-SQLite and SQLite-to-MySQL type maps are inverse
+**Why `roundtrip` exists.** The MySQL-to-SQLite and SQLite-to-MySQL type maps are inverse
 functions living in two different files. Nothing structural forces them to stay inverse,
 and when they drifted the round trip quietly turned every `VARCHAR` and `DATETIME` column
-into `LONGTEXT`. `check` runs every table in `schema_full.txt` through both directions and
-fails on any degradation. It needs no database and no driver, so it is safe to run
-anywhere, including CI. Run it after any change to either map.
+into `LONGTEXT`. `roundtrip` runs every table through both directions and fails on any
+degradation. It needs no database and no driver, so it is safe to run anywhere, including
+CI. Run it after any change to either map. It reads the MySQL baseline migration by
+default, or a live server with `--live`:
 
-`schema_full.txt` is a point-in-time snapshot, so it goes stale as entities are added.
-It is fixture data for `check` and nothing else — no part of the application reads it.
-To check against the schema that actually exists right now:
+> python3 scripts/db_migrate.py roundtrip
+> python3 scripts/db_migrate.py roundtrip --live
 
-> python3 scripts/db_migrate.py check --live
+The type maps only matter to the backup/restore path, which is disaster recovery now --
+migrations themselves are per-vendor SQL, so nothing translates between the two dialects.
+
+`schema_full.txt` was the point-in-time fixture this used to read. The MySQL
+`V1__baseline.sql` records the same DDL and is kept current by `baseline-dump`, so the
+snapshot has been **deleted**.
 
 ### Removed scripts
 
@@ -350,10 +386,11 @@ addressed. They remain recoverable from git history if you ever need to read the
 
 The current scripts are: `db_migrate.py` (entry point), `mysql_common.py` (shared config
 and connections), `mysqlbackup.py` / `mysqlrestore.py` (MySQL), `sqlite_migrate.py`
-(SQLite), `db_init.py` (schema rebuild) and `migration_utils.py` (Spring Boot runner).
+(SQLite), `db_init.py` (rebuild from the migrations), `db_verify.py` (row-count and
+checksum reconciliation) and `migration_utils.py` (Spring Boot runner).
 
-These seven migration files are byte-identical to the ones in `spring`. A fix applied to one
-repo belongs in the other -- check both before you consider a migration bug closed.
+These eight migration files are shared with the `flask` repo. A fix applied to one repo
+belongs in the other -- check both before you consider a migration bug closed.
 
 ### The full runbook
 
