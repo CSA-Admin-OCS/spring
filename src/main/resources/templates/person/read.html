@@ -143,7 +143,7 @@
         </div>
 
         <div class="mt-3">
-            <button class="btn btn-success" onclick="exportCSV()">Export CSV</button>
+            <button class="btn btn-success" onclick="exportPersonCSV()">Export CSV</button>
             <button class="btn btn-info" onclick="document.getElementById('csvFileInput').click()">Import CSV</button>
             <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="importCSV(event)">
         </div>
@@ -247,7 +247,7 @@
     <script>
         function exportRow(btn) {
             const id = btn.getAttribute('data-id');
-            fetch('/person/' + id)
+            fetch('/api/person/' + id)
                 .then(res => res.json())
                 .then(data => {
                     const s = JSON.stringify(data, null, 2);
@@ -260,33 +260,75 @@
                 .catch(e => alert('Export failed: ' + e));
         }
 
-        function exportCSV() {
+        function exportPersonCSV() {
             const table = document.getElementById('personTable');
-            const rows = table.querySelectorAll('tr');
             let csv = [];
 
-            // Get headers
-            const headers = [];
-            rows[0].querySelectorAll('th').forEach((th, index) => {
-                if (index < rows[0].querySelectorAll('th').length - 2) { // Exclude last 2 columns (Action, Import/Export)
-                    headers.push(th.textContent.trim());
-                }
-            });
+            // Export DTO-compatible headers to support import round-trips.
+            const headers = ['uid', 'name', 'email', 'sid', 'pfp', 'password'];
             csv.push(headers.join(','));
 
-            // Get data rows
-            for (let i = 1; i < rows.length; i++) {
-                const row = [];
-                const cols = rows[i].querySelectorAll('td');
-                for (let j = 0; j < cols.length - 2; j++) { // Exclude last 2 columns
-                    let cell = cols[j].textContent.trim();
-                    // Escape commas and quotes
-                    if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
-                        cell = '"' + cell.replace(/"/g, '""') + '"';
-                    }
-                    row.push(cell);
+            const csvEscape = (value) => {
+                const cell = String(value ?? '');
+                if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+                    return '"' + cell.replace(/"/g, '""') + '"';
                 }
-                csv.push(row.join(','));
+                return cell;
+            };
+
+            const htmlToText = (html) => {
+                const div = document.createElement('div');
+                div.innerHTML = String(html ?? '');
+                return (div.textContent || '').trim();
+            };
+
+            const htmlToImageSrc = (html) => {
+                const div = document.createElement('div');
+                div.innerHTML = String(html ?? '');
+                return div.querySelector('img')?.getAttribute('src') || '';
+            };
+
+            let exportedRowCount = 0;
+            const jq = window.jQuery || window.$;
+            if (jq && jq.fn && jq.fn.DataTable && jq.fn.DataTable.isDataTable('#personTable')) {
+                const dt = jq('#personTable').DataTable();
+                dt.rows({ search: 'applied' }).data().toArray().forEach(cols => {
+                    if (!Array.isArray(cols) || cols.length < 7) return;
+
+                    const uid = htmlToText(cols[1]);
+                    const name = htmlToText(cols[2]);
+                    const email = htmlToText(cols[3]);
+                    const sid = htmlToText(cols[6]);
+                    const pfp = htmlToImageSrc(cols[5]);
+                    const password = '';
+
+                    csv.push([uid, name, email, sid, pfp, password].map(csvEscape).join(','));
+                    exportedRowCount++;
+                });
+            }
+
+            if (exportedRowCount === 0) {
+                // Fallback if DataTables is unavailable or returns no rows.
+                const rows = table.querySelectorAll('tbody tr');
+                rows.forEach(tr => {
+                    const cols = tr.querySelectorAll('td');
+                    if (cols.length < 7) return;
+
+                    const uid = cols[1].querySelector('a')?.textContent.trim() || '';
+                    const name = cols[2].textContent.trim();
+                    const email = cols[3].textContent.trim();
+                    const pfp = cols[5].querySelector('img')?.getAttribute('src') || '';
+                    const sid = cols[6].textContent.trim();
+                    const password = '';
+
+                    csv.push([uid, name, email, sid, pfp, password].map(csvEscape).join(','));
+                    exportedRowCount++;
+                });
+            }
+
+            if (exportedRowCount === 0) {
+                alert('No rows to export.');
+                return;
             }
 
             // Download CSV
@@ -300,6 +342,21 @@
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+        }
+
+        // Backward compatibility in case anything still calls exportCSV().
+        window.exportCSV = exportPersonCSV;
+
+        function normalizePersonHeader(header) {
+            const h = (header || '').trim().toLowerCase();
+            if (h === 'uid') return 'uid';
+            if (h === 'name') return 'name';
+            if (h === 'email') return 'email';
+            if (h === 'sid' || h === 'student id') return 'sid';
+            if (h === 'pfp') return 'pfp';
+            if (h === 'password') return 'password';
+            if (h === 'kasmserverneeded' || h === 'ksm' || h === 'kasm server needed') return 'kasmServerNeeded';
+            return null;
         }
 
         function importCSV(event) {
@@ -317,7 +374,8 @@
                 }
 
                 // Parse CSV and create persons
-                const headers = lines[0].split(',').map(h => h.trim());
+                const rawHeaders = parseCSVLine(lines[0]).map(h => h.trim());
+                const headers = rawHeaders.map(normalizePersonHeader);
                 let imported = 0;
                 let failed = 0;
 
@@ -329,13 +387,13 @@
                     const person = {};
 
                     headers.forEach((header, index) => {
-                        if (values[index] !== undefined && values[index] !== '') {
-                            person[header] = values[index];
-                        }
+                        if (!header || values[index] === undefined || values[index] === '') return;
+                        if (header === 'kasmServerNeeded') return;
+                        person[header] = values[index];
                     });
 
                     // Send to backend API
-                    const promise = fetch('/person/create', {
+                    const promise = fetch('/api/person/create', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

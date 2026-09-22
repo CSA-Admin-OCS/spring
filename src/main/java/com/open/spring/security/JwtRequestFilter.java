@@ -75,7 +75,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		} catch (IllegalArgumentException e) {
 			logger.warn("JWT token could not be read; continuing unauthenticated: " + e.getMessage());
 		} catch (ExpiredJwtException e) {
-			logger.warn("JWT token has expired; continuing unauthenticated");
+			logger.warn("JWT token expired for request: " + buildRequestLogMessage(request));
 		} catch (Exception e) {
 			logger.warn("JWT token was rejected; continuing unauthenticated: " + e.getMessage());
 		}

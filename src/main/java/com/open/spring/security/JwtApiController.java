@@ -126,10 +126,14 @@ public class JwtApiController {
 			// Mirrors the cookies issued at login, domain included.
 			ResponseCookie jwtCookie = cookieFactory.expiredJwtCookie();
 			ResponseCookie sessionCookie = cookieFactory.expiredSessionCookie();
-	
+
 			// Set the cookies in the response to effectively "remove" them
 			response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
 			response.addHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
+			// Also clears any pre-CookieFactory JWT cookie shape a browser might still be
+			// holding (host-only, or Domain=localhost from local dev).
+			response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.expiredJwtHostOnlyCookie().toString());
+			response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.expiredJwtLegacyLocalhostCookie().toString());
 	
 			// Optional: You can also clear the "Authorization" header if needed
 			response.setHeader("Authorization", null);
@@ -137,12 +141,6 @@ public class JwtApiController {
 			// Redirect user to home page after logout
 			return "redirect:/home";
 		}
-}
+	}
 
 }
-
-
-
-
-	
-

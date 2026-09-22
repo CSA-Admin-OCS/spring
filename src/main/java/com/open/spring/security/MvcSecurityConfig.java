@@ -105,11 +105,6 @@ public class MvcSecurityConfig {
                 .requestMatchers("/mvc/bathroom/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                .requestMatchers("/authenticate", "/authenticateForm").permitAll()
-                .requestMatchers(HttpMethod.POST, "/authenticateForm").permitAll()
-                // NOTE: /api/** and /authenticate are claimed by the API chain (@Order(1)),
-                // so any /api rule written here is unreachable. Authorization for those
-                // endpoints lives in SecurityConfig and nowhere else.
                 .requestMatchers("/mvc/synergy/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/gradebook").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_STUDENT")
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/view-grade-requests").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
@@ -167,6 +162,11 @@ public class MvcSecurityConfig {
                     ResponseCookie jwtCookie = cookieFactory.expiredJwtCookie();
                     response.addHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
                     response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+                    // Also clears any pre-CookieFactory JWT cookie shape a browser might
+                    // still be holding (host-only, or Domain=localhost from local dev), so
+                    // logout actually logs out old sessions instead of leaving a zombie cookie.
+                    response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.expiredJwtHostOnlyCookie().toString());
+                    response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.expiredJwtLegacyLocalhostCookie().toString());
                     response.sendRedirect("/login?logout");
                 }));
 
@@ -177,10 +177,6 @@ public class MvcSecurityConfig {
     public Map<String, String> mvcEndpointRolePolicy() {
         Map<String, String> policy = new LinkedHashMap<>();
         policy.put("GET/POST /login", "permitAll");
-        policy.put("/authenticate", "permitAll");
-        policy.put("/authenticateForm", "permitAll");
-        policy.put("/api/person/create", "permitAll");
-        policy.put("/api/person/create/", "permitAll");
         policy.put("GET/POST /mvc/person/create", "permitAll");
         policy.put("GET /mvc/person/reset", "permitAll");
         policy.put("GET /mvc/person/reset/check", "permitAll");

@@ -74,4 +74,36 @@ public class CookieFactory {
                 .sameSite(cookieSecure ? cookieSameSite : "Lax")
                 .build();
     }
+
+    /**
+     * Older deployments set the JWT cookie without a domain (host-only). A browser
+     * that still holds one of those needs it cleared too, or logout leaves it looking
+     * logged in -- deliberately built without the domain() call {@link #jwtCookie}
+     * always adds now.
+     */
+    public ResponseCookie expiredJwtHostOnlyCookie() {
+        return ResponseCookie.from(JWT_COOKIE, "")
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path(JWT_PATH)
+                .maxAge(0)
+                .sameSite(cookieSecure ? cookieSameSite : "Lax")
+                .build();
+    }
+
+    /**
+     * Even older local-dev cookies were set with Domain=localhost. Harmless to send
+     * in production (the domain won't match anything), but clears the zombie cookie
+     * for anyone still carrying one from that era.
+     */
+    public ResponseCookie expiredJwtLegacyLocalhostCookie() {
+        return ResponseCookie.from(JWT_COOKIE, "")
+                .httpOnly(true)
+                .secure(false)
+                .path(JWT_PATH)
+                .maxAge(0)
+                .sameSite("Lax")
+                .domain("localhost")
+                .build();
+    }
 }

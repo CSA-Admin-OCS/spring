@@ -300,10 +300,12 @@ public class AssignmentSubmissionAPIController {
         submission.setComment(comment == null ? "" : comment);
         submission.setIsLate(Boolean.TRUE.equals(isLate));
 
-        // Only clear grade/feedback when the submission content actually changed
+        // Only clear grade/feedback/AI summary/quality score when the content actually changed
         if (contentChanged) {
             submission.setGrade(null);
             submission.setFeedback(null);
+            submission.setAiSummary(null);
+            submission.setQualityScore(null);
         }
 
         AssignmentSubmission savedSubmission = submissionRepo.save(submission);
@@ -346,6 +348,45 @@ public class AssignmentSubmissionAPIController {
         // we have a correct submission
         submission.setGrade(grade);
         submission.setFeedback(feedback);
+        AssignmentSubmission savedSubmission = submissionRepo.save(submission);
+        return ResponseEntity.ok(new AssignmentSubmissionReturnDto(savedSubmission));
+    }
+
+    /**
+     * Persist an AI-generated summary for a submission (admin/teacher only).
+     *
+     * @param submissionId the ID of the submission being summarized
+     * @param summary      the generated summary text
+     * @return a ResponseEntity indicating success or an error if the submission is not found
+     */
+    @PostMapping("/summary/{submissionId}")
+    @Transactional
+    public ResponseEntity<?> saveSubmissionSummary(
+            @PathVariable Long submissionId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam String summary,
+            @RequestParam(required = false) Integer qualityScore
+    ) {
+        Person currentUser = getAuthenticatedPerson(userDetails);
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Authentication required"));
+        }
+        if (!canGradeOrDeleteSubmission(currentUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Admin or teacher access required"));
+        }
+
+        AssignmentSubmission submission = submissionRepo.findById(submissionId).orElse(null);
+        if (submission == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Submission not found"));
+        }
+
+        submission.setAiSummary(summary);
+        if (qualityScore != null && qualityScore >= 1 && qualityScore <= 5) {
+            submission.setQualityScore(qualityScore);
+        }
         AssignmentSubmission savedSubmission = submissionRepo.save(submission);
         return ResponseEntity.ok(new AssignmentSubmissionReturnDto(savedSubmission));
     }
