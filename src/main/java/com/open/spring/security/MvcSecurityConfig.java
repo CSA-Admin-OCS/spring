@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -45,14 +46,29 @@ import jakarta.servlet.DispatcherType;
 @Configuration
 public class MvcSecurityConfig {
 
-    // Cookie attributes live in CookieFactory -- see the comment there on why
-    // set and delete must be built from the same place.
+    private static final String JWT_COOKIE_NAME = "jwt_java_spring";
+    private static final String JWT_COOKIE_PATH = "/api";
+
+    @Value("${jwt.cookie.secure:true}")
+    private boolean cookieSecure;
+
+    @Value("${jwt.cookie.same-site:None}")
+    private String cookieSameSite;
+
+    @Value("${server.servlet.session.cookie.name:sess_java_spring}")
+    private String sessionCookieName;
+
+    @Value("${server.servlet.session.cookie.secure:true}")
+    private boolean sessionCookieSecure;
+
+    @Value("${server.servlet.session.cookie.same-site:None}")
+    private String sessionCookieSameSite;
+
+    @Value("${server.servlet.session.cookie.domain:}")
+    private String sessionCookieDomain;
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
-
-    @Autowired
-    private CookieFactory cookieFactory;
 
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -106,11 +122,6 @@ public class MvcSecurityConfig {
                 .requestMatchers("/mvc/bathroom/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                .requestMatchers("/authenticate", "/authenticateForm").permitAll()
-                .requestMatchers(HttpMethod.POST, "/authenticateForm").permitAll()
-                // NOTE: /api/** and /authenticate are claimed by the API chain (@Order(1)),
-                // so any /api rule written here is unreachable. Authorization for those
-                // endpoints lives in SecurityConfig and nowhere else.
                 .requestMatchers("/mvc/synergy/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/gradebook").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_STUDENT")
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/view-grade-requests").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
@@ -152,9 +163,17 @@ public class MvcSecurityConfig {
                         return;
                     }
 
-                    // Built by CookieFactory so this cookie and the one logout deletes
-                    // always carry the same name, domain and path.
-                    ResponseCookie jwtCookie = cookieFactory.jwtCookie(token);
+                    // Build JWT cookie with domain support for cross-subdomain requests
+                    ResponseCookie.ResponseCookieBuilder jwtCookieBuilder = ResponseCookie.from(JWT_COOKIE_NAME, token)
+                        .httpOnly(true)
+                        .secure(cookieSecure)
+                        .path(JWT_COOKIE_PATH)
+                        .maxAge(-1)
+                        .sameSite(cookieSameSite);
+
+                    applyJwtCookieScope(jwtCookieBuilder);
+                    
+                    ResponseCookie jwtCookie = jwtCookieBuilder.build();
 
                     response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
                     response.sendRedirect("/mvc/person/read");
@@ -163,12 +182,49 @@ public class MvcSecurityConfig {
                 .invalidateHttpSession(true)
                 .clearAuthentication(true)
                 .logoutSuccessHandler((request, response, authentication) -> {
-                    // Previously these were built inline without the domain that login sets,
-                    // so the browser kept the domain-scoped JWT and logout never took effect.
-                    ResponseCookie sessionCookie = cookieFactory.expiredSessionCookie();
-                    ResponseCookie jwtCookie = cookieFactory.expiredJwtCookie();
+                    ResponseCookie.ResponseCookieBuilder sessionCookieBuilder = ResponseCookie.from(sessionCookieName, "")
+                        .httpOnly(true)
+                        .secure(sessionCookieSecure)
+                        .path("/")
+                        .maxAge(0)
+                        .sameSite(sessionCookieSameSite);
+                    if (!sessionCookieDomain.isBlank()) {
+                        sessionCookieBuilder.domain(sessionCookieDomain);
+                    }
+                    ResponseCookie sessionCookie = sessionCookieBuilder.build();
+
+                    ResponseCookie.ResponseCookieBuilder jwtCookieBuilder = ResponseCookie.from(JWT_COOKIE_NAME, "")
+                        .httpOnly(true)
+                        .secure(cookieSecure)
+                        .path(JWT_COOKIE_PATH)
+                        .maxAge(0)
+                        .sameSite(cookieSameSite);
+                    applyJwtCookieScope(jwtCookieBuilder);
+                    ResponseCookie jwtCookie = jwtCookieBuilder.build();
+                    ResponseCookie jwtHostOnlyCookie = ResponseCookie.from(JWT_COOKIE_NAME, "")
+                        .httpOnly(true)
+                        .secure(cookieSecure)
+                        .path(JWT_COOKIE_PATH)
+                        .maxAge(0)
+                        .sameSite(cookieSameSite)
+                        .build();
+
+                    if (!cookieSecure) {
+                        // Cleanup for legacy local dev cookies that were created with Domain=localhost.
+                        ResponseCookie jwtLegacyLocalhostCookie = ResponseCookie.from(JWT_COOKIE_NAME, "")
+                            .httpOnly(true)
+                            .secure(false)
+                            .path(JWT_COOKIE_PATH)
+                            .maxAge(0)
+                            .sameSite(cookieSameSite)
+                            .domain("localhost")
+                            .build();
+                        response.addHeader(HttpHeaders.SET_COOKIE, jwtLegacyLocalhostCookie.toString());
+                    }
+
                     response.addHeader(HttpHeaders.SET_COOKIE, sessionCookie.toString());
                     response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+                    response.addHeader(HttpHeaders.SET_COOKIE, jwtHostOnlyCookie.toString());
                     response.sendRedirect("/login?logout");
                 }));
 
@@ -179,10 +235,6 @@ public class MvcSecurityConfig {
     public Map<String, String> mvcEndpointRolePolicy() {
         Map<String, String> policy = new LinkedHashMap<>();
         policy.put("GET/POST /login", "permitAll");
-        policy.put("/authenticate", "permitAll");
-        policy.put("/authenticateForm", "permitAll");
-        policy.put("/api/person/create", "permitAll");
-        policy.put("/api/person/create/", "permitAll");
         policy.put("GET/POST /mvc/person/create", "permitAll");
         policy.put("GET /mvc/person/reset", "permitAll");
         policy.put("GET /mvc/person/reset/check", "permitAll");
@@ -200,5 +252,11 @@ public class MvcSecurityConfig {
         policy.put("/mvc/capstone/**", "ROLE_ADMIN|ROLE_TEACHER");
         policy.put("/mvc/person/delete/**", "ROLE_ADMIN");
         return Map.copyOf(policy);
+    }
+
+    private void applyJwtCookieScope(ResponseCookie.ResponseCookieBuilder cookieBuilder) {
+        if (cookieSecure) {
+            cookieBuilder.domain(".opencodingsociety.com");
+        }
     }
 }

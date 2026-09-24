@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -75,6 +76,9 @@ public class PersonApiController {
 
     @Autowired
     private MentorTicketJpaRepository mentorTicketRepository;
+
+    @Value("${DEFAULT_PASSWORD:defaultPassword123}")
+    private String defaultPassword;
 
     /**
      * Retrieves a Person entity by current user of JWT token.
@@ -333,6 +337,10 @@ public class PersonApiController {
     @PostMapping("/person/create")
     public ResponseEntity<Object> postPerson(@RequestBody PersonDto personDto) {
 
+        if (personDto == null) {
+            return personCreateError(HttpStatus.BAD_REQUEST, "Invalid request body");
+        }
+
         // Explicit opt-in match, not an opt-out default: only the literal string
         // "mentor" takes the no-idToken path below. Null, "student", a typo, or any
         // other existing caller falls straight through to the unchanged student
@@ -376,18 +384,33 @@ public class PersonApiController {
             roleName = "ROLE_PENDING";
         }
 
+        String uid = personDto.getUid() == null ? null : personDto.getUid().trim();
+        String email = personDto.getEmail() == null ? null : personDto.getEmail().trim();
+        String name = personDto.getName() == null ? null : personDto.getName().trim();
+        String sid = personDto.getSid() == null ? null : personDto.getSid().trim();
+
+        if (uid == null || uid.isBlank()) {
+            return personCreateError(HttpStatus.BAD_REQUEST, "uid is required");
+        }
+        if (email == null || email.isBlank()) {
+            return personCreateError(HttpStatus.BAD_REQUEST, "email is required");
+        }
+        if (name == null || name.isBlank()) {
+            return personCreateError(HttpStatus.BAD_REQUEST, "name is required");
+        }
+
         // Check if a person with this uid already exists
-        if (personDto.getUid() != null && repository.existsByUid(personDto.getUid())) {
-            return personCreateError(HttpStatus.CONFLICT, "A person with uid '" + personDto.getUid() + "' already exists");
+        if (repository.existsByUid(uid)) {
+            return personCreateError(HttpStatus.CONFLICT, "A person with uid '" + uid + "' already exists");
         }
 
         // Check if a person with this email already exists
-        if (personDto.getEmail() != null && repository.existsByEmail(personDto.getEmail())) {
-            return personCreateError(HttpStatus.CONFLICT, "A person with email '" + personDto.getEmail() + "' already exists");
+        if (repository.existsByEmail(email)) {
+            return personCreateError(HttpStatus.CONFLICT, "A person with email '" + email + "' already exists");
         }
 
-        if (personDto.getSid() != null && !personDto.getSid().isBlank() && tinkleRepository.findBySid(personDto.getSid()).isPresent()) {
-            return personCreateError(HttpStatus.CONFLICT, "A person with sid '" + personDto.getSid() + "' already exists");
+        if (sid != null && !sid.isBlank() && tinkleRepository.findBySid(sid).isPresent()) {
+            return personCreateError(HttpStatus.CONFLICT, "A person with sid '" + sid + "' already exists");
         }
 
         // Use canonical Spring Security role naming (ROLE_*) for new accounts.
@@ -403,17 +426,49 @@ public class PersonApiController {
         }
 
         logger.info("AUDIT signup_role uid={} role={} mentor={} businessEmailVerified={}",
-                personDto.getUid(), roleName, isMentorSignup, mentorEmailVerified);
+                uid, roleName, isMentorSignup, mentorEmailVerified);
 
-        // A person object WITHOUT ID will create a new record in the database
-        Person person = new Person(personDto.getEmail(), personDto.getUid(), personDto.getPassword(),
-                personDto.getSid(), personDto.getName(), "/images/default.png", true, defaultRole);
+        String rawPassword = personDto.getPassword();
+        if (rawPassword == null || rawPassword.isBlank()) {
+            rawPassword = defaultPassword;
+        }
+        if (rawPassword == null || rawPassword.isBlank()) {
+            return personCreateError(HttpStatus.INTERNAL_SERVER_ERROR, "Password is required and no DEFAULT_PASSWORD is configured");
+        }
+
+        String profilePicture = personDto.getPfp() == null ? "" : personDto.getPfp().trim();
+
+        // Transitional behavior: keep legacy default until kasm is removed from schema.
+        boolean kasmServerNeeded = true;
+
+        // Build core person only; feature entities are initialized lazily in their own flows.
+        Person person = new Person();
+        person.setEmail(email);
+        person.setUid(uid);
+        person.setPassword(rawPassword);
+        person.setSid(sid);
+        person.setName(name);
+        person.setPfp(profilePicture);
+        person.setKasmServerNeeded(kasmServerNeeded);
+        person.getRoles().add(defaultRole);
         person.setMentorEmailVerified(mentorEmailVerified);
+
+        // Non-critical feature entities should be created lazily in their own flows.
+        person.setBanks(null);
+        person.setTimeEntries(null);
 
         try {
             personDetailsService.save(person);
         } catch (DataIntegrityViolationException e) {
             return personCreateError(HttpStatus.CONFLICT, "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
+        } catch (Exception e) {
+            logger.error("Person create failed for uid={} email={}", uid, email, e);
+            JSONObject responseObject = new JSONObject();
+            responseObject.put("error", "Unable to create user");
+            responseObject.put("message", e.getMessage());
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         // Every mentor signup raises an approval ticket, not just the ones with a verified
@@ -422,16 +477,15 @@ public class PersonApiController {
         // a mentor. The ticket is what update-roles.html was standing in for before: an admin
         // approves it here, which does the ROLE_PENDING -> ROLE_MENTOR promotion directly.
         if (isMentorSignup) {
-            mentorTicketRepository.save(
-                    new MentorTicket(person.getUid(), person.getName(), personDto.getEmail(), mentorEmailVerified));
-            logger.info("AUDIT mentor_ticket_created uid={} emailVerified={}", person.getUid(), mentorEmailVerified);
+            mentorTicketRepository.save(new MentorTicket(uid, name, email, mentorEmailVerified));
+            logger.info("AUDIT mentor_ticket_created uid={} emailVerified={}", uid, mentorEmailVerified);
         }
 
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         JSONObject responseObject = new JSONObject();
-        responseObject.put("response", personDto.getEmail() + " is created successfully");
+        responseObject.put("response", email + " is created successfully");
 
         return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.OK);
     }
