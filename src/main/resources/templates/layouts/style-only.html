@@ -38,9 +38,15 @@
         crossorigin="anonymous"></script>
 
     <!-- Data tables-->
-    <script th:src="@{https://cdn.datatables.net/2.1.8/js/dataTables.js}" 
-        integrity="sha384-cDXquhvkdBprgcpTQsrhfhxXRN4wfwmWauQ3wR5ZTyYtGrET2jd68wvJ1LlDqlQG" 
+    <script th:src="@{https://cdn.datatables.net/2.1.8/js/dataTables.js}"
+        integrity="sha384-cDXquhvkdBprgcpTQsrhfhxXRN4wfwmWauQ3wR5ZTyYtGrET2jd68wvJ1LlDqlQG"
         crossorigin="anonymous"></script>
+
+    <!-- Page-specific scripts. Was missing entirely -- a content template's
+         layout:fragment="script" block (e.g. capstone/read.html, group/update.html)
+         had nowhere to render into, so it was silently dropped by the layout
+         dialect regardless of sec:authorize on the fragment's contents. -->
+    <th:block layout:fragment="script" th:remove="tag"></th:block>
 </body>
 
 </html>
