@@ -72,6 +72,8 @@ public class AssignmentsApiController {
 
     @Autowired
     private AssignmentRubricService rubricService;
+
+    @Autowired
     private AssignmentAuthorizationService assignmentAuthorizationService;
 
     @Autowired
