@@ -226,6 +226,11 @@ public class SecurityConfig {
                         // ROLE_PENDING reasoning as /api/person/get above.
                         .requestMatchers(HttpMethod.GET, "/api/person/mentor/ticket/status").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR", "ROLE_PENDING")
 
+                        // Logout must work for every signed-in role. ROLE_MENTOR and ROLE_PENDING are
+                        // deliberately absent from the catch-all below, so without this rule their
+                        // logout 403s and the JWT cookie is never cleared -- they stay logged in.
+                        .requestMatchers(HttpMethod.POST, "/api/logout").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR", "ROLE_PENDING")
+
                         // ========== DEFAULT: ALL OTHER API ENDPOINTS ==========
                         // Secure by default - any endpoint not explicitly listed above requires authentication
                         .requestMatchers("/api/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
