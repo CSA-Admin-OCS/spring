@@ -46,6 +46,9 @@ public class JwtApiController {
 	@Autowired
 	private PersonJpaRepository personJpaRepository;
 
+	@Autowired
+	private AuditLogService auditLogService;
+
 	@Value("${jwt.cookie.secure:true}")  // Defaults to production setting if property not found
 	private boolean cookieSecure;
 
@@ -71,11 +74,13 @@ public class JwtApiController {
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody Person authenticationRequest, HttpServletRequest request) throws Exception {
 		String resolvedUid = resolveUid(authenticationRequest);
 		if (resolvedUid == null) {
+			auditLogService.log("LOGIN_FAIL", authenticationRequest != null ? authenticationRequest.getUid() : null, request, "INVALID_CREDENTIALS");
 			return new ResponseEntity<>("Authentication failed: INVALID_CREDENTIALS", HttpStatus.UNAUTHORIZED);
 		}
 		try {
 			authenticate(resolvedUid, authenticationRequest.getPassword());
 		} catch (Exception e) {
+			auditLogService.log("LOGIN_FAIL", resolvedUid, request, e.getMessage());
 			return new ResponseEntity<>("Authentication failed: " + e.getMessage(), HttpStatus.UNAUTHORIZED);
 		}
 		
@@ -93,6 +98,7 @@ public class JwtApiController {
 		if (token == null) {
 			return new ResponseEntity<>("Token generation failed", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		auditLogService.log("LOGIN_SUCCESS", resolvedUid, request, null);
 
 		// Build cookie with development-friendly settings
 		// For localhost: allow HTTP and SameSite=Lax
@@ -151,6 +157,8 @@ public class JwtApiController {
 	
 		@PostMapping("/api/logout")
 		public String performLogout(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+			String uid = (authentication != null) ? authentication.getName() : null;
+			auditLogService.log("LOGOUT", uid, request, null);
 			// Perform logout using SecurityContextLogoutHandler
 			logoutHandler.logout(request, response, authentication);
 

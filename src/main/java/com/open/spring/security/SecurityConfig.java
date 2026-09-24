@@ -201,6 +201,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/ocs-analytics/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         // ===================================
 
+                        // ========== SECURITY AUDIT LOG ==========
+                        .requestMatchers("/api/audit/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MENTOR", "ROLE_TEACHER")
+                        // ========================================
+
                         // ========== DEFAULT: ALL OTHER API ENDPOINTS ==========
                         // Secure by default - any endpoint not explicitly listed above requires authentication
                         .requestMatchers("/api/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
