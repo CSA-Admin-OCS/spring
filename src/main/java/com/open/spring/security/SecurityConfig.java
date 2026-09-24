@@ -212,8 +212,19 @@ public class SecurityConfig {
 
                         // A mentor needs their own profile (e.g. after login) but is deliberately
                         // NOT added to the /api/** catch-all below -- that's what keeps ROLE_MENTOR
-                        // scoped to only the endpoints that explicitly grant it.
-                        .requestMatchers(HttpMethod.GET, "/api/person/get").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR")
+                        // scoped to only the endpoints that explicitly grant it. ROLE_PENDING is
+                        // included too: every new signup that isn't auto-approved (a mentor
+                        // application, or a non-school-domain student account) lands there first,
+                        // and the sitewide role-check script on every dashboard page calls this
+                        // endpoint before it can show anything -- without ROLE_PENDING here that
+                        // call 403s and the page silently falls back to the default view with no
+                        // indication why, which is exactly the "signed up as mentor but see nothing"
+                        // confusion this was added to fix.
+                        .requestMatchers(HttpMethod.GET, "/api/person/get").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR", "ROLE_PENDING")
+
+                        // Self-service "is my mentor application still pending" check -- same
+                        // ROLE_PENDING reasoning as /api/person/get above.
+                        .requestMatchers(HttpMethod.GET, "/api/person/mentor/ticket/status").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR", "ROLE_PENDING")
 
                         // ========== DEFAULT: ALL OTHER API ENDPOINTS ==========
                         // Secure by default - any endpoint not explicitly listed above requires authentication

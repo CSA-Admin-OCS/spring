@@ -102,7 +102,26 @@ public class PersonApiController {
         }
     }
 
-
+    // Lets the signed-in account check its own mentor-application state. ROLE_PENDING
+    // alone can't be used for this client-side -- it's also the landing role for any
+    // ordinary signup whose verified email isn't the trusted school domain (see
+    // postPerson above) -- so the frontend needs an explicit signal instead. Only ever
+    // reports on the caller's own ticket; no uid/id parameter, nothing admin-only.
+    @GetMapping("/person/mentor/ticket/status")
+    public ResponseEntity<Object> getMentorTicketStatus(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Person person = repository.findByUid(userDetails.getUsername());
+        if (person == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Optional<MentorTicket> ticket = mentorTicketRepository.findFirstByUidOrderByIdDesc(person.getUid());
+        Map<String, Object> body = new HashMap<>();
+        boolean pending = ticket.isPresent() && !ticket.get().isResolved();
+        body.put("pending", pending);
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
 
     /**
      * Retrieves a Person entity by its UID.

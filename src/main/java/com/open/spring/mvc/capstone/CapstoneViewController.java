@@ -15,10 +15,14 @@ public class CapstoneViewController {
     @Autowired
     private CapstoneProjectJpaRepository capstoneRepository;
 
+    @Autowired
+    private CapstoneApplicationJpaRepository applicationRepository;
+
     @GetMapping("/read")
     @Transactional(readOnly = true)
     public String read(Model model) {
         model.addAttribute("list", capstoneRepository.findAllByOrderByTitleAsc());
+        model.addAttribute("applications", applicationRepository.findByResolvedFalseOrderByIdDesc());
         return "capstone/read";
     }
 }

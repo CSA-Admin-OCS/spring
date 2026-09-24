@@ -44,6 +44,9 @@ public class CapstoneApiController {
     @Autowired
     private CapstoneSyncService capstoneSyncService;
 
+    @Autowired
+    private CapstoneApplicationJpaRepository applicationRepository;
+
     // Reuses the group chat's S3-backed store rather than standing up a second one.
     // That store is keyed by an arbitrary string, so capstone threads live under a
     // "capstone:<slug>" key alongside the group ones without colliding.
@@ -182,6 +185,116 @@ public class CapstoneApiController {
         CapstoneProject project = projectOpt.get();
         project.removeMentor(personOpt.get());
         capstoneRepository.save(project);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private Map<String, Object> applicationDto(CapstoneApplication application) {
+        Map<String, Object> dto = new LinkedHashMap<>();
+        dto.put("id", application.getId());
+        dto.put("capstoneId", application.getCapstoneProject().getId());
+        dto.put("capstoneTitle", application.getCapstoneProject().getTitle());
+        dto.put("capstoneUrl", application.getCapstoneProject().getUrl());
+        dto.put("appliedAt", application.getAppliedAt());
+        dto.put("resolved", application.isResolved());
+        dto.put("approved", application.isApproved());
+        return dto;
+    }
+
+    /**
+     * A mentor applies to be attached to one project, raised from the Mentor Portal
+     * (/projects). Requires ROLE_MENTOR -- becoming a mentor and being attached to a
+     * specific project are two separate approvals, this is only the second one.
+     * Idempotent: repeat calls while a request is still pending, or once already a
+     * mentor on the project, are both reported rather than creating duplicates.
+     */
+    @PostMapping("/{id}/apply")
+    @Transactional
+    public ResponseEntity<Object> apply(@PathVariable Long id, Authentication authentication) {
+        if (!hasAnyAuthority(authentication, "ROLE_MENTOR")) {
+            return new ResponseEntity<>(
+                    "Only approved mentors can apply to a project. Sign up as a mentor and wait for admin approval first.",
+                    HttpStatus.FORBIDDEN);
+        }
+        String uid = ((UserDetails) authentication.getPrincipal()).getUsername();
+        Optional<CapstoneProject> projectOpt = capstoneRepository.findById(id);
+        if (projectOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        CapstoneProject project = projectOpt.get();
+        Person person = personRepository.findByUid(uid);
+        if (person == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        boolean alreadyMentor = project.getMentors().stream().anyMatch(m -> m.getUid().equals(uid));
+        if (alreadyMentor) {
+            return new ResponseEntity<>("You're already a mentor on this project.", HttpStatus.CONFLICT);
+        }
+        Optional<CapstoneApplication> existing =
+                applicationRepository.findByCapstoneProject_IdAndPersonUidAndResolvedFalse(id, uid);
+        if (existing.isPresent()) {
+            return new ResponseEntity<>(applicationDto(existing.get()), HttpStatus.OK);
+        }
+
+        CapstoneApplication application = new CapstoneApplication(project, person);
+        applicationRepository.save(application);
+        return new ResponseEntity<>(applicationDto(application), HttpStatus.CREATED);
+    }
+
+    /** The caller's own project applications (pending, approved, or denied). */
+    @GetMapping("/applications/mine")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<Map<String, Object>>> myApplications(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        String uid = ((UserDetails) authentication.getPrincipal()).getUsername();
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (CapstoneApplication application : applicationRepository.findByPersonUidOrderByIdDesc(uid)) {
+            out.add(applicationDto(application));
+        }
+        return new ResponseEntity<>(out, HttpStatus.OK);
+    }
+
+    /** Admin/teacher approves a project application: attaches the mentor directly. */
+    @PostMapping("/applications/{id}/approve")
+    @Transactional
+    public ResponseEntity<Object> approveApplication(@PathVariable Long id, Authentication authentication) {
+        if (!hasAnyAuthority(authentication, "ROLE_ADMIN", "ROLE_TEACHER")) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        Optional<CapstoneApplication> applicationOpt = applicationRepository.findById(id);
+        if (applicationOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        CapstoneApplication application = applicationOpt.get();
+        if (application.isResolved()) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        CapstoneProject project = application.getCapstoneProject();
+        project.addMentor(application.getPerson());
+        capstoneRepository.save(project);
+        application.markResolved(true);
+        applicationRepository.save(application);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /** Admin/teacher denies a project application: closes it without touching mentors. */
+    @PostMapping("/applications/{id}/deny")
+    @Transactional
+    public ResponseEntity<Object> denyApplication(@PathVariable Long id, Authentication authentication) {
+        if (!hasAnyAuthority(authentication, "ROLE_ADMIN", "ROLE_TEACHER")) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        Optional<CapstoneApplication> applicationOpt = applicationRepository.findById(id);
+        if (applicationOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        CapstoneApplication application = applicationOpt.get();
+        if (!application.isResolved()) {
+            application.markResolved(false);
+            applicationRepository.save(application);
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

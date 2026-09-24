@@ -17,6 +17,43 @@
             <span id="capstone-sync-status" class="text-secondary ms-2"></span>
         </div>
 
+        <!-- Project Mentor Applications: raised when an already-approved mentor applies
+             via the Mentor Portal (/projects -> POST /api/capstones/{id}/apply).
+             Approve attaches the mentor directly (CapstoneProject#addMentor); deny
+             just closes the request without touching mentors. -->
+        <div sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_TEACHER')" class="mb-4"
+            th:if="${applications != null and !applications.isEmpty()}">
+            <h5>Project Mentor Applications</h5>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Applied</th>
+                            <th>Mentor</th>
+                            <th>Project</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="application : ${applications}">
+                            <td th:text="${application.appliedAt}">Applied At</td>
+                            <td th:text="|${application.personName} (${application.personUid})|">Mentor</td>
+                            <td>
+                                <a th:href="${application.capstoneProject.url}"
+                                    th:text="${application.capstoneProject.title}" target="_blank">Project</a>
+                            </td>
+                            <td>
+                                <button class="btn btn-success btn-sm capstone-application-action"
+                                    th:attr="data-id=${application.id}" data-action="approve">Approve</button>
+                                <button class="btn btn-outline-danger btn-sm capstone-application-action"
+                                    th:attr="data-id=${application.id}" data-action="deny">Deny</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="row align-items-md-stretch table-responsive">
             <table id="capstoneTable" class="table">
                 <thead>

@@ -133,4 +133,28 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // Project mentor applications (raised from the Mentor Portal's Apply action).
+    // Approve/deny buttons use data attributes + addEventListener, matching the
+    // rest of this file, rather than inline onclick -- this script loads as a
+    // module, so a top-level function wouldn't be reachable from an onclick anyway.
+    document.querySelectorAll(".capstone-application-action").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            const action = btn.getAttribute("data-action");
+            const row = btn.closest("tr");
+            row.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+            try {
+                const response = await fetch(`/api/capstones/applications/${id}/${action}`, { method: "POST", cache: "no-cache" });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                row.remove();
+                if (action === "approve") {
+                    window.location.reload();
+                }
+            } catch (error) {
+                window.alert(`Could not ${action} this application: ${error.message}`);
+                row.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+            }
+        });
+    });
 });
