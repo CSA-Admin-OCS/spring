@@ -35,18 +35,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="application : ${applications}">
-                            <td th:text="${application.appliedAt}">Applied At</td>
-                            <td th:text="|${application.personName} (${application.personUid})|">Mentor</td>
+                        <tr th:each="mentorApp : ${applications}">
+                            <td th:text="${mentorApp.appliedAt}">Applied At</td>
+                            <td th:text="|${mentorApp.personName} (${mentorApp.personUid})|">Mentor</td>
                             <td>
-                                <a th:href="${application.capstoneProject.url}"
-                                    th:text="${application.capstoneProject.title}" target="_blank">Project</a>
+                                <a th:href="${mentorApp.capstoneProject.url}"
+                                    th:text="${mentorApp.capstoneProject.title}" target="_blank">Project</a>
                             </td>
                             <td>
                                 <button class="btn btn-success btn-sm capstone-application-action"
-                                    th:attr="data-id=${application.id}" data-action="approve">Approve</button>
+                                    th:attr="data-id=${mentorApp.id}" data-action="approve">Approve</button>
                                 <button class="btn btn-outline-danger btn-sm capstone-application-action"
-                                    th:attr="data-id=${application.id}" data-action="deny">Deny</button>
+                                    th:attr="data-id=${mentorApp.id}" data-action="deny">Deny</button>
                             </td>
                         </tr>
                     </tbody>
