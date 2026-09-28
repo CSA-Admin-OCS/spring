@@ -110,10 +110,69 @@ async function load(cell, projectId) {
     }
 }
 
+// Student group link: approved mentors of a project become mentors of this group,
+// which is what lets them message its students (see CapstoneGroupLinkService).
+let groupsCache = null;
+async function fetchGroups() {
+    if (groupsCache === null) {
+        const response = await fetch("/api/groups", { method: "GET", cache: "no-cache" });
+        if (!response.ok) throw new Error(`groups lookup failed: ${response.status}`);
+        groupsCache = await response.json();
+    }
+    return groupsCache;
+}
+
+async function renderGroupCell(cell) {
+    const projectId = cell.getAttribute("data-capstone-group-cell");
+    const currentId = cell.getAttribute("data-group-id") || "";
+    try {
+        const groups = await fetchGroups();
+        const select = document.createElement("select");
+        select.className = "form-select form-select-sm";
+        select.setAttribute("aria-label", "Student group for this project");
+        select.append(new Option("— none —", ""));
+        groups.forEach((group) => {
+            const label = [group.name, group.course, group.period && `P${group.period}`].filter(Boolean).join(" · ");
+            select.append(new Option(label, String(group.id)));
+        });
+        select.value = currentId;
+        const status = document.createElement("small");
+        status.className = "text-secondary ms-1";
+        select.addEventListener("change", async () => {
+            select.disabled = true;
+            status.textContent = "saving…";
+            try {
+                const groupId = select.value ? Number(select.value) : null;
+                const response = await fetch(`/api/capstones/${projectId}/group`, {
+                    method: "PUT",
+                    cache: "no-cache",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ groupId }),
+                });
+                if (!response.ok) throw new Error(await errorText(response, "Could not link group"));
+                status.textContent = "saved";
+            } catch (error) {
+                window.alert(error.message);
+                select.value = currentId;
+                status.textContent = "";
+            } finally {
+                select.disabled = false;
+            }
+        });
+        cell.textContent = "";
+        cell.append(select, status);
+    } catch (error) {
+        console.warn("Capstone group cell failed", error);
+        cell.textContent = "unavailable";
+        cell.className = "text-secondary";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-capstone-mentor-cell]").forEach((cell) => {
         load(cell, cell.getAttribute("data-capstone-mentor-cell"));
     });
+    document.querySelectorAll("[data-capstone-group-cell]").forEach(renderGroupCell);
 
     const syncBtn = document.getElementById("capstone-sync");
     if (syncBtn) {

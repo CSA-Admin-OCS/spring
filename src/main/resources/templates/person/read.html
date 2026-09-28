@@ -80,6 +80,7 @@
                             <th>UID</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Business Email</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -92,6 +93,7 @@
                                 <span th:text="${ticket.email}">Email</span>
                                 <span th:if="${ticket.emailVerified}" class="badge bg-success">verified</span>
                             </td>
+                            <td th:text="${ticket.businessEmail}">Business Email</td>
                             <td>
                                 <button class="btn btn-success btn-sm"
                                     th:attr="data-id=${ticket.id}" onclick="resolveMentorTicket(this, 'approve')">Approve</button>

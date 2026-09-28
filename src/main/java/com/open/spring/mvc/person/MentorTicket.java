@@ -35,6 +35,10 @@ public class MentorTicket {
     // The email the mentor signed up with.
     private String email;
 
+    // Business/work email the mentor gave at signup, so the admin reviewing the ticket
+    // can see who they work for.
+    private String businessEmail;
+
     // True only if that email was verified via Google Sign-In AND matched the trusted-domain
     // whitelist -- false for the "Skip, verify later" path or an unrecognized domain.
     private boolean emailVerified = false;
@@ -50,10 +54,11 @@ public class MentorTicket {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public MentorTicket(String uid, String name, String email, boolean emailVerified) {
+    public MentorTicket(String uid, String name, String email, String businessEmail, boolean emailVerified) {
         this.uid = uid;
         this.name = name;
         this.email = email;
+        this.businessEmail = businessEmail;
         this.emailVerified = emailVerified;
         this.createdAt = LocalDateTime.now().format(FORMATTER);
     }

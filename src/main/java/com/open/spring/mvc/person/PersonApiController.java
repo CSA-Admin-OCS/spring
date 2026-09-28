@@ -313,6 +313,8 @@ public class PersonApiController {
         // "mentor" opts into the no-idToken mentor signup path below; anything else
         // (including null) falls through to the existing student behavior unchanged.
         private String accountType;
+        // Mentor signups only: work email shown to the admin on the mentor ticket.
+        private String businessEmail;
         // faceData removed: use POST /api/face/register (FaceApiController) instead.
     }
 
@@ -348,6 +350,7 @@ public class PersonApiController {
         boolean isMentorSignup = "mentor".equalsIgnoreCase(personDto.getAccountType());
         String roleName;
         boolean mentorEmailVerified = false;
+        String businessEmail = null;
 
         if (!isMentorSignup) {
             String verifiedEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
@@ -372,12 +375,20 @@ public class PersonApiController {
                 }
                 verifiedBusinessEmail = verifiedBusinessEmail.toLowerCase();
                 personDto.setEmail(verifiedBusinessEmail);
+                businessEmail = verifiedBusinessEmail;
                 mentorEmailVerified = TrustedDomains.isTrusted(verifiedBusinessEmail);
             } else {
                 if (personDto.getEmail() == null || personDto.getEmail().isBlank()) {
                     return personCreateError(HttpStatus.BAD_REQUEST, "Email is required");
                 }
                 personDto.setEmail(personDto.getEmail().toLowerCase());
+                // Without the OAuth step the business email is only a claim; it's still
+                // required so the admin has something to check before approving.
+                String claimedBusinessEmail = personDto.getBusinessEmail() == null ? "" : personDto.getBusinessEmail().trim().toLowerCase();
+                if (!claimedBusinessEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+                    return personCreateError(HttpStatus.BAD_REQUEST, "A valid business email is required for mentor signup");
+                }
+                businessEmail = claimedBusinessEmail;
             }
             // Mentor signups always land in ROLE_PENDING pending admin review -- never
             // auto-ROLE_USER, regardless of email domain.
@@ -452,6 +463,7 @@ public class PersonApiController {
         person.setKasmServerNeeded(kasmServerNeeded);
         person.getRoles().add(defaultRole);
         person.setMentorEmailVerified(mentorEmailVerified);
+        person.setBusinessEmail(businessEmail);
 
         // Non-critical feature entities should be created lazily in their own flows.
         person.setBanks(null);
@@ -477,7 +489,7 @@ public class PersonApiController {
         // a mentor. The ticket is what update-roles.html was standing in for before: an admin
         // approves it here, which does the ROLE_PENDING -> ROLE_MENTOR promotion directly.
         if (isMentorSignup) {
-            mentorTicketRepository.save(new MentorTicket(uid, name, email, mentorEmailVerified));
+            mentorTicketRepository.save(new MentorTicket(uid, name, email, businessEmail, mentorEmailVerified));
             logger.info("AUDIT mentor_ticket_created uid={} emailVerified={}", uid, mentorEmailVerified);
         }
 

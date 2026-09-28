@@ -35,18 +35,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="application : ${applications}">
-                            <td th:text="${application.appliedAt}">Applied At</td>
-                            <td th:text="|${application.personName} (${application.personUid})|">Mentor</td>
+                        <!-- Not "application": that is a reserved Thymeleaf variable and 500s the page. -->
+                        <tr th:each="app : ${applications}">
+                            <td th:text="${app.appliedAt}">Applied At</td>
+                            <td th:text="|${app.personName} (${app.personUid})|">Mentor</td>
                             <td>
-                                <a th:href="${application.capstoneProject.url}"
-                                    th:text="${application.capstoneProject.title}" target="_blank">Project</a>
+                                <a th:href="${app.capstoneProject.url}"
+                                    th:text="${app.capstoneProject.title}" target="_blank">Project</a>
                             </td>
                             <td>
                                 <button class="btn btn-success btn-sm capstone-application-action"
-                                    th:attr="data-id=${application.id}" data-action="approve">Approve</button>
+                                    th:attr="data-id=${app.id}" data-action="approve">Approve</button>
                                 <button class="btn btn-outline-danger btn-sm capstone-application-action"
-                                    th:attr="data-id=${application.id}" data-action="deny">Deny</button>
+                                    th:attr="data-id=${app.id}" data-action="deny">Deny</button>
                             </td>
                         </tr>
                     </tbody>
@@ -62,6 +63,7 @@
                         <th>Project</th>
                         <th>Slug</th>
                         <th>Mentors</th>
+                        <th>Student Group</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,9 +74,11 @@
                         </td>
                         <td><code th:text="${project.slug}">slug</code></td>
                         <td th:attr="data-capstone-mentor-cell=${project.id}">&#8230;</td>
+                        <!-- Approved mentors get this group's chat (CapstoneGroupLinkService). -->
+                        <td th:attr="data-capstone-group-cell=${project.id},data-group-id=${project.groupId}">&#8230;</td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(list)}">
-                        <td colspan="4" class="text-secondary">
+                        <td colspan="5" class="text-secondary">
                             No capstone projects yet. They arrive from the manifest sync &mdash;
                             check the backend log for <code>capstone_sync_failed</code>.
                         </td>
@@ -83,10 +87,11 @@
             </table>
         </div>
     </div>
-</th:block>
 
-<th:block layout:fragment="script" th:remove="tag">
-    <script sec:authorize="hasRole('ROLE_ADMIN')" type="module"
+    <!-- Inside the body fragment: the style-only layout has no "script" fragment, so a
+         separate script block was silently dropped and Approve/Deny did nothing.
+         Admins and teachers both approve applications, so both need the script. -->
+    <script sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_TEACHER')" type="module"
         src="/static/js/capstone/capstone-mentors.js" th:src="@{/js/capstone/capstone-mentors.js}"></script>
 </th:block>
 

@@ -142,6 +142,12 @@ public class Person extends Submitter implements Comparable<Person> {
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean mentorEmailVerified = false;
 
+    // Mentor signups give a personal email (the account's login/reset `email`) plus a
+    // business/work email that an admin checks before approving the mentor ticket.
+    // Null for students.
+    @Column(nullable = true)
+    private String businessEmail;
+
     @Column(nullable = true)
     private String sid;
 

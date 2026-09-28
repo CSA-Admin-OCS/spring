@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.open.spring.mvc.groups.GroupChatMessage;
 import com.open.spring.mvc.groups.GroupChatService;
+import com.open.spring.mvc.groups.GroupsJpaRepository;
 import com.open.spring.mvc.person.Person;
 import com.open.spring.mvc.person.PersonJpaRepository;
 
@@ -52,6 +55,12 @@ public class CapstoneApiController {
     // "capstone:<slug>" key alongside the group ones without colliding.
     @Autowired
     private GroupChatService groupChatService;
+
+    @Autowired
+    private CapstoneGroupLinkService groupLinkService;
+
+    @Autowired
+    private GroupsJpaRepository groupsRepository;
 
     private String chatKey(CapstoneProject project) {
         return "capstone:" + project.getSlug();
@@ -91,6 +100,7 @@ public class CapstoneApiController {
         dto.put("title", project.getTitle());
         dto.put("description", project.getDescription());
         dto.put("url", project.getUrl());
+        dto.put("groupId", project.getGroupId());
         return dto;
     }
 
@@ -164,9 +174,7 @@ public class CapstoneApiController {
         if (projectOpt.isEmpty() || personOpt.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        CapstoneProject project = projectOpt.get();
-        project.addMentor(personOpt.get());
-        capstoneRepository.save(project);
+        groupLinkService.attachMentor(projectOpt.get(), personOpt.get());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -182,10 +190,36 @@ public class CapstoneApiController {
         if (projectOpt.isEmpty() || personOpt.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        CapstoneProject project = projectOpt.get();
-        project.removeMentor(personOpt.get());
-        capstoneRepository.save(project);
+        groupLinkService.detachMentor(projectOpt.get(), personOpt.get());
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    public static class GroupLinkDto {
+        public Long groupId;
+    }
+
+    /**
+     * Admin/teacher links the project to its student group (or clears it with null).
+     * Approved mentors of the project become mentors of that group, which is how they
+     * message the students; see CapstoneGroupLinkService.
+     */
+    @PutMapping("/{id}/group")
+    @Transactional
+    public ResponseEntity<Object> linkGroup(@PathVariable Long id, @RequestBody GroupLinkDto body,
+                                            Authentication authentication) {
+        if (!hasAnyAuthority(authentication, "ROLE_ADMIN", "ROLE_TEACHER")) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        Optional<CapstoneProject> projectOpt = capstoneRepository.findById(id);
+        if (projectOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Long groupId = body == null ? null : body.groupId;
+        if (groupId != null && groupsRepository.findById(groupId).isEmpty()) {
+            return new ResponseEntity<>(Map.of("error", "No group with id " + groupId), HttpStatus.BAD_REQUEST);
+        }
+        groupLinkService.linkGroup(projectOpt.get(), groupId);
+        return new ResponseEntity<>(toDto(projectOpt.get()), HttpStatus.OK);
     }
 
     private Map<String, Object> applicationDto(CapstoneApplication application) {
@@ -256,7 +290,7 @@ public class CapstoneApiController {
         return new ResponseEntity<>(out, HttpStatus.OK);
     }
 
-    /** Admin/teacher approves a project application: attaches the mentor directly. */
+    /** Admin/teacher approves a project application: attaches the mentor (and linked group). */
     @PostMapping("/applications/{id}/approve")
     @Transactional
     public ResponseEntity<Object> approveApplication(@PathVariable Long id, Authentication authentication) {
@@ -271,9 +305,8 @@ public class CapstoneApiController {
         if (application.isResolved()) {
             return new ResponseEntity<>(HttpStatus.OK);
         }
-        CapstoneProject project = application.getCapstoneProject();
-        project.addMentor(application.getPerson());
-        capstoneRepository.save(project);
+        // Also grants the linked student group's chat -- the "message them" part of approval.
+        groupLinkService.attachMentor(application.getCapstoneProject(), application.getPerson());
         application.markResolved(true);
         applicationRepository.save(application);
         return new ResponseEntity<>(HttpStatus.OK);

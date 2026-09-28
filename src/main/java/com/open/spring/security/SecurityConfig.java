@@ -178,6 +178,9 @@ public class SecurityConfig {
                         // mentors; attaching/detaching a mentor and the sync upsert are
                         // checked in-controller (admin/teacher, and admin respectively).
                         .requestMatchers("/api/capstones/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR")
+                        // Mentor <-> admin private messages; which side may call which
+                        // endpoint is checked in MentorAdminMessageApiController.
+                        .requestMatchers("/api/mentor-messages/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_MENTOR")
                         .requestMatchers("/api/grade-prediction/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/admin-evaluation/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/grades/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
@@ -279,6 +282,7 @@ public class SecurityConfig {
         policy.put("/api/exports/**", "ROLE_ADMIN");
         policy.put("/api/imports/**", "ROLE_ADMIN");
         policy.put("/api/groups/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
+        policy.put("/api/mentor-messages/**", "ROLE_ADMIN|ROLE_MENTOR");
         policy.put("GET /api/person/get", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
         policy.put("/api/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT");
         return Map.copyOf(policy);

@@ -13,6 +13,8 @@ public interface CapstoneProjectJpaRepository extends JpaRepository<CapstoneProj
 
     List<CapstoneProject> findAllByOrderByTitleAsc();
 
+    List<CapstoneProject> findByGroupId(Long groupId);
+
     // Projects a person mentors. Mirrors GroupsJpaRepository.findGroupsByMentorUid.
     @Query("SELECT c FROM CapstoneProject c JOIN c.mentors m WHERE m.uid = :uid ORDER BY c.title")
     List<CapstoneProject> findByMentorUid(@Param("uid") String uid);

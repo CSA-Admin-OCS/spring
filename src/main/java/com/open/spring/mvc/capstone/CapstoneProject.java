@@ -54,6 +54,15 @@ public class CapstoneProject {
     /** Site-relative path to the project's page, e.g. "/capstone/hawkhub/". */
     private String url;
 
+    /**
+     * The student group that works on this project, linked by an admin. Approved mentors
+     * of the project are made mentors of this group (see CapstoneGroupLinkService), which
+     * is what lets them message the students. Null until an admin links one; the manifest
+     * sync never touches it.
+     */
+    @Column(name = "group_id")
+    private Long groupId;
+
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
         name = "capstone_mentors",
