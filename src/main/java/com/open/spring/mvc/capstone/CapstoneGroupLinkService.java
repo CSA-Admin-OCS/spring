@@ -1,11 +1,14 @@
 package com.open.spring.mvc.capstone;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.open.spring.mvc.groups.Groups;
@@ -22,6 +25,10 @@ import lombok.RequiredArgsConstructor;
  * approval or the admin "+ mentor" button) also makes them a mentor of the linked
  * group, and detaching them takes it away again. Linking a group to a project that
  * already has mentors gives those mentors access; unlinking removes it.
+ *
+ * A project with no linked group gets its own ("Capstone: <title>") the first time a
+ * mentor is attached, so an approved mentor can always reach the project chat right away;
+ * admins add the team's students to that group (or link a different group instead).
  */
 @Service
 @RequiredArgsConstructor
@@ -30,15 +37,82 @@ public class CapstoneGroupLinkService {
 
     private final CapstoneProjectJpaRepository capstoneRepository;
     private final GroupsJpaRepository groupsRepository;
+    private final TransactionTemplate transactionTemplate;
+
+    static final String GROUP_NAME_PREFIX = "Capstone: ";
+    private static final int BACKFILL_ATTEMPTS = 5;
+    private static final long BACKFILL_RETRY_DELAY_MS = 2_000L;
 
     @Transactional
     public void attachMentor(CapstoneProject project, Person mentor) {
         project.addMentor(mentor);
         capstoneRepository.save(project);
-        linkedGroup(project).ifPresent(group -> {
-            group.addMentor(mentor);
-            groupsRepository.save(group);
-        });
+        Groups group = ensureGroup(project);
+        group.addMentor(mentor);
+        groupsRepository.save(group);
+    }
+
+    /** The project's linked group, creating and linking "Capstone: <title>" if it has none. */
+    @Transactional
+    public Groups ensureGroup(CapstoneProject project) {
+        Optional<Groups> linked = linkedGroup(project);
+        if (linked.isPresent()) {
+            return linked.get();
+        }
+        String name = GROUP_NAME_PREFIX + project.getTitle();
+        Groups group = groupsRepository.findByName(name)
+                .orElseGet(() -> groupsRepository.save(new Groups(name, "", "", new ArrayList<>())));
+        project.setGroupId(group.getId());
+        capstoneRepository.save(project);
+        logger.info("AUDIT capstone_group_created capstone={} group={}", project.getSlug(), group.getId());
+        return group;
+    }
+
+    // Projects approved before groups were created automatically have mentors but no chat
+    // group; give each one its group (with its mentors). Runs after startup settles, one
+    // project per transaction, and never throws: during startup other writers hold the
+    // SQLite database, and a failure in a startup listener stops the whole app.
+    @Scheduled(initialDelay = 60_000L, fixedDelay = 1_800_000L)
+    public void backfillProjectGroups() {
+        List<Long> projectIds;
+        try {
+            projectIds = transactionTemplate.execute(status -> capstoneRepository.findAll().stream()
+                    .filter(project -> project.getGroupId() == null && !project.getMentors().isEmpty())
+                    .map(CapstoneProject::getId)
+                    .toList());
+        } catch (RuntimeException e) {
+            logger.warn("capstone_group_backfill skipped: {}", e.getMessage());
+            return;
+        }
+        for (Long projectId : projectIds) {
+            backfillWithRetry(projectId);
+        }
+    }
+
+    // SQLite rejects a write when another connection wrote after this transaction began
+    // (SQLITE_BUSY_SNAPSHOT); a fresh transaction a moment later normally succeeds.
+    private void backfillWithRetry(Long projectId) {
+        for (int attempt = 1; attempt <= BACKFILL_ATTEMPTS; attempt++) {
+            try {
+                transactionTemplate.executeWithoutResult(status -> capstoneRepository.findById(projectId).ifPresent(project -> {
+                    Groups group = ensureGroup(project);
+                    project.getMentors().forEach(group::addMentor);
+                    groupsRepository.save(group);
+                }));
+                return;
+            } catch (RuntimeException e) {
+                logger.warn("capstone_group_backfill attempt {}/{} failed for project {}: {}",
+                        attempt, BACKFILL_ATTEMPTS, projectId, e.getMessage());
+                if (attempt < BACKFILL_ATTEMPTS) {
+                    try {
+                        Thread.sleep(BACKFILL_RETRY_DELAY_MS);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     @Transactional

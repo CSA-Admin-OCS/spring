@@ -113,13 +113,18 @@ public class CapstoneApiController {
         return mentor;
     }
 
-    /** Every capstone project. Deliberately unscoped -- this is public project info. */
+    /**
+     * Every capstone project. Deliberately unscoped -- this is public project info, and
+     * the capstone page's "Mentors" button reads mentorNames from here (names only).
+     */
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<List<Map<String, Object>>> getAll() {
         List<Map<String, Object>> out = new ArrayList<>();
         for (CapstoneProject project : capstoneRepository.findAllByOrderByTitleAsc()) {
-            out.add(toDto(project));
+            Map<String, Object> dto = toDto(project);
+            dto.put("mentorNames", project.getMentors().stream().map(Person::getName).toList());
+            out.add(dto);
         }
         return new ResponseEntity<>(out, HttpStatus.OK);
     }

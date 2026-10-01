@@ -57,6 +57,9 @@
                                     th:href="@{/mvc/person/read}">SQL Person</a></li>
                                 <li><a class="dropdown-item"
                                     th:href="@{/mvc/groups/group-tracker}">Group Tracker</a></li>
+                                <!-- Where admins approve mentors' project applications. -->
+                                <li><a class="dropdown-item" sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_TEACHER')"
+                                    th:href="@{/mvc/capstone/read}">Capstone Projects</a></li>
                                 <li><a class="dropdown-item" 
                                     th:href="@{/mvc/person/cookie-clicker}">Cookie Clicker Game</a></li>
                                 <li><a class="dropdown-item" sec:authorize="hasRole('ROLE_ADMIN')"

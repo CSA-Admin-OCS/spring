@@ -180,8 +180,6 @@ public class ModelInit {
                     } catch (SQLException ignore) {
                         // column already exists; nothing to do
                     }
-                    st.execute(buildMentorAdminMessageTableSql(conn));
-                    System.out.println("Ensured 'mentor_admin_message' table exists");
 
                     // Hibernate's AUTO id generator allocates from a <table>_seq table;
                     // without it the first insert fails with "no such table".
@@ -564,21 +562,6 @@ public class ModelInit {
                 + quoteIdentifier(connection, "balance") + " REAL,"
                 + quoteIdentifier(connection, "created_at") + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                 + ");";
-    }
-
-    // Mentor <-> admin private messages (MentorAdminMessage); one thread per mentor uid.
-    private String buildMentorAdminMessageTableSql(Connection connection) throws SQLException {
-        String idColumn = isMySqlDatabase(connection)
-            ? quoteIdentifier(connection, "id") + " BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"
-            : quoteIdentifier(connection, "id") + " INTEGER PRIMARY KEY AUTOINCREMENT";
-        return "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "mentor_admin_message") + " ("
-                + idColumn + ","
-                + quoteIdentifier(connection, "mentor_uid") + " VARCHAR(255) NOT NULL,"
-                + quoteIdentifier(connection, "sender_uid") + " VARCHAR(255) NOT NULL,"
-                + quoteIdentifier(connection, "sender_name") + " VARCHAR(255),"
-                + quoteIdentifier(connection, "from_admin") + " BOOLEAN DEFAULT FALSE,"
-                + quoteIdentifier(connection, "message") + " VARCHAR(2000) NOT NULL,"
-                + quoteIdentifier(connection, "created_at") + " VARCHAR(255))";
     }
 
     private String buildGamesTableSql(Connection connection) throws SQLException {

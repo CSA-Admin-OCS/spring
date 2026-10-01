@@ -67,6 +67,14 @@
             </div>
         </div>
 
+        <!-- Project applications are approved on the capstone page, not here; point admins there. -->
+        <div sec:authorize="hasAnyRole('ROLE_ADMIN','ROLE_TEACHER')" class="alert alert-info mb-4"
+            th:if="${pendingProjectApplications != null and pendingProjectApplications > 0}">
+            <strong th:text="${pendingProjectApplications}">2</strong>
+            project mentor application(s) waiting for approval &mdash;
+            <a th:href="@{/mvc/capstone/read}">review them on the Capstone Projects page</a>.
+        </div>
+
         <!-- Mentor Approval Requests: one raised automatically per mentor signup (see
              PersonApiController#postPerson). Approve promotes ROLE_PENDING -> ROLE_MENTOR
              directly; deny just closes the ticket and leaves the account in ROLE_PENDING. -->

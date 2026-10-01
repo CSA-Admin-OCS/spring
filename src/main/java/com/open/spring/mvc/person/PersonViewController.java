@@ -61,6 +61,9 @@ public class PersonViewController {
     @Autowired
     private MentorTicketJpaRepository mentorTicketRepository;
 
+    @Autowired
+    private com.open.spring.mvc.capstone.CapstoneApplicationJpaRepository capstoneApplicationRepository;
+
     //@Autowired
     //private PersonJpaRepository find;
 
@@ -83,6 +86,7 @@ public class PersonViewController {
             model.addAttribute("list", list);  // Add the list to the model for the view
             model.addAttribute("tickets", ticketRepository.findByResolvedFalseOrderByIdDesc());
             model.addAttribute("mentorTickets", mentorTicketRepository.findByResolvedFalseOrderByIdDesc());
+            model.addAttribute("pendingProjectApplications", capstoneApplicationRepository.findByResolvedFalseOrderByIdDesc().size());
         }
         else {
             Person person = repository.getByUid(userDetails.getUsername());  // Fetch the person by email

@@ -1,10 +1,17 @@
 <!DOCTYPE HTML>
 <html xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
     xmlns:sec="http://www.w3.org/1999/xhtml"
-    layout:decorate="~{layouts/style-only}" lang="en">
+    layout:decorate="~{layouts/base}" lang="en">
+
+<th:block layout:fragment="title" th:remove="tag">Capstone Projects</th:block>
 
 <th:block layout:fragment="body" th:remove="tag">
     <div class="container py-4">
+        <!-- Way back out of this page: it's often reached from the Person Viewer notice. -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/mvc/person/read}">&larr; Back to Person Viewer</a>
+            <a class="btn btn-outline-secondary btn-sm" th:href="@{/}">Home</a>
+        </div>
         <h2>Capstone Projects</h2>
         <p class="text-secondary">
             Rows mirror the capstone posts and refresh automatically from
