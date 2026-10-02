@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.open.spring.mvc.person.Person;
+import com.open.spring.mvc.capstone.CapstoneProjectJpaRepository;
 import com.open.spring.mvc.person.PersonJpaRepository;
 
 import lombok.AllArgsConstructor;
@@ -35,16 +36,19 @@ public class GroupChatApiController {
     private final GroupChatRealtimeService realtimeService;
     private final GroupsJpaRepository groupsRepository;
     private final PersonJpaRepository personRepository;
+    private final CapstoneProjectJpaRepository capstoneRepository;
 
     public GroupChatApiController(
             GroupChatService groupChatService,
             GroupChatRealtimeService realtimeService,
             GroupsJpaRepository groupsRepository,
-            PersonJpaRepository personRepository) {
+            PersonJpaRepository personRepository,
+            CapstoneProjectJpaRepository capstoneRepository) {
         this.groupChatService = groupChatService;
         this.realtimeService = realtimeService;
         this.groupsRepository = groupsRepository;
         this.personRepository = personRepository;
+        this.capstoneRepository = capstoneRepository;
     }
 
     @Data
@@ -87,8 +91,29 @@ public class GroupChatApiController {
             return true;
         }
 
-        return groupsRepository.findGroupMentorsRaw(group.getId()).stream()
+        boolean isGroupMentor = groupsRepository.findGroupMentorsRaw(group.getId()).stream()
                 .anyMatch(row -> uid.equals((String) row[1]));
+        if (isGroupMentor) {
+            return true;
+        }
+
+        // A capstone project's group is private to its own students and mentors.
+        if (!capstoneRepository.findByGroupId(group.getId()).isEmpty()) {
+            return false;
+        }
+
+        // Every other group is a class-wide chat (course announcements, week chats, the
+        // shared "lessons" group): those have no member list and are open to any signed-in
+        // student, exactly as on Open-Coding-Society/spring, where this check is disabled.
+        // A mentor-only account stays scoped to its capstone groups.
+        return auth != null && !isMentorOnly(auth);
+    }
+
+    private boolean isMentorOnly(Authentication auth) {
+        Set<String> roles = auth.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .collect(java.util.stream.Collectors.toSet());
+        return roles.contains("ROLE_MENTOR") && !roles.contains("ROLE_USER") && !roles.contains("ROLE_STUDENT");
     }
 
     @GetMapping("/analytics/{personId}")

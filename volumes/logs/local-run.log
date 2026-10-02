@@ -4486,3 +4486,386 @@ Found 0 total miners
 2026-10-01T10:02:23.273-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
 2026-10-01T10:02:29.798-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
 2026-10-01T10:02:29.798-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:02:46.783-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:02:46.783-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:02:53.277-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:02:53.277-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:03:04.802-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:04.802-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+
+=== Mining Process Started ===
+
+=== Processing Pending Balances ===
+Found 0 total miners
+2026-10-01T10:03:16.800-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:16.800-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:23.797-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:03:23.798-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:03:29.800-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:29.800-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:34.780-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:34.780-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:46.794-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:46.794-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:03:53.799-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:03:53.799-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:04:04.794-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:04.795-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:23.722-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:04:23.722-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:04:29.737-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:29.737-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:29.800-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:29.800-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:34.795-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:34.795-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:04:53.798-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:04:53.798-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:05:04.807-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:04.808-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:23.271-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:05:23.271-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:05:29.727-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:29.728-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:29.747-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:29.747-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:34.771-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:34.771-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:45.888-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:45.888-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:46.095-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:46.095-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:52.393-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/jokes/ GET 127.0.0.1 127.0.0.1 57206
+2026-10-01T10:05:52.393-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/jokes/ GET 127.0.0.1 127.0.0.1 57206
+2026-10-01T10:05:53.802-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:05:53.803-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:05:54.563-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:05:54.563-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:01.187-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/jokes/ GET 127.0.0.1 127.0.0.1 57242
+2026-10-01T10:06:01.187-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/jokes/ GET 127.0.0.1 127.0.0.1 57242
+2026-10-01T10:06:04.800-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:04.800-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:16.717-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:16.718-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:23.277-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:06:23.277-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:06:29.757-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:29.757-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:34.788-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:34.788-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:46.783-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:46.783-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:06:53.277-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:06:53.277-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:07:04.759-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:04.759-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:23.273-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:07:23.273-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:07:29.704-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:29.704-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:29.777-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:29.777-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:34.795-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:34.796-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:07:53.273-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:07:53.273-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:08:23.275-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:08:23.276-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:08:29.788-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:08:29.788-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:08:29.798-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:29.798-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:08:29.798-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:29.799-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:08:43.250-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:43.251-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:43.727-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:43.727-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:43.796-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:43.796-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.784-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.786-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.789-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.791-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.794-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.797-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.936-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.940-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.943-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.947-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.949-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:08:47.952-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.956-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.958-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.961-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:08:47.964-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.965-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.967-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:47.971-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:47.974-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:50.639-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:08:50.645-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:50.645-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:08:50.651-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:08:53.773-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:08:53.773-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:09:16.297-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:09:16.299-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.312-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56969
+2026-10-01T10:09:16.317-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.390-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:16.393-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:16.394-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.401-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.403-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:16.404-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.406-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58059
+2026-10-01T10:09:16.407-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.425-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58059
+2026-10-01T10:09:16.426-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:16.428-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.428-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:16.435-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:16.437-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:23.794-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:09:23.794-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:09:25.879-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:25.879-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58059
+2026-10-01T10:09:25.884-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:25.884-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:25.892-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:25.897-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:25.900-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58059
+2026-10-01T10:09:25.905-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:25.905-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:25.908-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:25.909-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:25.912-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:25.915-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:25.918-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:27.452-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:27.458-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:27.462-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:27.462-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/logout POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:27.468-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:27.468-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-01T10:09:27.526-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:27.526-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:27.541-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:27.541-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:29.798-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:29.798-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:29.798-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:29.798-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57897
+2026-10-01T10:09:31.693-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:31.693-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:53.800-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:09:53.801-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:09:54.737-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:54.737-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:55.238-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:55.238-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:57.795-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:09:57.795-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:04.787-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:04.787-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:04.790-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:04.791-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:23.802-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:10:23.802-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:10:27.799-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:27.799-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:34.747-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:34.748-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:34.775-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:34.776-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:53.801-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:10:53.801-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:10:57.800-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:10:57.801-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:04.792-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:04.792-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:23.765-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:11:23.765-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:11:27.796-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:27.797-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:29.777-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:29.777-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:34.795-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:34.795-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:53.896-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:11:53.896-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:11:57.794-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:11:57.794-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:04.797-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:04.797-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:23.735-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:12:23.735-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:12:27.804-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:27.805-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:29.784-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:29.785-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:34.781-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:34.781-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:53.774-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:12:53.775-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:12:57.788-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:12:57.788-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:04.798-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:04.798-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:23.738-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:13:23.738-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:13:29.746-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:29.746-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:29.773-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:29.773-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:34.782-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:34.783-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:13:53.781-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:13:53.781-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:14:04.797-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:14:04.798-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:14:23.845-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:14:23.845-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:14:29.740-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:14:29.740-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58050
+2026-10-01T10:14:29.740-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:14:29.740-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:14:34.792-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:14:34.792-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:14:53.813-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:14:53.814-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:15:23.798-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:15:23.799-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:15:29.750-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:15:29.750-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:15:29.767-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:15:29.767-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:15:29.789-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:15:29.789-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:15:53.808-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:15:53.809-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:16:23.794-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:16:23.795-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:16:29.733-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:16:29.733-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:16:29.757-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:16:29.757-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:16:29.776-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:16:29.776-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:16:53.274-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:16:53.275-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:16:57.531-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:16:57.532-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:17:23.805-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:17:23.805-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:17:27.533-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:17:27.534-07:00  WARN 41352 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:17:29.781-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:17:29.781-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59440
+2026-10-01T10:17:29.781-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:29.782-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:31.317-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:31.318-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:31.492-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:31.492-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/dm/unread GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:31.565-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:31.565-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:53.759-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:17:53.760-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:17:57.796-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:17:57.797-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:01.790-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:01.791-07:00  WARN 41352 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+
+=== Mining Process Started ===
+
+=== Processing Pending Balances ===
+Found 0 total miners
+2026-10-01T10:18:23.732-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:18:23.732-07:00  WARN 41352 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:18:27.780-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:27.780-07:00  WARN 41352 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:29.797-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:29.797-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:31.797-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:31.797-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:18:53.796-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:18:53.796-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:19:01.780-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:01.780-07:00  WARN 41352 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:23.788-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:19:23.789-07:00  WARN 41352 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:19:28.784-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:28.784-07:00  WARN 41352 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:29.736-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:29.736-07:00  WARN 41352 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:31.796-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:31.796-07:00  WARN 41352 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 60233
+2026-10-01T10:19:53.784-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+2026-10-01T10:19:53.785-07:00  WARN 41352 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55770
+Server is stopping. Starting backup process...
+Exporting full database...
+Full database backup saved to: /Users/Darshan/spring-admin/./volumes/backups/backup_20261001101954.json
+Deleted old full database backup: backup_20260928224039.json
+Full database backup completed.
+Backing up specific endpoints...
+Backing up /api/people/bulk/extract via direct repository/service access...
+Backup saved: ./backups/person/person_backup_2026-10-01_10-19-54.json
+Deleted old endpoint backup: person_backup_2026-09-28_22-40-39.json
+Backing up /api/groups/bulk/extract via direct repository/service access...
+Error during backup of /api/groups/bulk/extract: failed to lazily initialize a collection of role: com.open.spring.mvc.groups.Groups.groupMembers: could not initialize proxy - no Session
+Failed to backup endpoint /api/groups/bulk/extract: Backup failed for /api/groups/bulk/extract
+java.lang.RuntimeException: Backup failed for /api/groups/bulk/extract
+	at com.open.spring.mvc.backups.BackupsController.backupEndpoint(BackupsController.java:459)
+	at com.open.spring.mvc.backups.BackupsController.performSpecificEndpointBackups(BackupsController.java:285)
+	at com.open.spring.mvc.backups.BackupsController.handleContextClose(BackupsController.java:251)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.springframework.context.event.ApplicationListenerMethodAdapter.doInvoke(ApplicationListenerMethodAdapter.java:382)
+	at org.springframework.context.event.ApplicationListenerMethodAdapter.processEvent(ApplicationListenerMethodAdapter.java:254)
+	at org.springframework.context.event.ApplicationListenerMethodAdapter.onApplicationEvent(ApplicationListenerMethodAdapter.java:173)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:185)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:178)
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:156)
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:454)
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:387)
+	at org.springframework.context.support.AbstractApplicationContext.doClose(AbstractApplicationContext.java:1163)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.doClose(ServletWebServerApplicationContext.java:179)
+	at org.springframework.context.support.AbstractApplicationContext.close(AbstractApplicationContext.java:1126)
+	at org.springframework.boot.SpringApplicationShutdownHook.closeAndWait(SpringApplicationShutdownHook.java:147)
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+	at org.springframework.boot.SpringApplicationShutdownHook.run(SpringApplicationShutdownHook.java:116)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: com.open.spring.mvc.groups.Groups.groupMembers: could not initialize proxy - no Session
+	at org.hibernate.collection.spi.AbstractPersistentCollection.throwLazyInitializationException(AbstractPersistentCollection.java:635)
+	at org.hibernate.collection.spi.AbstractPersistentCollection.withTemporarySessionIfNeeded(AbstractPersistentCollection.java:219)
+	at org.hibernate.collection.spi.AbstractPersistentCollection.initialize(AbstractPersistentCollection.java:614)
+	at org.hibernate.collection.spi.AbstractPersistentCollection.read(AbstractPersistentCollection.java:138)
+	at org.hibernate.collection.spi.PersistentBag.iterator(PersistentBag.java:369)
+	at com.open.spring.mvc.backups.BackupsController.backupEndpoint(BackupsController.java:400)
+	... 19 more
+Backing up /api/tinkle/bulk/extract via direct repository/service access...
+Backup saved: ./backups/tinkle/tinkle_backup_2026-10-01_10-19-54.json
+Deleted old endpoint backup: tinkle_backup_2026-09-28_22-40-39.json
+Backing up /api/calendar/events via direct repository/service access...
+Backup saved: ./backups/calendar/calendar_backup_2026-10-01_10-19-54.json
+Deleted old endpoint backup: calendar_backup_2026-09-28_22-40-39.json
+Backing up /bank/bulk/extract via direct repository/service access...
+Backup saved: ./backups/bank/bank_backup_2026-10-01_10-19-54.json
+Deleted old endpoint backup: bank_backup_2026-09-28_22-40-39.json
+Specific endpoint backups completed.
+All backup operations completed.
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1;31mBUILD FAILURE[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  2 d 01:39 h
+[[1;34mINFO[m] Finished at: 2026-10-01T10:19:54-07:00
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;31mERROR[m] Failed to execute goal [32morg.springframework.boot:spring-boot-maven-plugin:3.5.0:run[m [1m(default-cli)[m on project [36mspring[m: [1;31mProcess terminated with exit code: 143[m -> [1m[Help 1][m
+[[1;31mERROR[m] 
+[[1;31mERROR[m] To see the full stack trace of the errors, re-run Maven with the [1m-e[m switch.
+[[1;31mERROR[m] Re-run Maven using the [1m-X[m switch to enable full debug logging.
+[[1;31mERROR[m] 
+[[1;31mERROR[m] For more information about the errors and possible solutions, please read the following articles:
+[[1;31mERROR[m] [1m[Help 1][m http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
