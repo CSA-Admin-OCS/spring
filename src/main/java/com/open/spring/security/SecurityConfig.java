@@ -174,6 +174,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/grades**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/plant/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
                         .requestMatchers("/api/groups/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR")
+                        // Direct messages: anyone signed in (students and mentors alike) can DM
+                        // anyone; the controller limits each conversation to its participants.
+                        // People search is what the "New chat" picker uses to find recipients.
+                        .requestMatchers("/api/dm/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR")
+                        .requestMatchers(HttpMethod.GET, "/api/people/search").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR")
                         // Capstone projects: the list is readable by any signed-in role incl.
                         // mentors; attaching/detaching a mentor and the sync upsert are
                         // checked in-controller (admin/teacher, and admin respectively).
@@ -282,6 +287,8 @@ public class SecurityConfig {
         policy.put("/api/exports/**", "ROLE_ADMIN");
         policy.put("/api/imports/**", "ROLE_ADMIN");
         policy.put("/api/groups/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
+        policy.put("/api/dm/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
+        policy.put("GET /api/people/search", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
         policy.put("GET /api/capstones", "permitAll");
         policy.put("GET /api/person/get", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
         policy.put("/api/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT");

@@ -216,6 +216,13 @@ public class ModelInit {
                     } catch (SQLException ignore) {
                         // column already exists (or table not created yet); nothing to do
                     }
+
+                    // Direct messages (ported from Open-Coding-Society/spring). ddl-auto=none,
+                    // so their tables must exist before the first /api/dm call.
+                    for (String sql : buildDirectMessageTablesSql(conn)) {
+                        st.execute(sql);
+                    }
+                    System.out.println("Ensured direct message tables exist");
                 } catch (SQLException e) {
                     System.err.println("Failed to ensure manual tables: " + e.getMessage());
                 }
@@ -562,6 +569,34 @@ public class ModelInit {
                 + quoteIdentifier(connection, "balance") + " REAL,"
                 + quoteIdentifier(connection, "created_at") + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                 + ");";
+    }
+
+    // Matches the JPA mappings in mvc/directmessages (IDENTITY ids, so autoincrement keys).
+    private List<String> buildDirectMessageTablesSql(Connection connection) throws SQLException {
+        String idColumn = isMySqlDatabase(connection)
+            ? quoteIdentifier(connection, "id") + " BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"
+            : quoteIdentifier(connection, "id") + " INTEGER PRIMARY KEY AUTOINCREMENT";
+        String conversationId = quoteIdentifier(connection, "conversation_id");
+        String personId = quoteIdentifier(connection, "person_id");
+
+        return List.of(
+            "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "direct_message_conversation") + " ("
+                + idColumn + ")",
+            "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "direct_message_participants") + " ("
+                + conversationId + " BIGINT NOT NULL,"
+                + personId + " BIGINT NOT NULL)",
+            "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "direct_message") + " ("
+                + idColumn + ","
+                + conversationId + " BIGINT,"
+                + quoteIdentifier(connection, "sender_id") + " BIGINT,"
+                + quoteIdentifier(connection, "body") + " VARCHAR(2000),"
+                + quoteIdentifier(connection, "sent_at") + " TIMESTAMP)",
+            "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "direct_message_read_state") + " ("
+                + idColumn + ","
+                + conversationId + " BIGINT,"
+                + personId + " BIGINT,"
+                + quoteIdentifier(connection, "last_read_message_id") + " BIGINT,"
+                + "UNIQUE (" + conversationId + ", " + personId + "))");
     }
 
     private String buildGamesTableSql(Connection connection) throws SQLException {
