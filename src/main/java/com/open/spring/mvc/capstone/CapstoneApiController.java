@@ -227,6 +227,19 @@ public class CapstoneApiController {
         return new ResponseEntity<>(toDto(projectOpt.get()), HttpStatus.OK);
     }
 
+    /**
+     * The project's chat group, for the Chat button every capstone card has. Most projects
+     * have no group until someone first opens their chat, so it is created ("Capstone:
+     * <title>") here on demand rather than for all projects up front. Any signed-in role
+     * may call it; reading/posting rules are the group chat's (GroupChatApiController).
+     */
+    @PostMapping("/{id}/chat")
+    public ResponseEntity<Object> chatGroup(@PathVariable Long id) {
+        return groupLinkService.chatGroupIdFor(id)
+                .<ResponseEntity<Object>>map(groupId -> new ResponseEntity<>(Map.of("groupId", groupId), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
     private Map<String, Object> applicationDto(CapstoneApplication application) {
         Map<String, Object> dto = new LinkedHashMap<>();
         dto.put("id", application.getId());

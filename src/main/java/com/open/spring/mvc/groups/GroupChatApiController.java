@@ -109,6 +109,13 @@ public class GroupChatApiController {
         return auth != null && !isMentorOnly(auth);
     }
 
+    // Reading is wider than posting: a capstone project's chat can be read by anyone
+    // signed in (the capstone page's Chat button), but only its team, its mentors and
+    // staff may post in it (isMember).
+    private boolean canRead(Groups group, String uid) {
+        return isMember(group, uid) || !capstoneRepository.findByGroupId(group.getId()).isEmpty();
+    }
+
     private boolean isMentorOnly(Authentication auth) {
         Set<String> roles = auth.getAuthorities().stream()
                 .map(authority -> authority.getAuthority())
@@ -144,7 +151,7 @@ public class GroupChatApiController {
         if (currentUsername == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        if (!isMember(groupOpt.get(), currentUsername)) {
+        if (!canRead(groupOpt.get(), currentUsername)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -214,7 +221,7 @@ public class GroupChatApiController {
         if (currentUsername == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        if (!isMember(groupOpt.get(), currentUsername)) {
+        if (!canRead(groupOpt.get(), currentUsername)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 

@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -42,6 +43,8 @@ public class CapstoneGroupLinkService {
     static final String GROUP_NAME_PREFIX = "Capstone: ";
     private static final int BACKFILL_ATTEMPTS = 5;
     private static final long BACKFILL_RETRY_DELAY_MS = 2_000L;
+    private static final int CHAT_GROUP_ATTEMPTS = 4;
+    private static final long CHAT_GROUP_RETRY_DELAY_MS = 300L;
 
     @Transactional
     public void attachMentor(CapstoneProject project, Person mentor) {
@@ -110,6 +113,32 @@ public class CapstoneGroupLinkService {
                         Thread.currentThread().interrupt();
                         return;
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * The project's chat group id, creating its group on first use (the capstone card's
+     * Chat button); empty if there is no such project. Retries SQLITE_BUSY_SNAPSHOT like
+     * the backfill, with shorter waits since someone is waiting on the dialog.
+     */
+    public Optional<Long> chatGroupIdFor(Long projectId) {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return transactionTemplate.execute(status -> capstoneRepository.findById(projectId)
+                        .map(project -> ensureGroup(project).getId()));
+            } catch (CannotAcquireLockException e) {
+                if (attempt >= CHAT_GROUP_ATTEMPTS) {
+                    throw e;
+                }
+                logger.warn("capstone_chat_group attempt {}/{} failed for project {}: {}",
+                        attempt, CHAT_GROUP_ATTEMPTS, projectId, e.getMessage());
+                try {
+                    Thread.sleep(CHAT_GROUP_RETRY_DELAY_MS);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw e;
                 }
             }
         }
