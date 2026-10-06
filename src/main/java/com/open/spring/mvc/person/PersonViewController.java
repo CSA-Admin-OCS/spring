@@ -41,6 +41,7 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 // Built using article: https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/mvc.html
 // or similar: https://asbnotebook.com/2020/04/11/spring-boot-thymeleaf-form-validation-example/
 @Controller
@@ -54,6 +55,9 @@ public class PersonViewController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private MentorTicketJpaRepository mentorTicketRepository;
 
     @Autowired
     private SessionRegistry sessionRegistry;
@@ -82,6 +86,7 @@ public class PersonViewController {
         if (isAdmin == true){
             List<Person> list = repository.listAll();  // Fetch all persons
             model.addAttribute("list", list);  // Add the list to the model for the view
+            model.addAttribute("mentorTickets", mentorTicketRepository.findByResolvedFalseOrderByIdDesc());
         }
         else {
             Person person = repository.getByUid(userDetails.getUsername());  // Fetch the person by email
@@ -252,11 +257,50 @@ public class PersonViewController {
             return "person/update-roles";  // Return error if person not found
         }
 
-        System.out.println(roleName);
+        // addRoleToPerson silently does nothing when the role name has no person_role row,
+        // so the page would report success while changing nothing. ROLE_TESTER has been
+        // broken this way for a while; catch it here instead of adding another one.
+        if (repository.findRole(roleName) == null) {
+            logger.warn("AUDIT role_update_failed actor={} target={} role={} reason=role_not_seeded",
+                    userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "redirect:/mvc/person/update/roles/" + personToUpdate.getId() + "?error=unknown_role";
+        }
+
         repository.addRoleToPerson(roleDto.getUid(), roleName);  // Add the role to the person
         logger.info("AUDIT role_update actor={} target={} role={}", userDetails.getUsername(), roleDto.getUid(), roleName);
 
         return "redirect:/mvc/person/read"; // Redirect to the read page after updating
+    }
+
+    @PostMapping("/remove/role")
+    public String personRoleRemoveSave(Authentication authentication, @Valid PersonRoleDto roleDto,
+            @RequestParam("roleName") String roleName) {
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        boolean isAdmin = userDetails.getAuthorities().stream()
+            .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (!isAdmin) {
+            logger.warn("AUDIT role_remove_blocked actor={} target={} role={} reason=non_admin", userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "redirect:/e#Unauthorized";
+        }
+
+        Person personToUpdate = repository.getByUid(roleDto.getUid());
+        if (personToUpdate == null) {
+            logger.warn("AUDIT role_remove_failed actor={} target={} role={} reason=target_not_found", userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "redirect:/mvc/person/read";
+        }
+
+        // Refuse to strip the last role off an account -- a person with no roles cannot
+        // authenticate at all, and there is no UI to dig them back out.
+        if (personToUpdate.getRoles().size() <= 1 && personToUpdate.hasRoleWithName(roleName)) {
+            logger.warn("AUDIT role_remove_blocked actor={} target={} role={} reason=last_role", userDetails.getUsername(), roleDto.getUid(), roleName);
+            return "redirect:/mvc/person/read";
+        }
+
+        repository.setRole(roleDto.getUid(), roleName, false);
+        logger.info("AUDIT role_remove actor={} target={} role={}", userDetails.getUsername(), roleDto.getUid(), roleName);
+
+        return "redirect:/mvc/person/read";
     }
 
     @Getter
@@ -305,8 +349,12 @@ public class PersonViewController {
     
     @GetMapping("/update/roles/{id}")
     public String personUpdateRoles(@PathVariable("id") int id, Model model) {
-        PersonRoleDto roleDto = new PersonRoleDto(repository.get(id).getUid());
+        Person person = repository.get(id);
+        PersonRoleDto roleDto = new PersonRoleDto(person.getUid());
         model.addAttribute("roleDto", roleDto);
+        // Needed so the page can show which roles are already held -- otherwise "Remove Role"
+        // is a guess.
+        model.addAttribute("person", person);
         return "person/update-roles";
     }
 
@@ -322,6 +370,7 @@ public class PersonViewController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         PersonRoleDto roleDto = new PersonRoleDto(userDetails.getUsername());
         model.addAttribute("roleDto", roleDto);
+        model.addAttribute("person", repository.getByUid(userDetails.getUsername()));
         return "person/update-roles";
     }
 
@@ -507,6 +556,61 @@ public class PersonViewController {
         repository.save(personToReset, false);
 
         logger.warn("AUDIT admin_password_reset admin={} target_uid={}", authentication.getName(), personToReset.getUid());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // Admin approves a mentor signup from the portal: does the ROLE_PENDING -> ROLE_MENTOR
+    // promotion directly (grant ROLE_MENTOR first, then drop ROLE_PENDING) and closes the ticket.
+    @PostMapping("/mentor/ticket/{id}/approve")
+    public ResponseEntity<Object> approveMentorTicket(@PathVariable Long id, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (!isAdmin) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        MentorTicket ticket = mentorTicketRepository.findById(id).orElse(null);
+        if (ticket == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (ticket.isResolved()) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+
+        repository.addRoleToPerson(ticket.getUid(), "ROLE_MENTOR");
+        repository.setRole(ticket.getUid(), "ROLE_PENDING", false);
+        ticket.markResolved(true);
+        mentorTicketRepository.save(ticket);
+
+        logger.warn("AUDIT mentor_ticket_approved admin={} target_uid={}",
+                authentication.getName(), ticket.getUid());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    // Admin denies a mentor signup: closes the ticket without touching roles, leaving the
+    // account in ROLE_PENDING exactly as any other rejected request -- the admin still has
+    // the existing Update Roles page for anything further (e.g. removing the account).
+    @PostMapping("/mentor/ticket/{id}/deny")
+    public ResponseEntity<Object> denyMentorTicket(@PathVariable Long id, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (!isAdmin) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        MentorTicket ticket = mentorTicketRepository.findById(id).orElse(null);
+        if (ticket == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        if (ticket.isResolved()) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+
+        ticket.markResolved(false);
+        mentorTicketRepository.save(ticket);
+
+        logger.warn("AUDIT mentor_ticket_denied admin={} target_uid={}",
+                authentication.getName(), ticket.getUid());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

@@ -75,6 +75,9 @@ public class PersonApiController {
     @Autowired
     private TinkleJPARepository tinkleRepository;
 
+    @Autowired
+    private MentorTicketJpaRepository mentorTicketRepository;
+
     // application.properties default, overridden by DEFAULT_PASSWORD in .env
     @Value("${person.default-password}")
     private String defaultPassword;
@@ -105,7 +108,22 @@ public class PersonApiController {
         }
     }
 
-
+    // The signed-in account's own mentor-application state; takes no uid, so it cannot read anyone else's.
+    @GetMapping("/person/mentor/ticket/status")
+    public ResponseEntity<Object> getMentorTicketStatus(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Person person = repository.findByUid(userDetails.getUsername());
+        if (person == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Optional<MentorTicket> ticket = mentorTicketRepository.findFirstByUidOrderByIdDesc(person.getUid());
+        Map<String, Object> body = new HashMap<>();
+        boolean pending = ticket.isPresent() && !ticket.get().isResolved();
+        body.put("pending", pending);
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
 
     /**
      * Retrieves a Person entity by its UID.
@@ -345,6 +363,12 @@ public class PersonApiController {
         private String name;
         private String pfp;
         private Boolean kasmServerNeeded;
+        private String idToken;
+        // "mentor" opts into the no-idToken mentor signup path below; anything else
+        // (including null) falls through to the existing student behavior unchanged.
+        private String accountType;
+        // Mentor signups only: work email shown to the admin on the mentor ticket.
+        private String businessEmail;
         // faceData removed: use POST /api/face/register (FaceApiController) instead.
     }
 
@@ -355,15 +379,62 @@ public class PersonApiController {
      * @return A ResponseEntity containing a success message if the Person entity is
      *         created, or a BAD_REQUEST status if not created.
      */
+    // Shared shape for every error response in postPerson -- both the pre-existing
+    // uniqueness checks below and the mentor-signup branch use this instead of each
+    // hand-building the same HttpHeaders/JSONObject boilerplate.
+    private ResponseEntity<Object> personCreateError(HttpStatus status, String message) {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject responseObject = new JSONObject();
+        responseObject.put("error", message);
+        return new ResponseEntity<>(responseObject.toString(), responseHeaders, status);
+    }
+
     @PostMapping("/person/create")
     public ResponseEntity<Object> postPerson(@RequestBody PersonDto personDto) {
 
         if (personDto == null) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "Invalid request body");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+            return personCreateError(HttpStatus.BAD_REQUEST, "Invalid request body");
+        }
+
+        // Only the literal "mentor" takes the mentor path; anything else is the unchanged student signup.
+        boolean isMentorSignup = "mentor".equalsIgnoreCase(personDto.getAccountType());
+        String roleName = "ROLE_USER";
+        boolean mentorEmailVerified = false;
+        String businessEmail = null;
+
+        if (isMentorSignup) {
+            // Mentor signup: OAuth is optional. If an idToken was sent (the optional
+            // "verify a business email" step), it's still verified server-side like
+            // any other token -- never trust a claimed email -- and an invalid token
+            // is still a real failure, not silently ignored. Its absence is not an
+            // error; the mentor can sign up with just uid/email/password.
+            if (personDto.getIdToken() != null && !personDto.getIdToken().isBlank()) {
+                String verifiedBusinessEmail = GoogleIdTokenVerifier.verifyAndGetEmail(personDto.getIdToken());
+                if (verifiedBusinessEmail == null) {
+                    logger.warn("AUDIT signup_role uid={} role=none reason=invalid_mentor_token", personDto.getUid());
+                    return personCreateError(HttpStatus.FORBIDDEN, "The provided Google ID token could not be verified");
+                }
+                verifiedBusinessEmail = verifiedBusinessEmail.toLowerCase();
+                personDto.setEmail(verifiedBusinessEmail);
+                businessEmail = verifiedBusinessEmail;
+                mentorEmailVerified = TrustedDomains.isTrusted(verifiedBusinessEmail);
+            } else {
+                if (personDto.getEmail() == null || personDto.getEmail().isBlank()) {
+                    return personCreateError(HttpStatus.BAD_REQUEST, "Email is required");
+                }
+                personDto.setEmail(personDto.getEmail().toLowerCase());
+                // Without the OAuth step the business email is only a claim; it's still
+                // required so the admin has something to check before approving.
+                String claimedBusinessEmail = personDto.getBusinessEmail() == null ? "" : personDto.getBusinessEmail().trim().toLowerCase();
+                if (!claimedBusinessEmail.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) {
+                    return personCreateError(HttpStatus.BAD_REQUEST, "A valid business email is required for mentor signup");
+                }
+                businessEmail = claimedBusinessEmail;
+            }
+            // Mentor signups always land in ROLE_PENDING pending admin review -- never
+            // auto-ROLE_USER, regardless of email domain.
+            roleName = "ROLE_PENDING";
         }
 
         String uid = personDto.getUid() == null ? null : personDto.getUid().trim();
@@ -372,88 +443,53 @@ public class PersonApiController {
         String sid = personDto.getSid() == null ? null : personDto.getSid().trim();
 
         if (uid == null || uid.isBlank()) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "uid is required");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+            return personCreateError(HttpStatus.BAD_REQUEST, "uid is required");
         }
-
         if (email == null || email.isBlank()) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "email is required");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+            return personCreateError(HttpStatus.BAD_REQUEST, "email is required");
         }
-
         if (name == null || name.isBlank()) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "name is required");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+            return personCreateError(HttpStatus.BAD_REQUEST, "name is required");
         }
 
         // Check if a person with this uid already exists
         if (repository.existsByUid(uid)) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with uid '" + uid + "' already exists");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "A person with uid '" + uid + "' already exists");
         }
 
         // Check if a person with this email already exists
         if (repository.existsByEmail(email)) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with email '" + email + "' already exists");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "A person with email '" + email + "' already exists");
         }
 
         if (sid != null && !sid.isBlank() && tinkleRepository.findBySid(sid).isPresent()) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "A person with sid '" + sid + "' already exists");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "A person with sid '" + sid + "' already exists");
         }
 
         // Use canonical Spring Security role naming (ROLE_*) for new accounts.
-        PersonRole defaultRole = personDetailsService.findRole("ROLE_USER");
+        PersonRole defaultRole = personDetailsService.findRole(roleName);
         if (defaultRole == null) {
-            // Backward compatibility for deployments that still have legacy role names.
-            defaultRole = personDetailsService.findRole("USER");
+            // Backward compatibility only applies to the established user role.
+            if ("ROLE_USER".equals(roleName)) {
+                defaultRole = personDetailsService.findRole("USER");
+            }
         }
         if (defaultRole == null) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "Default role ROLE_USER is not configured");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+            return personCreateError(HttpStatus.INTERNAL_SERVER_ERROR, "Default role " + roleName + " is not configured");
         }
+
+        logger.info("AUDIT signup_role uid={} role={} mentor={} businessEmailVerified={}",
+                uid, roleName, isMentorSignup, mentorEmailVerified);
 
         String rawPassword = personDto.getPassword();
         if (rawPassword == null || rawPassword.isBlank()) {
             rawPassword = defaultPassword;
         }
         if (rawPassword == null || rawPassword.isBlank()) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "Password is required and no DEFAULT_PASSWORD is configured");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+            return personCreateError(HttpStatus.INTERNAL_SERVER_ERROR, "Password is required and no DEFAULT_PASSWORD is configured");
         }
 
-        String profilePicture = personDto.getPfp();
-        if (profilePicture != null) {
-            profilePicture = profilePicture.trim();
-        }
-        if (profilePicture == null) {
-            profilePicture = "";
-        }
+        String profilePicture = personDto.getPfp() == null ? "" : personDto.getPfp().trim();
 
         // Transitional behavior: keep legacy default until kasm is removed from schema.
         boolean kasmServerNeeded = true;
@@ -468,6 +504,8 @@ public class PersonApiController {
         person.setPfp(profilePicture);
         person.setKasmServerNeeded(kasmServerNeeded);
         person.getRoles().add(defaultRole);
+        person.setMentorEmailVerified(mentorEmailVerified);
+        person.setBusinessEmail(businessEmail);
 
         // Non-critical feature entities should be created lazily in their own flows.
         person.setBanks(null);
@@ -476,21 +514,27 @@ public class PersonApiController {
         try {
             personDetailsService.save(person);
         } catch (DataIntegrityViolationException e) {
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-            JSONObject responseObject = new JSONObject();
-            responseObject.put("error", "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
-            return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.CONFLICT);
+            return personCreateError(HttpStatus.CONFLICT, "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
         } catch (ConstraintViolationException e) {
             throw e; // JPA rejected a field (e.g. weak password); ExceptionHandlerAdvice sends the 400
         } catch (Exception e) {
             logger.error("Person create failed for uid={} email={}", uid, email, e);
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
             JSONObject responseObject = new JSONObject();
             responseObject.put("error", "Unable to create user");
             responseObject.put("message", e.getMessage());
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.APPLICATION_JSON);
             return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // Every mentor signup raises an approval ticket, not just the ones with a verified
+        // business email -- ROLE_PENDING alone doesn't distinguish a mentor request from any
+        // other pending signup, so without this an admin has no way to find who asked to be
+        // a mentor. The ticket is what update-roles.html was standing in for before: an admin
+        // approves it here, which does the ROLE_PENDING -> ROLE_MENTOR promotion directly.
+        if (isMentorSignup) {
+            mentorTicketRepository.save(new MentorTicket(uid, name, email, businessEmail, mentorEmailVerified));
+            logger.info("AUDIT mentor_ticket_created uid={} emailVerified={}", uid, mentorEmailVerified);
         }
 
         HttpHeaders responseHeaders = new HttpHeaders();

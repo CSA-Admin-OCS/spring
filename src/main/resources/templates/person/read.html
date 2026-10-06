@@ -34,6 +34,45 @@
 
         <h3>Person Viewer</h3>
 
+        <!-- Mentor Approval Requests: one raised automatically per mentor signup (see
+             PersonApiController#postPerson). Approve promotes ROLE_PENDING -> ROLE_MENTOR
+             directly; deny just closes the ticket and leaves the account in ROLE_PENDING. -->
+        <div sec:authorize="hasRole('ROLE_ADMIN')" class="mb-4" th:if="${mentorTickets != null and !mentorTickets.isEmpty()}">
+            <h5>Mentor Approval Requests</h5>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Requested</th>
+                            <th>UID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Business Email</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ticket : ${mentorTickets}">
+                            <td th:text="${ticket.createdAt}">Requested At</td>
+                            <td th:text="${ticket.uid}">User UID</td>
+                            <td th:text="${ticket.name}">Name</td>
+                            <td>
+                                <span th:text="${ticket.email}">Email</span>
+                                <span th:if="${ticket.emailVerified}" class="badge bg-success">verified</span>
+                            </td>
+                            <td th:text="${ticket.businessEmail}">Business Email</td>
+                            <td>
+                                <button class="btn btn-success btn-sm"
+                                    th:attr="data-id=${ticket.id}" onclick="resolveMentorTicket(this, 'approve')">Approve</button>
+                                <button class="btn btn-outline-danger btn-sm"
+                                    th:attr="data-id=${ticket.id}" onclick="resolveMentorTicket(this, 'deny')">Deny</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Column visibility toggle buttons -->
         <div class="d-flex flex-wrap mb-3">
             <button class="btn btn-secondary toggle-column active" data-column="0">ID#</button>
@@ -43,8 +82,9 @@
             <button class="btn btn-secondary toggle-column inactive" data-column="4">KSM</button>
             <button class="btn btn-secondary toggle-column active" data-column="5">PFP</button>
             <button class="btn btn-secondary toggle-column inactive" data-column="6">SID</button>
-            <button class="btn btn-secondary toggle-column active" data-column="7">Action</button>
-            <button class="btn btn-secondary toggle-column inactive" data-column="8">Import/Export</button>
+            <button class="btn btn-secondary toggle-column active" data-column="7">Mentor</button>
+            <button class="btn btn-secondary toggle-column active" data-column="8">Action</button>
+            <button class="btn btn-secondary toggle-column inactive" data-column="9">Import/Export</button>
         </div>
         <br>
 
@@ -60,6 +100,7 @@
                         <th>KSM</th>
                         <th>PFP</th>
                         <th>SID</th>
+                        <th>Mentor</th>
                         <th>Action</th>
                         <th>Import/Export</th>
                     </tr>
@@ -88,6 +129,9 @@
                             </div>
                         </td>
                         <td th:text="${person.sid}">Student ID</td>
+                        <td>
+                            <span th:if="${person.mentorEmailVerified}" class="badge bg-success">✔ Business email verified</span>
+                        </td>
                         <td>
                             <a th:href="@{/mvc/person/update/{id}(id = ${person.id})}" class="btn btn-warning btn-sm"
                                 name="update">Update</a>
@@ -187,6 +231,30 @@
                     msgEl.className = 'alert alert-danger';
                     msgEl.textContent = 'Network error.';
                     btn.disabled = false;
+                });
+        }
+    </script>
+
+    <script>
+        function resolveMentorTicket(btn, action) {
+            const id = btn.getAttribute('data-id');
+            const row = btn.closest('tr');
+            row.querySelectorAll('button').forEach(b => b.disabled = true);
+            fetch('/mvc/person/mentor/ticket/' + id + '/' + action, { method: 'POST' })
+                .then(res => {
+                    if (res.ok) {
+                        row.remove();
+                        if (action === 'approve') {
+                            location.reload();
+                        }
+                    } else {
+                        alert('Could not ' + action + ' mentor request (status ' + res.status + ').');
+                        row.querySelectorAll('button').forEach(b => b.disabled = false);
+                    }
+                })
+                .catch(() => {
+                    alert('Network error.');
+                    row.querySelectorAll('button').forEach(b => b.disabled = false);
                 });
         }
     </script>

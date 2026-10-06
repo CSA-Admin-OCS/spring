@@ -246,6 +246,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ui-builder/published", "/api/ui-builder/published/*").permitAll()
                         // ================================================
 
+                        // ROLE_MENTOR and ROLE_PENDING are not in the /api/** catch-all below, so each
+                        // endpoint they may reach is listed here: their own profile, the pending-ticket
+                        // check, and logout (without it the JWT cookie is never cleared).
+                        .requestMatchers(HttpMethod.GET, "/api/person/get", "/api/person/mentor/ticket/status").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR", "ROLE_PENDING")
+                        .requestMatchers(HttpMethod.POST, "/api/logout").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT", "ROLE_MENTOR", "ROLE_PENDING")
+
                         // ========== DEFAULT: ALL OTHER API ENDPOINTS ==========
                         // Secure by default - any endpoint not explicitly listed above requires authentication
                         .requestMatchers("/api/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
@@ -307,6 +313,7 @@ public class SecurityConfig {
         policy.put("/api/imports/**", "ROLE_ADMIN");
         policy.put("GET /api/ui-builder/published", "permitAll");
         policy.put("GET /api/ui-builder/published/*", "permitAll");
+        policy.put("GET /api/person/get", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_MENTOR");
         policy.put("/api/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT");
         return Map.copyOf(policy);
     }

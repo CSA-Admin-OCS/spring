@@ -199,9 +199,50 @@ public class ModelInit {
                         }
                     } catch (Throwable t) {
                     }
+
+                    // Person.mentorEmailVerified is a new field and ddl-auto=none, so an
+                    // existing database has no column for it and every person read fails
+                    // with "no such column: person.mentor_email_verified". Same shape as the
+                    // adventure.details migration above: additive, and a no-op once applied.
+                    try {
+                        st.execute("ALTER TABLE " + quoteIdentifier(conn, "person")
+                                + " ADD COLUMN " + quoteIdentifier(conn, "mentor_email_verified")
+                                + " BOOLEAN DEFAULT FALSE");
+                        System.out.println("Added 'mentor_email_verified' column to 'person' table");
+                    } catch (SQLException ignore) {
+                        // column already exists; nothing to do
+                    }
+
+                    // Same additive migration for the mentor business email, on the
+                    // account and on its approval ticket.
+                    try {
+                        st.execute("ALTER TABLE " + quoteIdentifier(conn, "person")
+                                + " ADD COLUMN " + quoteIdentifier(conn, "business_email") + " VARCHAR(255)");
+                        System.out.println("Added 'business_email' column to 'person' table");
+                    } catch (SQLException ignore) {
+                        // column already exists; nothing to do
+                    }
+                    try {
+                        st.execute("ALTER TABLE " + quoteIdentifier(conn, "mentor_ticket")
+                                + " ADD COLUMN " + quoteIdentifier(conn, "business_email") + " VARCHAR(255)");
+                        System.out.println("Added 'business_email' column to 'mentor_ticket' table");
+                    } catch (SQLException ignore) {
+                        // column already exists (or table not created yet); nothing to do
+                    }
                 } catch (SQLException e) {
                     System.err.println("Failed to ensure manual tables: " + e.getMessage());
                 }
+            }
+
+            // Ensure MENTOR/PENDING roles exist so they can be assigned from the admin UI.
+            // Runs unconditionally (unlike the seed data below, which is skipped once the
+            // DB has people) because PersonDetailsService.addRoleToPerson silently no-ops
+            // when the person_role row is missing.
+            try {
+                personDetailsService.findOrCreateRole("ROLE_MENTOR");
+                personDetailsService.findOrCreateRole("ROLE_PENDING");
+            } catch (Exception e) {
+                System.err.println("Failed to ensure mentor/pending roles: " + e.getMessage());
             }
 
             if (new File("volumes/.skip-modelinit").exists()) {
