@@ -134,3 +134,823 @@ logs.size() = 1
 2026-10-05T10:42:12.008-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
 2026-10-05T10:42:42.174-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55759
 2026-10-05T10:42:42.182-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:43:12.174-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55759
+2026-10-05T10:43:12.177-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:43:41.954-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55759
+2026-10-05T10:43:41.968-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:44:11.952-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55759
+2026-10-05T10:44:11.962-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:44:33.664-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/chat/653/messages GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55759
+2026-10-05T10:44:33.674-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:44:33.734-07:00  WARN 34087 --- [nio-8585-exec-6] c.o.spring.mvc.S3uploads.S3FileHandler   : S3 download attempted but S3 client is not configured.
+2026-10-05T10:44:40.034-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 55759
+2026-10-05T10:44:40.047-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.602-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56129
+2026-10-05T10:45:09.602-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56124
+2026-10-05T10:45:09.610-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.610-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.627-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56124
+2026-10-05T10:45:09.627-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56129
+2026-10-05T10:45:09.631-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.631-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.635-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56129
+2026-10-05T10:45:09.636-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56134
+2026-10-05T10:45:09.639-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.639-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.646-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56129
+2026-10-05T10:45:09.647-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56124
+2026-10-05T10:45:09.651-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:09.651-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:45:50.156-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56124
+2026-10-05T10:45:50.173-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:46:20.177-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56124
+2026-10-05T10:46:20.189-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:46:50.130-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56124
+2026-10-05T10:46:50.139-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.262-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56124
+2026-10-05T10:47:03.270-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.329-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56649
+2026-10-05T10:47:03.329-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56650
+2026-10-05T10:47:03.335-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.335-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.346-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56649
+2026-10-05T10:47:03.347-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56650
+2026-10-05T10:47:03.350-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.350-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.353-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56650
+2026-10-05T10:47:03.354-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56655
+2026-10-05T10:47:03.356-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.357-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.361-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56649
+2026-10-05T10:47:03.362-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56655
+2026-10-05T10:47:03.364-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:03.364-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:19.314-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56655
+2026-10-05T10:47:19.320-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:19.326-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/dm/conversations GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56655
+2026-10-05T10:47:19.331-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.173-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56655
+2026-10-05T10:47:21.174-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56649
+2026-10-05T10:47:21.180-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.180-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.196-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56655
+2026-10-05T10:47:21.197-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56649
+2026-10-05T10:47:21.200-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.200-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.204-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56649
+2026-10-05T10:47:21.204-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56650
+2026-10-05T10:47:21.206-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.207-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.212-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56655
+2026-10-05T10:47:21.212-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56650
+2026-10-05T10:47:21.215-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:47:21.215-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:48:27.428-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56756
+2026-10-05T10:48:27.428-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56756
+2026-10-05T10:48:27.439-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56760
+2026-10-05T10:48:27.439-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56756
+2026-10-05T10:48:27.440-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56760
+2026-10-05T10:48:27.440-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56756
+2026-10-05T10:48:27.444-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56761
+2026-10-05T10:48:27.445-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56756
+2026-10-05T10:48:27.445-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56761
+2026-10-05T10:48:27.445-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56756
+2026-10-05T10:48:27.475-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56760
+2026-10-05T10:48:27.476-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56760
+2026-10-05T10:48:30.626-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56769
+2026-10-05T10:48:30.626-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56769
+2026-10-05T10:48:51.174-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56775
+2026-10-05T10:48:51.185-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.644-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56775
+2026-10-05T10:49:08.644-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56787
+2026-10-05T10:49:08.651-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.651-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.673-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56775
+2026-10-05T10:49:08.673-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56787
+2026-10-05T10:49:08.677-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.677-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.681-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56775
+2026-10-05T10:49:08.682-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:49:08.685-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.685-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.690-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56787
+2026-10-05T10:49:08.691-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:49:08.693-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:08.693-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:21.173-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:49:21.182-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:49:51.172-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:49:51.181-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:50:21.173-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:50:21.181-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:50:51.170-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:50:51.176-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:51:21.174-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:51:21.183-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:51:51.173-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:51:51.179-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:52:21.173-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:52:21.182-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:52:30.178-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/chat/653/messages GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:52:30.185-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:52:30.190-07:00  WARN 34087 --- [nio-8585-exec-1] c.o.spring.mvc.S3uploads.S3FileHandler   : S3 download attempted but S3 client is not configured.
+2026-10-05T10:52:32.355-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/chat/653/messages POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:52:32.366-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:52:32.376-07:00  WARN 34087 --- [nio-8585-exec-5] c.o.spring.mvc.S3uploads.S3FileHandler   : S3 download attempted but S3 client is not configured.
+2026-10-05T10:52:32.378-07:00  WARN 34087 --- [nio-8585-exec-5] c.o.spring.mvc.S3uploads.S3FileHandler   : S3 upload attempted but S3 client is not configured.
+2026-10-05T10:52:32.382-07:00  WARN 34087 --- [nio-8585-exec-5] c.o.spring.mvc.S3uploads.S3FileHandler   : S3 download attempted but S3 client is not configured.
+2026-10-05T10:52:51.174-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:52:51.182-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:05.191-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/72/apply POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:53:05.202-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:09.517-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/91/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.518-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/2/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.518-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/21/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.518-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/90/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.520-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/32/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.522-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/26/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.525-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.525-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.525-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.526-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.527-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.527-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.535-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/31/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.535-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/80/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.535-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/81/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.535-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/73/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.535-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/82/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.537-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/79/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.540-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.541-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.542-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.542-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.542-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.542-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.544-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/25/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.544-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/78/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.545-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/109/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.545-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/60/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.546-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/106/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.546-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/108/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.548-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.548-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.549-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.549-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.549-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.549-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.551-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/104/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.551-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/102/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.551-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/105/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.551-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/107/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.552-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/9/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.552-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/7/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.554-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.554-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.554-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.555-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.555-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.555-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.556-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/17/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.556-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/8/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.556-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/103/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.559-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/37/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.559-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/70/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.559-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/6/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.561-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.561-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.561-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.562-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.563-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.563-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.564-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/5/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.564-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/30/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.564-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/67/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.564-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/24/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.565-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/36/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.565-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/28/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.567-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.567-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.567-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.567-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.569-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/68/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.569-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/35/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.569-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/34/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.570-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/69/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.570-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.570-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.571-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.572-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/111/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.572-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/11/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.572-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.572-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.573-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/76/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.574-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.575-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/85/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.575-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/93/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.576-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.576-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.577-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/94/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.578-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.578-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/1/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.578-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/89/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.579-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/88/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.580-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.580-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.580-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.582-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.582-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.583-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/87/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.583-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/23/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.583-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.583-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/86/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.585-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/83/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.585-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/77/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.585-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/72/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.586-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.587-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.587-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.588-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.588-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.588-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/20/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.589-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.590-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/27/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.590-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/14/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.591-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/16/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.592-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/62/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.592-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.592-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.592-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.595-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/66/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.595-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/18/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.595-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/15/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.595-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/65/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.596-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.596-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.598-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.598-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.599-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.599-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/4/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.599-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/33/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.600-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.600-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/13/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.600-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/54/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.600-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/59/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.602-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.602-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.602-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.602-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.603-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/58/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.603-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.605-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/57/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.605-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/56/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.605-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/55/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.605-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/53/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.605-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/52/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.607-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.607-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.607-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.607-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.607-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.608-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.610-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/74/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.610-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/71/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.610-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/3/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.610-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/12/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.610-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/64/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.610-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/110/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.613-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.613-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.613-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.614-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.614-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.614-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.615-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/63/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.615-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/61/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.615-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/22/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.617-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/92/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:09.617-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/10/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.618-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/75/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:09.618-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.618-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.619-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.620-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.620-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/19/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:09.621-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/29/mentors GET 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:09.621-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/84/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.622-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.622-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.622-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.622-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.624-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.624-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.625-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.628-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.630-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.633-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.635-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.638-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.639-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.641-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.644-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.647-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.649-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.650-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.652-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.654-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.656-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.658-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:09.659-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:09.662-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/groups GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:09.663-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:11.638-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/6/approve POST 127.0.0.1 127.0.0.1 56841
+2026-10-05T10:53:11.649-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:11.676-07:00  WARN 34087 --- [nio-8585-exec-3] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 5, SQLState: null
+2026-10-05T10:53:11.677-07:00 ERROR 34087 --- [nio-8585-exec-3] o.h.engine.jdbc.spi.SqlExceptionHelper   : [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+2026-10-05T10:53:11.681-07:00 ERROR 34087 --- [nio-8585-exec-3] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: org.springframework.dao.CannotAcquireLockException: could not execute statement [[SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)] [insert into "submitter" ("id") values (?)]; SQL [insert into "submitter" ("id") values (?)]] with root cause
+
+org.sqlite.SQLiteException: [SQLITE_BUSY_SNAPSHOT] Another database connection has already written to the database (database is locked)
+	at org.sqlite.core.DB.newSQLException(DB.java:1179) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at org.sqlite.core.DB.newSQLException(DB.java:1190) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at org.sqlite.core.DB.execute(DB.java:985) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at org.sqlite.core.DB.executeUpdate(DB.java:1054) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at org.sqlite.jdbc3.JDBC3PreparedStatement.lambda$executeLargeUpdate$2(JDBC3PreparedStatement.java:129) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at org.sqlite.jdbc3.JDBC3Statement.withConnectionTimeout(JDBC3Statement.java:458) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at org.sqlite.jdbc3.JDBC3PreparedStatement.executeLargeUpdate(JDBC3PreparedStatement.java:124) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at org.sqlite.jdbc3.JDBC3PreparedStatement.executeUpdate(JDBC3PreparedStatement.java:105) ~[sqlite-jdbc-3.51.0.0.jar:na]
+	at com.zaxxer.hikari.pool.ProxyPreparedStatement.executeUpdate(ProxyPreparedStatement.java:61) ~[HikariCP-6.3.0.jar:na]
+	at com.zaxxer.hikari.pool.HikariProxyPreparedStatement.executeUpdate(HikariProxyPreparedStatement.java) ~[HikariCP-6.3.0.jar:na]
+	at org.hibernate.engine.jdbc.internal.ResultSetReturnImpl.executeUpdate(ResultSetReturnImpl.java:194) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.jdbc.mutation.internal.AbstractMutationExecutor.performNonBatchedMutation(AbstractMutationExecutor.java:134) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorStandard.lambda$performNonBatchedOperations$2(MutationExecutorStandard.java:258) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at java.base/java.util.TreeMap.forEach(TreeMap.java:1317) ~[na:na]
+	at org.hibernate.engine.jdbc.mutation.internal.PreparedStatementGroupStandard.forEachStatement(PreparedStatementGroupStandard.java:91) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.jdbc.mutation.internal.MutationExecutorStandard.performNonBatchedOperations(MutationExecutorStandard.java:258) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.jdbc.mutation.internal.AbstractMutationExecutor.execute(AbstractMutationExecutor.java:55) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.persister.entity.mutation.InsertCoordinatorStandard.doStaticInserts(InsertCoordinatorStandard.java:194) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.persister.entity.mutation.InsertCoordinatorStandard.coordinateInsert(InsertCoordinatorStandard.java:132) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.persister.entity.mutation.InsertCoordinatorStandard.insert(InsertCoordinatorStandard.java:104) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.action.internal.EntityInsertAction.execute(EntityInsertAction.java:110) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:644) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.spi.ActionQueue.executeActions(ActionQueue.java:511) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.event.internal.AbstractFlushingEventListener.performExecutions(AbstractFlushingEventListener.java:414) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.event.internal.DefaultFlushEventListener.onFlush(DefaultFlushEventListener.java:41) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.event.service.internal.EventListenerGroupImpl.fireEventOnEachListener(EventListenerGroupImpl.java:127) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1429) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.internal.SessionImpl.managedFlush(SessionImpl.java:491) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.internal.SessionImpl.flushBeforeTransactionCompletion(SessionImpl.java:2354) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.internal.SessionImpl.beforeTransactionCompletion(SessionImpl.java:1978) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.beforeTransactionCompletion(JdbcCoordinatorImpl.java:439) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.beforeCompletionCallback(JdbcResourceLocalTransactionCoordinatorImpl.java:169) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:267) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:101) ~[hibernate-core-6.6.15.Final.jar:6.6.15.Final]
+	at org.springframework.orm.jpa.JpaTransactionManager.doCommit(JpaTransactionManager.java:562) ~[spring-orm-6.2.7.jar:6.2.7]
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.processCommit(AbstractPlatformTransactionManager.java:795) ~[spring-tx-6.2.7.jar:6.2.7]
+	at org.springframework.transaction.support.AbstractPlatformTransactionManager.commit(AbstractPlatformTransactionManager.java:758) ~[spring-tx-6.2.7.jar:6.2.7]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning(TransactionAspectSupport.java:698) ~[spring-tx-6.2.7.jar:6.2.7]
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:416) ~[spring-tx-6.2.7.jar:6.2.7]
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119) ~[spring-tx-6.2.7.jar:6.2.7]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.7.jar:6.2.7]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.7.jar:6.2.7]
+	at com.open.spring.mvc.capstone.CapstoneApiController$$SpringCGLIB$$0.approveApplication(<generated>) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:986) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:891) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:914) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:590) ~[tomcat-embed-core-10.1.41.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.41.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at com.open.spring.mvc.groups.ChatWebSocketPortFilter.doFilterInternal(ChatWebSocketPortFilter.java:53) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.servlet.resource.ResourceUrlEncodingFilter.doFilter(ResourceUrlEncodingFilter.java:66) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:231) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:365) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:125) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:119) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:131) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:85) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:179) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at com.open.spring.security.JwtRequestFilter.handleClientRequest(JwtRequestFilter.java:93) ~[classes/:na]
+	at com.open.spring.security.JwtRequestFilter.doFilterInternal(JwtRequestFilter.java:115) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at com.open.spring.security.RateLimitFilter.doFilterInternal(RateLimitFilter.java:80) ~[classes/:na]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:107) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:93) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.web.filter.CorsFilter.doFilterInternal(CorsFilter.java:91) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:374) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:233) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:191) ~[spring-security-web-6.5.0.jar:6.5.0]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:319) ~[spring-security-config-6.5.0.jar:6.5.0]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.servlet.handler.HandlerMappingIntrospector.lambda$createCacheFilter$3(HandlerMappingIntrospector.java:243) ~[spring-webmvc-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.security.config.annotation.web.configuration.WebMvcSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebMvcSecurityConfiguration.java:240) ~[spring-security-config-6.5.0.jar:6.5.0]
+	at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:362) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:278) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101) ~[spring-web-6.2.7.jar:6.2.7]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1740) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1189) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:658) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.41.jar:10.1.41]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+
+2026-10-05T10:53:16.471-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/6/approve POST 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:16.484-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.567-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/2/mentors GET 127.0.0.1 127.0.0.1 56847
+2026-10-05T10:53:16.567-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/91/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:16.568-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/32/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:16.568-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/21/mentors GET 127.0.0.1 127.0.0.1 56839
+2026-10-05T10:53:16.568-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/90/mentors GET 127.0.0.1 127.0.0.1 56838
+2026-10-05T10:53:16.570-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/26/mentors GET 127.0.0.1 127.0.0.1 56850
+2026-10-05T10:53:16.573-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.573-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.573-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.574-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.574-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.574-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.584-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/80/mentors GET 127.0.0.1 127.0.0.1 56850
+2026-10-05T10:53:16.584-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/81/mentors GET 127.0.0.1 127.0.0.1 56848
+2026-10-05T10:53:16.584-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/31/mentors GET 127.0.0.1 127.0.0.1 56840
+2026-10-05T10:53:16.589-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.589-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:16.589-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: toby [ROLE_ADMIN, ROLE_STUDENT, ROLE_TEACHER, ROLE_USER]
+2026-10-05T10:53:19.381-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56794
+2026-10-05T10:53:19.388-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.483-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56861
+2026-10-05T10:53:19.484-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56862
+2026-10-05T10:53:19.486-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.486-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.497-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56861
+2026-10-05T10:53:19.498-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56862
+2026-10-05T10:53:19.499-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.499-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.502-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56862
+2026-10-05T10:53:19.502-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56869
+2026-10-05T10:53:19.503-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.503-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.512-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56861
+2026-10-05T10:53:19.513-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56869
+2026-10-05T10:53:19.514-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:19.514-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:53:49.469-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56869
+2026-10-05T10:53:49.471-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:19.470-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56869
+2026-10-05T10:54:19.473-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:21.107-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56869
+2026-10-05T10:54:21.112-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.407-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:54:22.407-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56900
+2026-10-05T10:54:22.411-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.411-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.427-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:54:22.428-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56900
+2026-10-05T10:54:22.429-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.429-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.432-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56900
+2026-10-05T10:54:22.433-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/groups/person/452 GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56903
+2026-10-05T10:54:22.434-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.435-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.439-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:54:22.439-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/capstones/applications/mine GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56903
+2026-10-05T10:54:22.441-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:22.441-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:31.728-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56903
+2026-10-05T10:54:31.736-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:31.804-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/logout POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:54:31.810-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : Cookie: mentortest [ROLE_MENTOR]
+2026-10-05T10:54:31.885-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:54:31.885-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/person/get GET 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:55:02.144-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:55:02.144-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56899
+2026-10-05T10:55:32.160-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56957
+2026-10-05T10:55:32.161-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 56957
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+2026-10-05T10:57:53.283-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57002
+2026-10-05T10:57:53.284-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57002
+2026-10-05T10:58:33.646-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2m52s935ms).
+2026-10-05T10:59:04.810-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57022
+2026-10-05T10:59:04.810-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57022
+2026-10-05T11:05:34.782-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=7m1s137ms).
+2026-10-05T11:11:03.596-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57081
+2026-10-05T11:11:03.596-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57081
+2026-10-05T11:17:28.980-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=11m54s197ms).
+2026-10-05T11:17:50.420-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57126
+2026-10-05T11:17:50.421-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57126
+2026-10-05T11:18:20.389-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57126
+2026-10-05T11:18:20.389-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57126
+2026-10-05T11:19:21.400-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57149
+2026-10-05T11:19:21.401-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57149
+2026-10-05T11:20:22.324-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57160
+2026-10-05T11:20:22.324-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57160
+2026-10-05T11:21:23.335-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57183
+2026-10-05T11:21:23.335-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57183
+2026-10-05T11:22:24.405-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57196
+2026-10-05T11:22:24.406-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57196
+2026-10-05T11:23:25.503-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57205
+2026-10-05T11:23:25.503-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57205
+2026-10-05T11:24:34.550-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57250
+2026-10-05T11:24:34.550-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57250
+2026-10-05T11:25:35.551-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57258
+2026-10-05T11:25:35.552-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57258
+2026-10-05T11:26:36.543-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57280
+2026-10-05T11:26:36.544-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57280
+2026-10-05T11:27:37.543-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57294
+2026-10-05T11:27:37.543-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57294
+2026-10-05T11:28:38.553-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57304
+2026-10-05T11:28:38.554-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57304
+2026-10-05T11:29:39.529-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57315
+2026-10-05T11:29:39.530-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57315
+2026-10-05T11:30:40.549-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57335
+2026-10-05T11:30:40.549-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57335
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+2026-10-05T11:31:41.524-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57346
+2026-10-05T11:31:41.524-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57346
+2026-10-05T11:42:21.461-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=10m14s226ms).
+2026-10-05T11:42:26.847-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57422
+2026-10-05T11:42:26.847-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57422
+2026-10-05T12:09:20.289-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=26m58s828ms).
+2026-10-05T12:32:33.662-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=23m13s373ms).
+2026-10-05T12:45:12.368-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57544
+2026-10-05T12:45:12.369-07:00  WARN 34087 --- [nio-8585-exec-7] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57544
+2026-10-05T12:48:28.871-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=15m55s209ms).
+2026-10-05T13:05:39.817-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=17m10s946ms).
+2026-10-05T13:05:47.189-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57686
+2026-10-05T13:05:47.189-07:00  WARN 34087 --- [nio-8585-exec-1] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57686
+2026-10-05T13:14:33.639-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=8m53s822ms).
+2026-10-05T13:15:13.405-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57744
+2026-10-05T13:15:13.405-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57744
+2026-10-05T13:16:40.749-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=55s220ms).
+2026-10-05T13:16:50.003-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57911
+2026-10-05T13:16:50.003-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 57911
+2026-10-05T13:17:51.010-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58224
+2026-10-05T13:17:51.011-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58224
+2026-10-05T13:18:52.005-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58261
+2026-10-05T13:18:52.005-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58261
+2026-10-05T13:19:53.002-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58269
+2026-10-05T13:19:53.002-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58269
+2026-10-05T13:20:54.000-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58292
+2026-10-05T13:20:54.000-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58292
+2026-10-05T13:21:54.989-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58300
+2026-10-05T13:21:54.989-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58300
+2026-10-05T13:22:55.971-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58309
+2026-10-05T13:22:55.971-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58309
+2026-10-05T13:23:56.988-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58317
+2026-10-05T13:23:56.988-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58317
+2026-10-05T13:24:57.993-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58325
+2026-10-05T13:24:57.994-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58325
+2026-10-05T13:25:57.988-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:25:57.988-07:00  WARN 34087 --- [nio-8585-exec-3] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+2026-10-05T13:26:57.994-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:26:57.994-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:27:57.979-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:27:57.980-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:28:57.980-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:28:57.980-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:29:57.917-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:29:57.918-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58337
+2026-10-05T13:30:57.985-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:30:57.985-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:31:57.938-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:31:57.938-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:32:57.991-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:32:57.991-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:33:57.920-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:33:57.920-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:34:57.981-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:34:57.981-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:35:57.993-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:35:57.993-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:36:57.989-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:36:57.989-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:37:57.987-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:37:57.987-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:38:57.993-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:38:57.993-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:39:57.893-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:39:57.893-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58411
+2026-10-05T13:40:57.988-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+2026-10-05T13:40:57.988-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+
+=== Mining Process Started ===
+
+=== Processing Pending Balances ===
+Found 0 total miners
+2026-10-05T13:41:57.982-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+2026-10-05T13:41:57.982-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+2026-10-05T13:42:57.973-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+2026-10-05T13:42:57.973-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+2026-10-05T13:43:57.989-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+2026-10-05T13:43:57.989-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58598
+2026-10-05T13:47:12.767-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=3m1s795ms).
+2026-10-05T13:47:29.765-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:47:29.765-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:48:29.684-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:48:29.684-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:49:29.745-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:49:29.745-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:50:29.779-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:50:29.779-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:51:29.735-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:51:29.735-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58750
+2026-10-05T13:54:47.798-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:54:47.798-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:55:00.838-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2m48s34ms).
+2026-10-05T13:55:47.802-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:55:47.802-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:56:47.799-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:56:47.800-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:57:47.717-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:57:47.717-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58916
+2026-10-05T13:58:47.793-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58956
+2026-10-05T13:58:47.793-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58956
+2026-10-05T13:59:47.719-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58956
+2026-10-05T13:59:47.720-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58956
+2026-10-05T14:00:47.801-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:00:47.801-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+2026-10-05T14:01:47.805-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:01:47.805-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:02:47.796-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:02:47.796-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:03:47.781-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:03:47.782-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:04:47.800-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:04:47.801-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:05:47.800-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:05:47.800-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:06:47.793-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:06:47.794-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:07:47.721-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:07:47.722-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 58974
+2026-10-05T14:08:47.796-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:08:47.797-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:09:47.797-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:09:47.797-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:10:47.791-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:10:47.791-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:11:47.795-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:11:47.795-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:12:47.797-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:12:47.797-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:13:47.785-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:13:47.785-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:14:47.797-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:14:47.797-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:15:47.798-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:15:47.798-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+2026-10-05T14:16:47.794-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:16:47.795-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:17:47.792-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:17:47.792-07:00  WARN 34087 --- [nio-8585-exec-2] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:18:47.799-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:18:47.799-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:19:47.793-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:19:47.794-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:20:47.790-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:20:47.790-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:21:47.709-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:21:47.709-07:00  WARN 34087 --- [nio-8585-exec-9] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59090
+2026-10-05T14:22:47.795-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59238
+2026-10-05T14:22:47.795-07:00  WARN 34087 --- [nio-8585-exec-5] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59238
+2026-10-05T14:24:55.701-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1m54s640ms).
+2026-10-05T14:25:12.523-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59263
+2026-10-05T14:25:12.523-07:00  WARN 34087 --- [nio-8585-exec-6] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59263
+2026-10-05T14:25:48.290-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=52s589ms).
+2026-10-05T14:27:40.850-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1m52s560ms).
+2026-10-05T14:33:14.345-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59358
+2026-10-05T14:33:14.346-07:00  WARN 34087 --- [nio-8585-exec-4] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59358
+2026-10-05T14:45:12.270-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=17m31s420ms).
+2026-10-05T14:45:21.801-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59423
+2026-10-05T14:45:21.802-07:00  WARN 34087 --- [io-8585-exec-10] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59423
+2026-10-05T14:45:22.296-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : API request: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59423
+2026-10-05T14:45:22.296-07:00  WARN 34087 --- [nio-8585-exec-8] c.open.spring.security.JwtRequestFilter  : No JWT cookie: /api/ocs-analytics/save POST 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:1 59423
+2026-10-05T14:50:27.868-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1m45s570ms).
+2026-10-05T14:51:32.771-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1m4s902ms).
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+
+=== Mining Process Started ===
+
+=== Processing Pending Balances ===
+Found 0 total miners
+2026-10-05T15:36:01.019-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=2m27s896ms).
+2026-10-05T16:16:33.401-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=40m32s381ms).
+2026-10-05T17:24:08.351-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1h7m34s951ms).
+2026-10-05T17:25:02.412-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=54s61ms).
+2026-10-05T17:29:50.540-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=4m48s128ms).
+2026-10-05T17:30:39.621-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=49s81ms).
+2026-10-05T17:31:24.985-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=45s364ms).
+2026-10-05T17:46:37.103-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=14m31s841ms).
+
+=== Processing Pending Balances ===
+
+=== Mining Process Started ===
+Found 0 total miners
+2026-10-05T18:00:21.828-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=13m44s725ms).
+2026-10-05T18:06:12.654-07:00  WARN 34087 --- [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=5m50s825ms).
