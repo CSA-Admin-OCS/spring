@@ -9,6 +9,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +41,9 @@ public class GroupsApiController {
     @Autowired
     private GroupChatService groupChatService;
 
+    @Autowired
+    private ClassGroupMembershipService classGroupMembershipService;
+
     // ===== DTOs =====
     @Data
     @NoArgsConstructor
@@ -64,6 +69,13 @@ public class GroupsApiController {
     @AllArgsConstructor
     public static class BulkGroupCreateDto {
         private List<GroupCreateDto> groups;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClassMembershipSyncDto {
+        private List<String> classes;
     }
 
     // ===== Helper Methods =====
@@ -305,6 +317,34 @@ public class GroupsApiController {
     }
 
     // ===== PUT Operations =====
+
+    /**
+     * PUT /api/groups/class-memberships - Synchronize the current user's course
+     * groups with the classes selected on their profile.
+     */
+    @PutMapping("/class-memberships")
+    public ResponseEntity<Map<String, Object>> syncClassMemberships(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody ClassMembershipSyncDto dto) {
+        if (userDetails == null) {
+            return new ResponseEntity<>(
+                Map.of("error", "Authentication is required"),
+                HttpStatus.UNAUTHORIZED
+            );
+        }
+
+        try {
+            List<String> memberships = classGroupMembershipService.syncMemberships(
+                userDetails.getUsername(),
+                dto.getClasses()
+            );
+            return new ResponseEntity<>(Map.of("groups", memberships), HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (java.util.NoSuchElementException e) {
+            return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
 
     /**
      * PUT /api/groups/{id} - Update group name and/or period

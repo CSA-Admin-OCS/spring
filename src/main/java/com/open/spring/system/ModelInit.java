@@ -36,6 +36,9 @@ import com.open.spring.mvc.comment.CommentJPA;
 import com.open.spring.mvc.hardAssets.HardAssetsRepository;
 import com.open.spring.mvc.jokes.Jokes;
 import com.open.spring.mvc.jokes.JokesJpaRepository;
+import com.open.spring.mvc.groups.CourseGroupProperties;
+import com.open.spring.mvc.groups.Groups;
+import com.open.spring.mvc.groups.GroupsJpaRepository;
 import com.open.spring.mvc.media.MediaJpaRepository;
 import com.open.spring.mvc.media.Score;
 import com.open.spring.mvc.note.Note;
@@ -93,6 +96,8 @@ public class ModelInit {
     @Autowired BankService bankService;
     
     @Autowired MediaJpaRepository mediaJpaRepository;
+    @Autowired GroupsJpaRepository groupsJpaRepository;
+    @Autowired CourseGroupProperties courseGroupProperties;
     @Autowired QuizScoreRepository quizScoreRepository;
     @Autowired ResumeJpaRepository resumeJpaRepository;
     @Autowired StatsRepository statsRepository; // curators - stats
@@ -200,6 +205,16 @@ public class ModelInit {
                     String text = "Test " + person.getEmail();
                     Note n = new Note(text, person);
                     noteRepo.save(n);
+                }
+            }
+
+            for (String groupName : courseGroupProperties.getGroupNames()) {
+                if (groupsJpaRepository.findByName(groupName).isEmpty()) {
+                    Groups group = new Groups();
+                    group.setName(groupName);
+                    group.setCourse(courseGroupProperties.courseFor(groupName));
+                    group.setPeriod(courseGroupProperties.periodFor(groupName));
+                    groupsJpaRepository.save(group);
                 }
             }
             
