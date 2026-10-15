@@ -50,8 +50,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * - For MVC endpoint security (form-based login), see MvcSecurityConfig.java
  * 
  * Filter Chain Order:
- * 1. RateLimitFilter - Rate limiting
- * 2. JwtRequestFilter - JWT token validation
+ * 1. JwtRequestFilter - JWT token validation
+ * 2. RateLimitFilter - Rate limiting (per user when logged in, per IP otherwise)
  * 3. Standard Spring Security filters
  */
 
@@ -220,7 +220,8 @@ public class SecurityConfig {
 
                 // Session related configuration
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(rateLimitFilter, JwtRequestFilter.class);
+                // Rate limit after the JWT filter so logged-in users are limited per user, not per IP
+                .addFilterAfter(rateLimitFilter, JwtRequestFilter.class);
 
         return http.build();
     }
