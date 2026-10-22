@@ -345,11 +345,20 @@ public class Person extends Submitter implements Comparable<Person> {
      * @return Person[], an array of Person objects
      */
     public static Person[] init() {
+        return init(envOrDefault(Dotenv.load(), "DEFAULT_PASSWORD", "DefaultPassword123!"));
+    }
+
+    /**
+     * Builds the seed users.
+     *
+     * @param defaultPassword person.default-password from application.properties
+     *                        (DEFAULT_PASSWORD in .env overrides it). Must satisfy PASSWORD_RULE,
+     *                        since seed users are saved through JPA like everything else.
+     * @return Person[], an array of Person objects
+     */
+    public static Person[] init(String defaultPassword) {
         ArrayList<Person> people = new ArrayList<>();
         final Dotenv dotenv = Dotenv.load();
-
-        // Must satisfy PASSWORD_RULE -- seed init is saved through JPA like everything else.
-        String defaultPassword = envOrDefault(dotenv, "DEFAULT_PASSWORD", "DefaultPassword123!");
 
         // JSON-like list of person data using Map.ofEntries
         List<Map<String, Object>> personData = Arrays.asList(
