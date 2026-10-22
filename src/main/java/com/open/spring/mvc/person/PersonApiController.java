@@ -75,7 +75,8 @@ public class PersonApiController {
     @Autowired
     private TinkleJPARepository tinkleRepository;
 
-    @Value("${DEFAULT_PASSWORD:defaultPassword123}")
+    // application.properties default, overridden by DEFAULT_PASSWORD in .env
+    @Value("${person.default-password}")
     private String defaultPassword;
 
     /**
