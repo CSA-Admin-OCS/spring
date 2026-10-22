@@ -13,9 +13,9 @@ import com.open.spring.mvc.person.Email.ResetCode;
 import com.open.spring.mvc.person.Email.VerificationCode;
 import com.open.spring.mvc.person.HttpRequest.HttpSender;
 
-import io.github.cdimascio.dotenv.Dotenv;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -57,6 +57,10 @@ public class PersonViewController {
 
     @Autowired
     private SessionRegistry sessionRegistry;
+
+    // application.properties default, overridden by DEFAULT_PASSWORD in .env
+    @Value("${person.default-password}")
+    private String defaultPassword;
 
     //@Autowired
     //private PersonJpaRepository find;
@@ -466,8 +470,6 @@ public class PersonViewController {
 
         // single-use + expiration + signature validation handled in ResetCode
         if(ResetCode.validateAndConsume(personToReset.getUid(), personPasswordResetCode.getCode())){
-            final Dotenv dotenv = Dotenv.load();
-            final String defaultPassword = dotenv.get("DEFAULT_PASSWORD");
             personToReset.setPassword(defaultPassword);
             repository.save(personToReset, false);
 
@@ -501,8 +503,6 @@ public class PersonViewController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        final Dotenv dotenv = Dotenv.load();
-        final String defaultPassword = dotenv.get("DEFAULT_PASSWORD");
         personToReset.setPassword(defaultPassword);
         repository.save(personToReset, false);
 
