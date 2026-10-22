@@ -341,15 +341,6 @@ public class Person extends Submitter implements Comparable<Person> {
      * Uses createPerson method to create Person objects
      * Sorts the list of Person objects using Collections.sort which uses the
      * compareTo method
-     * 
-     * @return Person[], an array of Person objects
-     */
-    public static Person[] init() {
-        return init(envOrDefault(Dotenv.load(), "DEFAULT_PASSWORD", "DefaultPassword123!"));
-    }
-
-    /**
-     * Builds the seed users.
      *
      * @param defaultPassword person.default-password from application.properties
      *                        (DEFAULT_PASSWORD in .env overrides it). Must satisfy PASSWORD_RULE,
@@ -509,8 +500,8 @@ public class Person extends Submitter implements Comparable<Person> {
      * @param args, not used
      */
     public static void main(String[] args) {
-        // obtain Person from initializer
-        Person[] persons = init();
+        // obtain Person from initializer; outside Spring, so read DEFAULT_PASSWORD from .env directly
+        Person[] persons = init(Dotenv.load().get("DEFAULT_PASSWORD"));
 
         // iterate using "enhanced for loop"
         for (Person person : persons) {
