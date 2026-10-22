@@ -11,6 +11,7 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -101,6 +102,9 @@ public class ModelInit {
     @Autowired QuizScoreRepository quizScoreRepository;
     @Autowired ResumeJpaRepository resumeJpaRepository;
     @Autowired StatsRepository statsRepository; // curators - stats
+
+    // application.properties default, overridden by DEFAULT_PASSWORD in .env
+    @Value("${person.default-password}") String defaultPassword;
 
     @Bean
     @Transactional
@@ -211,7 +215,7 @@ public class ModelInit {
             }
         
             System.out.println("Loading default sample data...");
-            Person[] personArray = Person.init();
+            Person[] personArray = Person.init(defaultPassword);
             for (Person person : personArray) {
                 List<Person> personFound = personDetailsService.list(person.getName(), person.getEmail());
                 if (personFound.isEmpty()) { 
@@ -228,7 +232,7 @@ public class ModelInit {
                     
                     // Ensure password is not null or empty
                     if (person.getPassword() == null || person.getPassword().isEmpty()) {
-                        person.setPassword("DefaultPassword123!"); // Must satisfy Person.PASSWORD_RULE
+                        person.setPassword(defaultPassword); // Must satisfy Person.PASSWORD_RULE
                     }
                     
                     personDetailsService.save(person);
