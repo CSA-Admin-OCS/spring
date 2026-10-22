@@ -5,6 +5,7 @@ import java.util.*;
 import lombok.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,6 +29,10 @@ public class ImportationViewController {
     private PersonJpaRepository personJpaRepository;
     @Autowired
     private PersonDetailsService personDetailsService;
+
+    // application.properties default, overridden by DEFAULT_PASSWORD in .env
+    @Value("${person.default-password}")
+    private String defaultPassword;
 
     /////////////////////////////////////////
     /// Export Objects
@@ -62,7 +67,7 @@ public class ImportationViewController {
         
         Person personToUpdate = personJpaRepository.findById(id).get();
         //don't allow updating database users
-        Person[] defaultPersons = Person.init();
+        Person[] defaultPersons = Person.init(defaultPassword);
         for(int i=0; i<defaultPersons.length; i++){
             if(defaultPersons[i].getUid().equals(personToUpdate.getUid())){
                 return new ResponseEntity<String>(HttpStatus.FORBIDDEN);
@@ -117,7 +122,7 @@ public class ImportationViewController {
     public ResponseEntity<String> importPerson(@RequestBody PersonEmpty personEmpty) {
         
         //don't allow updating database users
-        Person[] defaultPersons = Person.init();
+        Person[] defaultPersons = Person.init(defaultPassword);
         for(int i=0; i<defaultPersons.length; i++){
             if(defaultPersons[i].getUid().equals(personEmpty.getUid())){
                 return new ResponseEntity<String>(HttpStatus.FORBIDDEN);
