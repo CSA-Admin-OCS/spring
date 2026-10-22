@@ -52,10 +52,10 @@ Java 21 or higher is requirement using VSCode tooling.
 ### Configuration Requirements
 
 - Create custom `.env` file to setup default user passwords to satisfy code in Person.java.  Students of OCS should leave users as default until competency is obtained.
+- The default password for seed users and password resets comes from `application.properties`. Set `DEFAULT_PASSWORD` in `.env` to override it. It must meet the password rule (8+ characters, uppercase, lowercase, number, symbol).
 
-```java
-final String adminPassword = dotenv.get("ADMIN_PASSWORD");
-final String defaultPassword = dotenv.get("DEFAULT_PASSWORD");
+```text
+person.default-password=${DEFAULT_PASSWORD:DefaultPassword123!}
 ```
 
 - Modify `application.properties` ports to be unique for your indivdual project.
@@ -92,7 +92,7 @@ The `.env` file provides local environment-specific configuration that overrides
 **Required .env setup for local development:**
 
 ```bash
-# Default password and reset passwor
+# Default password for seed users and resets (overrides person.default-password)
 DEFAULT_PASSWORD=123Qwerty!
 
 # Admin user defaults
