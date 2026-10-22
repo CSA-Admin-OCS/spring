@@ -1,6 +1,9 @@
 package com.open.spring.mvc.person;
 
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -42,6 +45,19 @@ public class PasswordCheckTest {
             assertEquals(1, violations.size(), pw);
             assertEquals(Person.PASSWORD_RULE, violations.iterator().next().getMessage());
         }
+    }
+
+    @Test
+    public void testDefaultPasswordInApplicationPropertiesMeetsTheRule() throws Exception {
+        // Seed users and resets use person.default-password; JPA would reject a weak one at startup
+        Properties props = new Properties();
+        try (InputStream in = getClass().getResourceAsStream("/application.properties")) {
+            props.load(in);
+        }
+        Matcher m = java.util.regex.Pattern.compile("\\$\\{DEFAULT_PASSWORD:(.+)\\}")
+                .matcher(props.getProperty("person.default-password"));
+        assertTrue(m.matches(), "person.default-password should be ${DEFAULT_PASSWORD:<default>}");
+        assertTrue(newPasswordViolations(m.group(1)).isEmpty(), m.group(1));
     }
 
     @Test
