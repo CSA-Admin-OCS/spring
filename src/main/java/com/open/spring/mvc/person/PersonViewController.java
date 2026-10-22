@@ -417,7 +417,7 @@ public class PersonViewController {
         }
 
         //dont allow people to send emails/ reset password of default users (such as toby)
-        Person[] databasePersons = Person.init();
+        Person[] databasePersons = Person.init(defaultPassword);
         for (Person person : databasePersons) {
             if(person.getUid().equals(personToReset.getUid())){
                 return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED);
@@ -556,7 +556,7 @@ public class PersonViewController {
         }
 
         //dont allow people to reset password of default users (such as toby)
-        Person[] databasePersons = Person.init();
+        Person[] databasePersons = Person.init(defaultPassword);
         for (Person person : databasePersons) {
             if (person.getUid().equals(personToReset.getUid())) {
                 logger.warn("AUDIT oauth_reset_denied uid={} reason=default_account", personToReset.getUid());
