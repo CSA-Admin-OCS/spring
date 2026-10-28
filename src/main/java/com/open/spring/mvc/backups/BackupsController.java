@@ -35,8 +35,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.context.annotation.Bean;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.open.spring.mvc.slack.CalendarEvent;
-import com.open.spring.mvc.slack.CalendarEventService;
+import com.open.spring.mvc.calendar.CalendarEventEntity;
+import com.open.spring.mvc.calendar.CalendarEventService;
 import com.open.spring.mvc.bathroom.Tinkle;
 import com.open.spring.mvc.bathroom.TinkleJPARepository;
 import com.open.spring.mvc.person.Person;
@@ -143,6 +143,8 @@ public class BackupsController {
 
             // Loop through each table and retrieve its data
             for (String tableName : tableNames) {
+                // Credential ciphertext never belongs in downloadable JSON exports.
+                if ("gist_connections".equalsIgnoreCase(tableName) || "ai_connections".equalsIgnoreCase(tableName)) continue;
                 List<Map<String, Object>> tableData = getTableData(statement, tableName, connection);
                 result.put(tableName, tableData);
             }
@@ -359,7 +361,7 @@ public class BackupsController {
             
             // Handle each endpoint type directly via repositories/services
             if ("/api/calendar/events".equals(endpoint.getPath())) {
-                List<CalendarEvent> events = calendarEventService.getAllEvents();
+                List<CalendarEventEntity> events = calendarEventService.getAllEvents();
                 jsonResponse = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(events);
             } else if ("/api/tinkle/bulk/extract".equals(endpoint.getPath())) {
                 List<Tinkle> tinkleList = tinkleRepository.findAll();

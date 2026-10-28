@@ -25,35 +25,11 @@ public class JavaRunnerApiController {
         this.restClient = builder.build();
         this.localJavaRunner = localJavaRunner;
 
-        Dotenv dotenv = Dotenv.configure()
-                .ignoreIfMissing()
-                .load();
+        final Dotenv dotenv = Dotenv.load();
 
-        String productionValue = System.getenv("IS_PRODUCTION");
+        this.isProduction = Boolean.parseBoolean(dotenv.get("IS_PRODUCTION", "false"));
 
-        if (productionValue == null) {
-                productionValue = dotenv.get(
-                        "IS_PRODUCTION",
-                        "false"
-                );
-        }
-
-        this.isProduction = Boolean.parseBoolean(
-                productionValue
-        );
-
-        String configuredRunnerUrl =
-                System.getenv("JAVA_RUNNER_URL");
-
-        if (configuredRunnerUrl == null) {
-                configuredRunnerUrl = dotenv.get(
-                        "JAVA_RUNNER_URL",
-                        "http://code_runner:8592"
-                );
-        }
-
-        this.runnerUrl = configuredRunnerUrl;
-
+        this.runnerUrl = dotenv.get("JAVA_RUNNER_URL", "http://code_runner:8592");
     }
 
     @PostMapping("/java")

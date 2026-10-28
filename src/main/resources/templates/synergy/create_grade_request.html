@@ -2,83 +2,161 @@
 <html xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
     layout:decorate="~{layouts/base}" lang="en">
 
-<!-- page style -->
-<th:block layout:fragment="style" th:remove="tag"></th:block>
+<th:block layout:fragment="style" th:remove="tag">
+    <link rel="stylesheet" th:href="@{/assets/css/grading.css}">
+</th:block>
 
-<!-- page title -->
 <th:block layout:fragment="title" th:remove="tag">Create Grade Request</th:block>
 
-<!-- The 'body' section is defined using Thymeleaf's layout fragment. It will replace the 'body' content in the base layout -->
 <th:block layout:fragment="body" th:remove="tag">
-
+<div class="grading" style="max-width:800px">
     <h2>Create a Grade Request</h2>
+    <div class="g-sub" th:text="${isStaff} ? 'Pick a student, then one of the assignments they submitted.'
+        : 'Ask for a grade change on an assignment you submitted.'"></div>
 
-    <form id="request-form">
-        <label for="student">Select Student:</label>
-        <select name="studentId" id="student">
-            <option th:each="student : ${students}" th:value="${student.id}" th:text="${student.name}">Student Name
-            </option>
-        </select>
+    <div class="g-panel" th:if="${isStaff}">
+        <label for="studentSearch" class="d-block mb-1"><b>1. Student</b></label>
+        <input type="text" id="studentSearch" class="w-100" placeholder="Search students by name" autocomplete="off">
+        <div id="studentResults" class="mt-2"></div>
+        <div id="selectedStudent" class="mt-2"></div>
+    </div>
 
-        <br>
+    <div class="g-panel">
+        <label for="assignmentSearch" class="d-block mb-1"><b th:text="${isStaff} ? '2. Assignment' : '1. Assignment'">Assignment</b></label>
+        <input type="text" id="assignmentSearch" class="w-100" placeholder="Search submitted assignments" autocomplete="off">
+        <div class="g-table-wrap mt-2" style="max-height:280px;overflow-y:auto">
+            <table class="g-table">
+                <tbody id="assignmentRows"></tbody>
+            </table>
+        </div>
+    </div>
 
-        <label for="assignment">Select Assignment:</label>
-        <select name="assignmentId" id="assignment">
-            <option th:each="assignment : ${assignments}" th:value="${assignment.id}" th:text="${assignment.name}">
-                Assignment Name</option>
-        </select>
-
-        <br>
-
-        <label for="gradeSuggestion">Suggested Grade:</label>
-        <input type="number" name="gradeSuggestion" id="gradeSuggestion" step="0.01" required />
-
-        <br>
-
-        <label for="explanation">Explanation:</label>
-        <textarea name="explanation" id="explanation" placeholder="Explain why this student should receive this grade."
-            required style="width: 40%;"></textarea>
-
-        <br>
-
-        <button class="save-btn" type="submit">Save Grade Request</button>
+    <form class="g-panel" id="requestForm">
+        <b class="d-block mb-2" th:text="${isStaff} ? '3. Request' : '2. Request'">Request</b>
+        <div id="selectedAssignment" class="g-sub">No assignment selected.</div>
+        <label for="gradeSuggestion" class="d-block mt-2">Suggested grade</label>
+        <input type="number" id="gradeSuggestion" step="0.01" min="0" required>
+        <label for="explanation" class="d-block mt-2">Explanation</label>
+        <textarea id="explanation" rows="4" required placeholder="Why should the grade change?"></textarea>
+        <button class="g-btn primary mt-2" type="submit" id="submitBtn" disabled>Submit grade request</button>
     </form>
-
+</div>
 </th:block>
 
 <th:block layout:fragment="script" th:remove="tag">
-    <script>
-        document.getElementById('request-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
+<script th:src="@{/js/grading/common.js}"></script>
+<script th:inline="javascript">
+(function () {
+    const isStaff = /*[[${isStaff}]]*/ false;
+    const currentPersonId = /*[[${currentPersonId}]]*/ 0;
+    const currentName = /*[[${currentName}]]*/ '';
+    const preselect = /*[[${preselectAssignmentId}]]*/ null;
+    const { esc, api, postJson, formatGrade, statusBadge, debounce, toast } = window.Grading;
 
-            const body = {
-                studentId: document.getElementById('student').value,
-                assignmentId: document.getElementById('assignment').value,
-                gradeSuggestion: document.getElementById('gradeSuggestion').value,
-                explanation: document.getElementById('explanation').value
-            };
+    let student = isStaff ? null : { id: currentPersonId, name: currentName };
+    let submissions = [];
+    let assignment = null;
+    const assignmentRows = document.getElementById('assignmentRows');
+    const assignmentSearch = document.getElementById('assignmentSearch');
 
+    async function loadSubmissions() {
+        assignment = null;
+        updateSelection();
+        if (!student) {
+            assignmentRows.innerHTML = '<tr><td class="g-empty">Pick a student first.</td></tr>';
+            return;
+        }
+        assignmentRows.innerHTML = '<tr><td class="g-empty">Loading…</td></tr>';
+        try {
+            const card = await api(`/api/synergy/gradebook/students/${student.id}`);
+            // One row per assignment, even if it was submitted more than once.
+            const seen = new Set();
+            submissions = card.submissions.filter(s => s.assignmentId && !seen.has(s.assignmentId) && seen.add(s.assignmentId));
+            const match = preselect && submissions.find(s => s.assignmentId === preselect);
+            if (match) assignment = match;
+            renderAssignments();
+            updateSelection();
+        } catch (e) {
+            assignmentRows.innerHTML = `<tr><td class="g-empty">Could not load submissions: ${esc(e.message)}</td></tr>`;
+        }
+    }
+
+    function renderAssignments() {
+        const needle = assignmentSearch.value.trim().toLowerCase();
+        const rows = submissions.filter(s => !needle || s.assignmentName.toLowerCase().includes(needle));
+        assignmentRows.innerHTML = rows.length ? rows.map(s => `
+            <tr class="g-click${assignment && assignment.assignmentId === s.assignmentId ? ' table-active' : ''}" data-id="${s.assignmentId}">
+                <td>${esc(s.assignmentName)}</td>
+                <td class="text-nowrap">${esc(formatGrade(s.grade, s.points))}</td>
+                <td>${statusBadge(s.status, s.etaSeconds)}</td>
+            </tr>`).join('')
+            : '<tr><td class="g-empty">No submitted assignments match.</td></tr>';
+    }
+
+    function updateSelection() {
+        document.getElementById('selectedAssignment').innerHTML = assignment
+            ? `<b>${esc(assignment.assignmentName)}</b> for ${esc(student.name)} · current grade ${esc(formatGrade(assignment.grade, assignment.points))}`
+            : 'No assignment selected.';
+        document.getElementById('submitBtn').disabled = !assignment;
+    }
+
+    assignmentRows.addEventListener('click', event => {
+        const row = event.target.closest('tr[data-id]');
+        if (!row) return;
+        assignment = submissions.find(s => String(s.assignmentId) === row.dataset.id);
+        renderAssignments();
+        updateSelection();
+    });
+    assignmentSearch.addEventListener('input', debounce(renderAssignments, 150));
+
+    if (isStaff) {
+        const results = document.getElementById('studentResults');
+        document.getElementById('studentSearch').addEventListener('input', debounce(async event => {
+            const q = event.target.value.trim();
+            if (q.length < 2) { results.innerHTML = ''; return; }
             try {
-                const response = await fetch('/api/synergy/grades/requests', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (response.ok) {
-                    alert('Grade request saved successfully!');
-                    location.reload();
-                } else {
-                    alert('Failed to save grade request.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while saving the grade request.');
+                const found = await api(`/api/synergy/gradebook/students?q=${encodeURIComponent(q)}`);
+                results.innerHTML = found.slice(0, 20).map(s =>
+                    `<button type="button" class="g-btn me-1 mb-1" data-id="${s.id}" data-name="${esc(s.name)}">
+                        ${esc(s.name)} <span class="g-sub">${esc(s.uid)}</span></button>`).join('')
+                    || '<span class="g-sub">No students found.</span>';
+            } catch (e) {
+                results.innerHTML = `<span class="g-sub">${esc(e.message)}</span>`;
             }
+        }, 250));
+        results.addEventListener('click', event => {
+            const button = event.target.closest('button[data-id]');
+            if (!button) return;
+            student = { id: Number(button.dataset.id), name: button.dataset.name };
+            document.getElementById('selectedStudent').innerHTML = `Selected: <b>${esc(student.name)}</b>`;
+            results.innerHTML = '';
+            loadSubmissions();
         });
-    </script>
-</th:block>
+    }
 
+    document.getElementById('requestForm').addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!assignment) return;
+        try {
+            await postJson('/api/synergy/grades/requests', {
+                submitterId: student.id,
+                isGroup: false,
+                assignmentId: assignment.assignmentId,
+                gradeSuggestion: Number(document.getElementById('gradeSuggestion').value),
+                explanation: document.getElementById('explanation').value
+            });
+            toast('Grade request sent');
+            event.target.reset();
+            assignment = null;
+            renderAssignments();
+            updateSelection();
+        } catch (e) {
+            toast(e.message, false);
+        }
+    });
+
+    loadSubmissions();
+})();
+</script>
+</th:block>
 </html>

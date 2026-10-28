@@ -21,7 +21,11 @@ import com.open.spring.mvc.person.PersonJpaRepository;
 @Component
 public class JwtTokenUtil {
 
-	public static final long JWT_TOKEN_VALIDITY = 12* 60 * 60;
+	// Token lifetime in seconds. Reads the same property as the jwt cookie's max-age
+	// (CookieFactory), so the token and its cookie always expire together. A token that
+	// expired before its cookie left users "logged in" to the browser but getting 401s.
+	@Value("${jwt.cookie.max-age:604800}")
+	private long tokenValiditySeconds;
 
 	@Value("${jwt.secret}")
 	private String secret;
@@ -73,7 +77,7 @@ public class JwtTokenUtil {
 
 		// Stamp the token with the person's current tokenVersion so a later password
 		// change (which bumps it) invalidates this token on the next validateToken call,
-		// instead of it staying valid for the rest of its JWT_TOKEN_VALIDITY lifetime.
+		// instead of it staying valid for the rest of its lifetime.
 		Person person = personJpaRepository.findByUid(userDetails.getUsername());
 		claims.put("tokenVersion", person != null && person.getTokenVersion() != null ? person.getTokenVersion() : 0L);
 
@@ -92,7 +96,7 @@ public class JwtTokenUtil {
 	private String doGenerateToken(Map<String, Object> claims, String subject) {
 
 		return Jwts.builder().claims(claims).subject(subject).issuedAt(new Date(System.currentTimeMillis()))
-				.expiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+				.expiration(new Date(System.currentTimeMillis() + tokenValiditySeconds * 1000))
 				.signWith(getSecretKey()).compact();
 	}
 

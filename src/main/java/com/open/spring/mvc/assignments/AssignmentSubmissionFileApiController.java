@@ -52,6 +52,9 @@ public class AssignmentSubmissionFileApiController {
                     userDetails);
             return ResponseEntity.ok(response);
         } catch (AssignmentSubmissionUploadService.UploadException e) {
+            if (e.getOutcome() != null) {
+                return GradingResponse.from(GradingResult.of(e.getOutcome(), null));
+            }
             return ResponseEntity.status(e.getStatus()).body(Map.of("error", e.getMessage()));
         }
     }

@@ -4,7 +4,11 @@ import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.open.spring.mvc.groups.GroupChatIdentityService.AuthenticatedIdentity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,33 +23,66 @@ public class GroupChatRealtimeService {
     public static final String GROUP_TOPIC_PREFIX = "/topic/group/";
 
     private final GroupChatService groupChatService;
+    private final GroupChatIdentityService identityService;
     private final GroupsJpaRepository groupsRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public GroupChatEvent publishMessage(Long groupId, String sender, String message, String image) {
+    public GroupChatEvent publishMessage(Long groupId, String message, String image) {
         Groups group = getGroupOrThrow(groupId);
 
+        AuthenticatedIdentity identity = identityService.getCurrentIdentity();
+        if ((message == null || message.isBlank()) && (image == null || image.isBlank())) {
+            throw new IllegalArgumentException("Message or image must be provided");
+        }
+
         String date = Instant.now().toString();
-        GroupChatMessage persisted = new GroupChatMessage(sender, message, date, image);
+
+        GroupChatMessage persisted = new GroupChatMessage(identity.getDisplayName(), identity.getUid(), message, date, image);
         groupChatService.addMessage(group.getName(), persisted);
 
         GroupChatEvent event = GroupChatEvent.builder()
                 .context("sendMessageServer")
                 .groupId(groupId)
                 .messageId(persisted.getId())
-                .sender(sender)
-                .message(message)
-                .image(image)
-                .date(date)
+                .sender(persisted.getAuthor())
+                .message(persisted.getMessage())
+                .image(persisted.getImage())
+                .date(persisted.getDate())
                 .build();
 
         broadcastToGroup(groupId, event);
         return event;
     }
 
-    public void deleteMessage(Long groupId, String messageId) {
+    /**
+     * Returns whether the message existed (and was broadcast as edited). Throws
+     * {@link SecurityException} if {@code requesterDisplayName} didn't send it --
+     * see {@link GroupChatService#editMessage} for why a display name, not a uid.
+     */
+    public boolean editMessage(Long groupId, String messageId, String newMessage, String requesterDisplayName) {
         Groups group = getGroupOrThrow(groupId);
-        groupChatService.deleteMessage(group.getName(), messageId);
+        boolean updated = groupChatService.editMessage(group.getName(), messageId, newMessage, requesterDisplayName);
+        if (!updated) {
+            return false;
+        }
+
+        GroupChatEvent event = GroupChatEvent.builder()
+                .context("editMessageServer")
+                .groupId(groupId)
+                .messageId(messageId)
+                .message(newMessage)
+                .edited(true)
+                .date(Instant.now().toString())
+                .build();
+
+        broadcastToGroup(groupId, event);
+        return true;
+    }
+
+    /** Throws {@link SecurityException} if {@code requesterDisplayName} didn't send it. */
+    public void deleteMessage(Long groupId, String messageId, String requesterDisplayName) {
+        Groups group = getGroupOrThrow(groupId);
+        groupChatService.deleteMessage(group.getName(), messageId, requesterDisplayName);
 
         GroupChatEvent event = GroupChatEvent.builder()
                 .context("deleteMessageServer")
@@ -60,7 +97,7 @@ public class GroupChatRealtimeService {
     public GroupChatEvent publishFile(Long groupId, String sender, String filename, String base64Data) {
         Groups group = getGroupOrThrow(groupId);
 
-        String uploadResult = groupChatService.uploadSharedFile(group.getName(), filename, base64Data);
+        String uploadResult = groupChatService.uploadSharedFile(group.getName(), filename, base64Data, sender);
         if (uploadResult == null) {
             throw new IllegalStateException("Upload failed");
         }

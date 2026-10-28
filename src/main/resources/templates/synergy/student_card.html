@@ -1,0 +1,246 @@
+<!DOCTYPE HTML>
+<html xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/base}" lang="en">
+
+<th:block layout:fragment="style" th:remove="tag">
+    <link rel="stylesheet" th:href="@{/assets/css/grading.css}">
+</th:block>
+
+<th:block layout:fragment="title" th:remove="tag">Grades</th:block>
+
+<th:block layout:fragment="body" th:remove="tag">
+<div class="grading">
+    <a th:if="${isStaff}" th:href="@{/mvc/synergy/gradebook}" class="g-btn mb-3 d-inline-block">&larr; Back to gradebook</a>
+    <h2 th:text="${studentName}">Student</h2>
+    <div class="g-sub" id="cardSub">Loading…</div>
+
+    <div class="g-two-col mb-3">
+        <div class="g-panel mb-0">
+            <div class="g-sub mb-1">Overall grade</div>
+            <div class="g-pct" id="overall" style="font-size:2.2rem;font-weight:700">—</div>
+            <div class="g-sub mb-0" id="overallMeta"></div>
+        </div>
+        <div class="g-panel mb-0">
+            <div class="g-sub mb-1">Recent grade changes</div>
+            <div id="recent"></div>
+        </div>
+    </div>
+
+    <div class="g-toolbar">
+        <input type="text" class="g-search" id="assignmentSearch" placeholder="Search assignments" aria-label="Search assignments">
+        <select id="statusFilter" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option value="graded">Graded</option>
+            <option value="pending_ai">In AI queue</option>
+            <option value="ungraded">Ungraded</option>
+        </select>
+    </div>
+
+    <div class="g-table-wrap">
+        <table class="g-table">
+            <thead>
+                <tr>
+                    <th>Assignment</th>
+                    <th>Grade</th>
+                    <th>Status</th>
+                    <th>Feedback</th>
+                    <th th:text="${isStaff} ? 'Actions' : ''"></th>
+                </tr>
+            </thead>
+            <tbody id="submissionRows"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="g-modal" id="submissionModal" role="dialog" aria-modal="true" aria-labelledby="submissionTitle">
+    <div class="g-modal-box" style="width:min(720px,100%);margin-block:auto">
+        <div class="g-modal-head">
+            <h3 id="submissionTitle">Submission</h3>
+            <button class="g-btn" type="button" data-close aria-label="Close">&times;</button>
+        </div>
+        <div id="submissionBody"></div>
+    </div>
+</div>
+</th:block>
+
+<th:block layout:fragment="script" th:remove="tag">
+<script th:src="@{/js/grading/common.js}"></script>
+<script th:inline="javascript">
+(function () {
+    const personId = /*[[${personId}]]*/ 0;
+    const isStaff = /*[[${isStaff}]]*/ false;
+    const { esc, api, formatPct, formatGrade, statusBadge, pctClass, debounce, toast, submissionDetailHtml,
+        gradingOutcomeText, saveManualGrade, clearManualGrade, requestAiGrade, gradeSourceBadge } = window.Grading;
+    const rowsEl = document.getElementById('submissionRows');
+    const search = document.getElementById('assignmentSearch');
+    const statusFilter = document.getElementById('statusFilter');
+    const modal = document.getElementById('submissionModal');
+    let card = null;
+
+    function showSubmission(id) {
+        const s = card.submissions.find(x => String(x.submissionId) === String(id));
+        if (!s) return;
+        document.getElementById('submissionTitle').textContent = s.assignmentName || 'Submission';
+        document.getElementById('submissionBody').innerHTML =
+            submissionDetailHtml(s, s.submitterName || card.name || 'Unknown', s.points);
+        modal.classList.add('open');
+        modal.querySelector('[data-close]').focus();
+    }
+
+    function formatWhen(value) {
+        return value ? new Date(value).toLocaleString() : null;
+    }
+
+    // Every version of a submission, the current one first (open), earlier ones collapsed below it.
+    async function showHistory(id) {
+        const s = card.submissions.find(x => String(x.submissionId) === String(id));
+        if (!s) return;
+        const submitter = s.submitterName || card.name || 'Unknown';
+        document.getElementById('submissionTitle').textContent = `${s.assignmentName || 'Submission'} · history`;
+        const body = document.getElementById('submissionBody');
+        body.innerHTML = '<div class="g-sub">Loading…</div>';
+        modal.classList.add('open');
+        modal.querySelector('[data-close]').focus();
+        try {
+            const history = await api(`/api/submissions/${id}/history`);
+            const count = history.versions.length;
+            body.innerHTML = `<div class="g-sub mb-2">${count} version${count === 1 ? '' : 's'}, newest first</div>`
+                + history.versions.map((v, i) => {
+                    const submitted = formatWhen(v.submittedAt);
+                    const label = v.current ? 'Current submission'
+                        : `Version ${count - i}${v.replacedAt ? ` · replaced ${esc(formatWhen(v.replacedAt))}` : ''}`;
+                    return `<details class="g-panel" ${v.current ? 'open' : ''}>
+                        <summary><b>${label}</b>
+                            ${v.current ? '<span class="g-badge ok">Current</span>' : ''}
+                            ${submitted ? `<span class="g-sub">submitted ${esc(submitted)}</span>` : ''}
+                        </summary>
+                        <div class="mt-2">${submissionDetailHtml(v, submitter, history.points ?? s.points)}</div>
+                    </details>`;
+                }).join('');
+        } catch (e) {
+            body.innerHTML = `<div class="g-sub">Could not load history: ${esc(e.message)}</div>`;
+        }
+    }
+
+    modal.addEventListener('click', e => {
+        if (e.target === modal || e.target.closest('[data-close]')) modal.classList.remove('open');
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') modal.classList.remove('open');
+    });
+
+    async function load() {
+        try {
+            card = await api(`/api/synergy/gradebook/students/${personId}`);
+        } catch (e) {
+            document.getElementById('cardSub').textContent = `Could not load grades: ${e.message}`;
+            return;
+        }
+        const subs = card.submissions;
+        const graded = subs.filter(s => s.status === 'graded').length;
+        const pending = subs.filter(s => s.status === 'pending_ai').length;
+        document.getElementById('cardSub').textContent = `${card.uid} · ${subs.length} submissions`;
+        const overall = document.getElementById('overall');
+        overall.textContent = formatPct(card.overallPct);
+        overall.className = pctClass(card.overallPct);
+        document.getElementById('overallMeta').textContent =
+            `${graded} graded · ${pending} waiting for AI grading · ${subs.length - graded - pending} ungraded`;
+        document.getElementById('recent').innerHTML = card.recentChanges.length
+            ? card.recentChanges.map(s => `<div class="d-flex justify-content-between gap-2">
+                    <span class="text-truncate">${esc(s.assignmentName)}</span>
+                    <b class="text-nowrap">${esc(formatGrade(s.grade, s.points))}</b></div>`).join('')
+            : '<span class="g-sub">No grades yet.</span>';
+        render();
+    }
+
+    function render() {
+        const needle = search.value.trim().toLowerCase();
+        const rows = card.submissions.filter(s =>
+            (!needle || (s.assignmentName || '').toLowerCase().includes(needle))
+            && (!statusFilter.value || s.status === statusFilter.value));
+        if (!rows.length) {
+            rowsEl.innerHTML = '<tr><td colspan="5" class="g-empty">No submissions match.</td></tr>';
+            return;
+        }
+        rowsEl.innerHTML = rows.map(s => `
+            <tr data-id="${s.submissionId}">
+                <td>${esc(s.assignmentName)}${s.isLate ? ' <span class="g-badge bad">Late</span>' : ''}</td>
+                <td class="text-nowrap">${esc(formatGrade(s.grade, s.points))} ${gradeSourceBadge(s.grading)}</td>
+                <td>${statusBadge(s.status, s.etaSeconds)}</td>
+                <td><span title="${esc(s.feedback)}">${esc(truncate(s.feedback, 80))}</span></td>
+                <td class="text-nowrap"><button class="g-btn" data-action="view" type="button">View</button>
+                    <button class="g-btn" data-action="history" type="button"
+                        title="${s.earlierVersions} earlier version${s.earlierVersions === 1 ? '' : 's'}">History${s.earlierVersions ? ` (${s.earlierVersions + 1})` : ''}</button>
+                    ${isStaff ? staffActions(s) : studentActions(s)}</td>
+            </tr>`).join('');
+    }
+
+    function truncate(text, max) {
+        if (!text) return '';
+        return text.length > max ? text.slice(0, max - 1) + '…' : text;
+    }
+
+    function staffActions(s) {
+        // Closed assignments are reviewed in the tracker.
+        if (s.grading?.closed) {
+            return `<a class="g-btn" href="/mvc/assignments/tracker" title="Open the assignment in the tracker to review this grade">Review in tracker</a>`;
+        }
+        return `<input type="number" step="0.01" min="0" max="${s.points ?? 1}" class="g-grade-input" aria-label="New grade"
+                    value="${s.grade ?? ''}" placeholder="/ ${s.points ?? 1}">
+                <button class="g-btn" data-action="save" type="button">Save</button>
+                <button class="g-btn" data-action="ai" type="button">AI grade</button>
+                ${s.grading?.manualOverride ? '<button class="g-btn" data-action="clear" type="button" title="Remove the instructor grade so the AI grade applies">Use AI grade</button>' : ''}`;
+    }
+
+    function studentActions(s) {
+        return s.assignmentId
+            ? `<a class="g-btn" href="/mvc/synergy/create-grade-request?assignmentId=${s.assignmentId}">Request change</a>`
+            : '';
+    }
+
+    rowsEl.addEventListener('click', async event => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const row = button.closest('tr');
+        const id = row.dataset.id;
+        if (button.dataset.action === 'view') {
+            showSubmission(id);
+            return;
+        }
+        if (button.dataset.action === 'history') {
+            showHistory(id);
+            return;
+        }
+        const entry = card.submissions.find(x => String(x.submissionId) === String(id));
+        const revision = entry?.grading?.revision;
+        button.disabled = true;
+        try {
+            let result;
+            if (button.dataset.action === 'save') {
+                const grade = row.querySelector('.g-grade-input').value;
+                if (grade === '') throw new Error('Enter a grade first');
+                result = await saveManualGrade(id, grade, revision);
+            } else if (button.dataset.action === 'clear') {
+                result = await clearManualGrade(id, revision);
+            } else {
+                button.textContent = 'Grading…';
+                result = await requestAiGrade(id);
+            }
+            const aiGrade = result.grading?.aiGrade;
+            toast(gradingOutcomeText(result.outcome)
+                + (button.dataset.action === 'ai' && aiGrade != null ? ` AI grade: ${formatGrade(aiGrade, entry?.points)}` : ''));
+            await load();
+        } catch (e) {
+            toast(e.message, false);
+            button.disabled = false;
+            if (button.dataset.action === 'ai') button.textContent = 'AI grade';
+        }
+    });
+
+    search.addEventListener('input', debounce(render, 150));
+    statusFilter.addEventListener('change', render);
+    load();
+})();
+</script>
+</th:block>
+</html>

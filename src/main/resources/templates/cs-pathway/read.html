@@ -1,0 +1,172 @@
+<!DOCTYPE HTML>
+<html xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/base}" lang="en">
+
+<!-- page style -->
+<th:block layout:fragment="style" th:remove="tag">
+    <style>
+        .small-cell { white-space: nowrap; }
+        .level-cell { min-width: 120px; }
+        .level-cell .progress { height: 6px; margin-top: 4px; background: #444; }
+        .level-cell .progress-bar { background: #4ecca3; }
+        /* Explicit colors: the site theme recolors Bootstrap's bg-* badge classes. */
+        .level-status { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .level-status.complete { background: #198754; color: #fff; }
+        .level-status.in-progress { background: #ffc107; color: #212529; }
+        .level-status.not-started { background: #6c757d; color: #fff; }
+        .level-status.setup-pass { background: #198754; color: #fff; }
+        .level-status.setup-warn { background: #ffc107; color: #212529; }
+        .level-status.setup-fail { background: #dc3545; color: #fff; }
+        .setup-report pre { max-width: 420px; max-height: 240px; overflow: auto; margin: 4px 0 0; font-size: 0.75rem; white-space: pre-wrap; }
+        .setup-review-result { max-width: 420px; margin-top: 6px; font-size: 0.85rem; white-space: pre-wrap; }
+        .setup-review-result ul { margin: 4px 0; padding-left: 20px; }
+        .review-status { font-weight: 700; }
+        .review-status.complete { color: #198754; }
+        .review-status.incomplete { color: #dc3545; }
+        .review-status.review-needed { color: #b58100; }
+        .help-flag-icon { color: #dc3545; }
+        .help-message { max-width: 420px; white-space: pre-wrap; }
+    </style>
+</th:block>
+
+<!-- page title -->
+<th:block layout:fragment="title" th:remove="tag">CS Pathway Scores</th:block>
+
+<th:block layout:fragment="body" th:remove="tag">
+    <div sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_TEACHER')">
+        <div class="container">
+
+            <h3><span class="help-flag-icon" aria-hidden="true">&#9873;</span> Help requests</h3>
+            <p class="text-muted">Sent with the red flag button in the game, newest first.</p>
+            <div class="row align-items-md-stretch table-responsive">
+            <table id="csPathwayHelpTable" class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Sent</th>
+                        <th>Student</th>
+                        <th>UID</th>
+                        <th>Level</th>
+                        <th>Station</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="help : ${helpRequests}">
+                        <td class="small-cell" th:text="${#dates.format(help.createdAt, 'yyyy-MM-dd HH:mm')}">date</td>
+                        <td class="small-cell" th:text="${help.name}">Name</td>
+                        <td class="small-cell" th:text="${help.uid}">UID</td>
+                        <td class="small-cell" th:text="${help.levelName}">Level</td>
+                        <td class="small-cell" th:text="${help.station ?: '-'}">Station</td>
+                        <td class="help-message" th:text="${help.message}">Message</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(helpRequests)}">
+                        <td colspan="6" class="text-center text-muted">No help requests yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+
+            <h3>CS Pathway Scores</h3>
+            <p class="text-muted">Each level's score is its percent complete. Students appear here once they make progress in the game.
+                Setup check is the latest result a student's own Terminal sent from Toolchain Trail; it is self-reported.</p>
+
+            <div class="row align-items-md-stretch table-responsive">
+            <table id="csPathwayTable" class="table table-sm table-striped">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>UID</th>
+                        <th th:each="level : ${levels}" th:text="${level.displayName}">Level</th>
+                        <th>Average</th>
+                        <th>Setup check</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="row : ${rows}">
+                        <td class="small-cell" th:text="${row.name}">Name</td>
+                        <td class="small-cell" th:text="${row.uid}">UID</td>
+                        <td class="level-cell" th:each="score : ${row.levels}">
+                            <span th:text="${#numbers.formatDecimal(score.percentComplete, 1, 0)} + '%'">0%</span>
+                            <span th:if="${score.finished}" class="level-status complete">Complete</span>
+                            <span th:if="${!score.finished and score.percentComplete > 0}" class="level-status in-progress">In progress</span>
+                            <span th:if="${score.percentComplete == 0}" class="level-status not-started">Not started</span>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar"
+                                    th:style="'width: ' + ${score.percentComplete} + '%'"
+                                    th:attr="aria-valuenow=${score.percentComplete}"
+                                    aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </td>
+                        <td class="small-cell" th:text="${#numbers.formatDecimal(row.averagePercent, 1, 0)} + '%'">0%</td>
+                        <td class="setup-report" th:with="setup=${setupReports.get(row.uid)}">
+                            <span th:if="${setup == null}" class="text-muted">None</span>
+                            <details th:if="${setup != null}">
+                                <summary>
+                                    <span class="level-status" th:classappend="'setup-' + ${#strings.toLowerCase(setup.overall)}" th:text="${setup.overall}">PASS</span>
+                                    <span class="small-cell" th:text="${setup.passed} + ' pass, ' + ${setup.warned} + ' warn, ' + ${setup.failed} + ' fail'">0 pass</span>
+                                    <span class="small-cell text-muted" th:text="${#dates.format(setup.reportedAtDate, 'yyyy-MM-dd HH:mm')}">date</span>
+                                </summary>
+                                <pre th:text="${setup.report}">report</pre>
+                                <button type="button" class="btn btn-sm btn-outline-primary setup-review-button"
+                                    th:attr="data-review-uid=${row.uid}">AI review</button>
+                                <div class="setup-review-result" aria-live="polite"></div>
+                            </details>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(rows)}">
+                        <td th:colspan="${levels.length + 4}" class="text-center text-muted">No CS Pathway progress yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <p class="small text-muted">AI reviews are advisory and assess only the submitted, self-reported output.</p>
+        </div>
+    </div>
+    <script>
+        document.querySelectorAll('.setup-review-button').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const result = button.nextElementSibling;
+                button.disabled = true;
+                result.textContent = 'Reviewing submitted output...';
+                try {
+                    const response = await fetch(
+                        `/api/cs-pathway/setup-report/review/${encodeURIComponent(button.dataset.reviewUid)}`,
+                        { method: 'POST', headers: { 'Accept': 'application/json' } }
+                    );
+                    const body = await response.json();
+                    if (!response.ok) {
+                        throw new Error(body.error || `Review failed (${response.status}).`);
+                    }
+
+                    result.replaceChildren();
+                    const status = document.createElement('strong');
+                    status.className = `review-status ${body.status.toLowerCase().replaceAll('_', '-')}`;
+                    status.textContent = body.status.replaceAll('_', ' ');
+                    result.append(status, document.createTextNode(` — ${body.summary}`));
+                    [
+                        ['Missing or failed checks', body.missingItems],
+                        ['Warnings', body.warnings]
+                    ].forEach(([label, items]) => {
+                        if (items?.length) {
+                            const heading = document.createElement('div');
+                            heading.textContent = label;
+                            const list = document.createElement('ul');
+                            items.forEach((item) => {
+                                const entry = document.createElement('li');
+                                entry.textContent = item;
+                                list.append(entry);
+                            });
+                            result.append(heading, list);
+                        }
+                    });
+                } catch (error) {
+                    result.textContent = error.message || 'The review could not be completed.';
+                } finally {
+                    button.disabled = false;
+                }
+            });
+        });
+    </script>
+</th:block>
+
+</html>

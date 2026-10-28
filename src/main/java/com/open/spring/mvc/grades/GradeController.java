@@ -17,15 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.util.Timeout;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.open.spring.mvc.person.PersonJpaRepository;
 
@@ -35,31 +29,15 @@ public class GradeController {
 
     @Autowired
     private PersonJpaRepository personRepository;
+    // Only reads may use the optional legacy server credential.
     @Value("${gist.token:}")
     private String gistToken;
-
-    /**
-     * Give up on GitHub after this long. Without an explicit timeout a stalled
-     * request never returns, and each one pins a request thread until the whole
-     * server runs out and stops answering anything.
-     */
-    private static final Timeout GIST_TIMEOUT = Timeout.ofSeconds(10);
-
-    /** Built once and reused; also gives us connection pooling. */
-    private final RestTemplate gistRestTemplate;
-
-    public GradeController() {
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(GIST_TIMEOUT)   // time to open the connection
-                .setResponseTimeout(GIST_TIMEOUT)  // time to wait for GitHub's reply
-                .build();
-
-        CloseableHttpClient httpClient = HttpClients.custom()
-                .setDefaultRequestConfig(requestConfig)
-                .build();
-
-        this.gistRestTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory(httpClient));
-    }
+    @Autowired
+    private com.open.spring.mvc.gist.GistConnectionService gistConnectionService;
+    @Autowired
+    private com.open.spring.mvc.gist.GistRequestGuard gistRequestGuard;
+    @Autowired
+    private com.open.spring.mvc.gist.GitHubGistClient gitHubGistClient;
 
     @GetMapping
     public List<Grade> getAllGrades() {
@@ -127,9 +105,17 @@ public class GradeController {
     }
 
     @PostMapping
-    public Grade createGrade(@RequestBody Grade grade) {
+    public ResponseEntity<Grade> createGrade(@AuthenticationPrincipal UserDetails caller, @RequestBody Grade grade) {
+        // Students may only file their own submission; scoring and comments are for teachers
+        if (!isStaff(caller)) {
+            if (caller == null || !caller.getUsername().equals(grade.getUid())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            grade.setScore(null);
+            grade.setTeacherComments(null);
+        }
         com.open.spring.mvc.person.Person p = personRepository.findByUid(grade.getUid());
-        if (p == null) return null;
+        if (p == null) return ResponseEntity.ok(null);
         Map<String, Object> m = new HashMap<>();
 
         Long newId = generateNextGradeId();
@@ -148,10 +134,16 @@ public class GradeController {
         }
         p.getGradesJson().add(m);
         personRepository.save(p);
-        return grade;
+        return ResponseEntity.ok(grade);
+    }
+
+    private static boolean isStaff(UserDetails caller) {
+        return caller != null && caller.getAuthorities().stream().anyMatch(a ->
+                "ROLE_TEACHER".equals(a.getAuthority()) || "ROLE_ADMIN".equals(a.getAuthority()));
     }
 
     @PostMapping("/{id}/submit")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER','ROLE_ADMIN')")
     public ResponseEntity<Grade> submitGrade(@PathVariable Long id, @RequestBody Grade gradeDetails) {
         for (com.open.spring.mvc.person.Person p : personRepository.findAll()) {
             List<Map<String, Object>> gjs = p.getGradesJson();
@@ -175,152 +167,39 @@ public class GradeController {
         return ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/create-gist")
-    @PreAuthorize("permitAll()")   // ← ADD THIS LINE
-    public ResponseEntity<Map<String, Object>> createGist(@RequestBody Map<String, Object> body) {
-        if (gistToken == null || gistToken.trim().isEmpty()) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Gist token not configured on server");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
-
-        String description = (String) body.getOrDefault("description",
-                "Exported AP CSA FRQs / Challenges from Open Coding Society");
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> files = (Map<String, Object>) body.get("files");
-
-        if (files == null || files.isEmpty()) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "No files provided");
-            return ResponseEntity.badRequest().body(error);
-        }
-
-        // Build GitHub payload
-        Map<String, Object> gistPayload = new HashMap<>();
-        gistPayload.put("description", description);
-        // Secret gist: unlisted and not searchable, but still viewable by anyone
-        // with the URL - which is exactly how submissions get reviewed. Public
-        // would list every student's work on the token owner's gist profile.
-        gistPayload.put("public", false);
-        gistPayload.put("files", files);
-
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Accept", "application/vnd.github+json");
-            headers.set("Authorization", "Bearer " + gistToken);
-            headers.set("X-GitHub-Api-Version", "2022-11-28");
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(gistPayload, headers);
-
-            ResponseEntity<Map> response = gistRestTemplate.exchange(
-                    "https://api.github.com/gists",
-                    HttpMethod.POST,
-                    request,
-                    Map.class
-            );
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                Map<String, Object> data = response.getBody();
-                String url = (String) data.get("html_url");
-
-                Map<String, Object> success = new HashMap<>();
-                success.put("success", true);
-                success.put("url", url);
-                return ResponseEntity.ok(success);
-            } else {
-                Map<String, Object> error = new HashMap<>();
-                error.put("error", "GitHub API error: " + response.getStatusCode());
-                return ResponseEntity.status(response.getStatusCode()).body(error);
-            }
-        } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Failed to create Gist: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+    @PostMapping(value = "/create-gist", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> createGist(@RequestBody Map<String, Object> body,
+            org.springframework.security.core.Authentication authentication,
+            jakarta.servlet.http.HttpServletRequest request) {
+        gistRequestGuard.validate(request);
+        String url = gistConnectionService.create(authentication, body);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+            .body(Map.of("success", true, "url", url));
     }
 
-    /**
-     * Read a gist back by id — the other half of create-gist.
-     *
-     * Reads are proxied rather than fetched straight from the browser for two
-     * reasons: gists are created secret, and the token that can see them lives
-     * here. Only the file contents are returned; GitHub's response carries owner
-     * and account detail that the page has no use for.
-     */
     @GetMapping("/read-gist/{id}")
     @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, Object>> readGist(@PathVariable String id) {
-        // Validate the caller's input before anything about server state, so a
-        // bad id always reports as a bad id. Gist ids are hex; reject anything
-        // else rather than pasting caller input into the upstream URL.
-        if (id == null || !id.matches("[a-fA-F0-9]{6,64}")) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Invalid gist id");
-            return ResponseEntity.badRequest().body(error);
-        }
-
-        if (gistToken == null || gistToken.trim().isEmpty()) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Gist token not configured on server");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
-
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Accept", "application/vnd.github+json");
-            headers.set("Authorization", "Bearer " + gistToken);
-            headers.set("X-GitHub-Api-Version", "2022-11-28");
-
-            ResponseEntity<Map> response = gistRestTemplate.exchange(
-                    "https://api.github.com/gists/" + id,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    Map.class
-            );
-
-            Map<String, Object> data = response.getBody();
-            if (data == null) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("error", "Empty response from GitHub");
-                return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(error);
+        Map<?, ?> data = gitHubGistClient.read(id, gistToken);
+        Map<String, Object> files = new LinkedHashMap<>();
+        if (data.get("files") instanceof Map<?, ?> rawFiles) {
+            for (var entry : rawFiles.entrySet()) {
+                if (!(entry.getKey() instanceof String name) || !(entry.getValue() instanceof Map<?, ?> file)) continue;
+                Map<String, Object> slim = new HashMap<>();
+                slim.put("content", file.get("content"));
+                files.put(name, slim);
             }
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> rawFiles = (Map<String, Object>) data.get("files");
-
-            // Narrow to { name: { content } } - drop raw_url, size, type, owner...
-            Map<String, Object> files = new LinkedHashMap<>();
-            if (rawFiles != null) {
-                for (Map.Entry<String, Object> entry : rawFiles.entrySet()) {
-                    if (!(entry.getValue() instanceof Map)) continue;
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> file = (Map<String, Object>) entry.getValue();
-                    Map<String, Object> slim = new HashMap<>();
-                    slim.put("content", file.get("content"));
-                    files.put(entry.getKey(), slim);
-                }
-            }
-
-            Map<String, Object> out = new HashMap<>();
-            out.put("success", true);
-            out.put("files", files);
-            out.put("description", data.get("description"));
-            return ResponseEntity.ok(out);
-
-        } catch (HttpClientErrorException.NotFound e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "No gist with that id");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-        } catch (Exception e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Failed to read Gist: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("files", files);
+        result.put("description", data.get("description"));
+        return ResponseEntity.ok(result);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER','ROLE_ADMIN')")
     public ResponseEntity<Grade> updateGrade(@PathVariable Long id, @RequestBody Grade gradeDetails) {
         for (com.open.spring.mvc.person.Person p : personRepository.findAll()) {
             List<Map<String, Object>> gjs = p.getGradesJson();
@@ -344,6 +223,7 @@ public class GradeController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER','ROLE_ADMIN')")
     public ResponseEntity<Void> deleteGrade(@PathVariable Long id) {
         for (com.open.spring.mvc.person.Person p : personRepository.findAll()) {
             List<Map<String, Object>> gjs = p.getGradesJson();

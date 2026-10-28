@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.open.spring.mvc.calendar.CalendarEventApiRestController;
 
 @RestController
 public class SlackController {
@@ -26,7 +27,7 @@ public class SlackController {
     
     // Rest template for API handling
     @Autowired
-    private CalendarEventController calendarEventController;
+    private CalendarEventApiRestController calendarEventController;
     
     @Autowired
     private final RestTemplate restTemplate;
@@ -73,9 +74,9 @@ public class SlackController {
                 // Notify configured email recipient(s) without creating new systems
                 emailNotificationService.notifyOnSlackMessage(messageData);
 
-                // Direct call to the CalendarEventController method
+                // Direct call to the CalendarEventApiRestController method
                 calendarEventController.addEventsFromSlackMessage(messageData);
-                System.out.println("Message processed by CalendarEventController");
+                System.out.println("Message processed by CalendarEventApiRestController");
             }
         } catch (Exception e) {
             e.printStackTrace();

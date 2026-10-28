@@ -24,4 +24,5 @@ public class GroupChatEvent {
     private String sessionId;
     private String error;
     private List<String> participants;
+    private boolean edited;
 }

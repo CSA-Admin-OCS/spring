@@ -13,9 +13,9 @@ import com.open.spring.mvc.person.Email.ResetCode;
 import com.open.spring.mvc.person.Email.VerificationCode;
 import com.open.spring.mvc.person.HttpRequest.HttpSender;
 
-import io.github.cdimascio.dotenv.Dotenv;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
@@ -68,6 +68,10 @@ public class PersonViewController {
 
     @Autowired
     private SessionRegistry sessionRegistry;
+
+    // application.properties default, overridden by DEFAULT_PASSWORD in .env
+    @Value("${person.default-password}")
+    private String defaultPassword;
 
     //@Autowired
     //private PersonJpaRepository find;
@@ -471,7 +475,7 @@ public class PersonViewController {
         }
 
         //dont allow people to send emails/ reset password of default users (such as toby)
-        Person[] databasePersons = Person.init();
+        Person[] databasePersons = Person.init(defaultPassword);
         for (Person person : databasePersons) {
             if(person.getUid().equals(personToReset.getUid())){
                 return new ResponseEntity<Object>(HttpStatus.UNAUTHORIZED);
@@ -524,8 +528,6 @@ public class PersonViewController {
 
         // single-use + expiration + signature validation handled in ResetCode
         if(ResetCode.validateAndConsume(personToReset.getUid(), personPasswordResetCode.getCode())){
-            final Dotenv dotenv = Dotenv.load();
-            final String defaultPassword = dotenv.get("DEFAULT_PASSWORD");
             personToReset.setPassword(defaultPassword);
             repository.save(personToReset, false);
 
@@ -559,8 +561,6 @@ public class PersonViewController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        final Dotenv dotenv = Dotenv.load();
-        final String defaultPassword = dotenv.get("DEFAULT_PASSWORD");
         personToReset.setPassword(defaultPassword);
         repository.save(personToReset, false);
 
@@ -736,7 +736,7 @@ public class PersonViewController {
         }
 
         //dont allow people to reset password of default users (such as toby)
-        Person[] databasePersons = Person.init();
+        Person[] databasePersons = Person.init(defaultPassword);
         for (Person person : databasePersons) {
             if (person.getUid().equals(personToReset.getUid())) {
                 logger.warn("AUDIT oauth_reset_denied uid={} reason=default_account", personToReset.getUid());
@@ -805,14 +805,6 @@ public class PersonViewController {
         Person personToReset = repository.getByUid(requestBody.getUid());
         if (personToReset == null) {
             return new ResponseEntity<Object>(HttpStatus.NO_CONTENT);
-        }
-
-        // Check complexity (same rule as PersonDetailsService.save) before consuming
-        // the single-use reset token, so a rejected password doesn't burn the token.
-        Person passwordCheck = new Person();
-        passwordCheck.setPassword(requestBody.getNewPassword());
-        if (!passwordCheck.checkPassword()) {
-            return new ResponseEntity<Object>(HttpStatus.BAD_REQUEST);
         }
 
         if (!ResetCode.validateAndConsume(personToReset.getUid(), requestBody.getResetToken())) {

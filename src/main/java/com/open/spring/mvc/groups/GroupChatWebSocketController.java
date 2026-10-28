@@ -12,8 +12,8 @@ import lombok.RequiredArgsConstructor;
 /**
  * Controller class that handles incoming WebSocket messages for the group chat feature.
  * <p>
- * Methods annotated with {@link MessageMapping} will consume messages routed 
- * with the defined destination. Interacts with {@link GroupChatRealtimeService} 
+ * Methods annotated with {@link MessageMapping} will consume messages routed
+ * with the defined destination. Interacts with {@link GroupChatRealtimeService}
  * and {@link GroupChatPresenceService} to handle joining/leaving groups and message delivery.
  */
 @Controller
@@ -55,7 +55,7 @@ public class GroupChatWebSocketController {
                 }
                 ensureJoined(sessionId, groupId, sender);
                 try {
-                    realtimeService.publishMessage(groupId, sender, event.getMessage(), event.getImage());
+                    realtimeService.publishMessage(groupId, event.getMessage(), event.getImage());
                 } catch (RuntimeException ex) {
                     realtimeService.publishError(groupId, sender, ex.getMessage());
                 }

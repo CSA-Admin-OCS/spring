@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/base}" lang="en">
+
+<th:block layout:fragment="style" th:remove="tag">
+    <link rel="stylesheet" th:href="@{/assets/css/grading.css}">
+</th:block>
+
+<th:block layout:fragment="title" th:remove="tag">Gradebook</th:block>
+
+<th:block layout:fragment="body" th:remove="tag">
+<div class="grading">
+    <h2>Gradebook</h2>
+    <div class="g-sub">Overall grades from OCS assignment submissions. Open a student to see and edit their grades.</div>
+
+    <div class="g-panel" id="queueBanner">Loading AI grading queue…</div>
+
+    <div class="g-tabs" id="courseTabs" role="tablist">
+        <button class="g-tab" th:each="course : ${courses}" th:text="${course}" th:attr="data-course=${course}"
+            role="tab" type="button">CSA</button>
+        <button class="g-tab" data-course="NONE" role="tab" type="button">No class</button>
+    </div>
+
+    <div class="g-toolbar">
+        <input type="text" class="g-search" id="studentSearch" placeholder="Search students by name" aria-label="Search students by name">
+        <select id="sortBy" aria-label="Sort students">
+            <option value="name">Sort: name</option>
+            <option value="pct-asc">Sort: lowest grade</option>
+            <option value="pct-desc">Sort: highest grade</option>
+            <option value="pending">Sort: most in AI queue</option>
+        </select>
+        <span class="g-sub mb-0" id="resultCount"></span>
+    </div>
+
+    <div class="g-grid" id="studentGrid"></div>
+</div>
+</th:block>
+
+<th:block layout:fragment="script" th:remove="tag">
+<script th:src="@{/js/grading/common.js}"></script>
+<script>
+(function () {
+    const { esc, api, formatPct, formatEta, pctClass, debounce } = window.Grading;
+    const grid = document.getElementById('studentGrid');
+    const search = document.getElementById('studentSearch');
+    const sortBy = document.getElementById('sortBy');
+    const tabs = [...document.querySelectorAll('#courseTabs .g-tab')];
+    let students = [];
+
+    function storedCourse() {
+        try { return localStorage.getItem('gradebook.course'); } catch (e) { return null; }
+    }
+
+    async function loadCourse(course) {
+        tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.course === course));
+        try { localStorage.setItem('gradebook.course', course); } catch (e) { /* storage unavailable */ }
+        grid.innerHTML = '<div class="g-empty">Loading students…</div>';
+        try {
+            students = await api(`/api/synergy/gradebook/students?course=${encodeURIComponent(course)}`);
+            render();
+        } catch (e) {
+            grid.innerHTML = `<div class="g-empty">Could not load students: ${esc(e.message)}</div>`;
+        }
+    }
+
+    function render() {
+        const needle = search.value.trim().toLowerCase();
+        const rows = students.filter(s => !needle || (s.name || '').toLowerCase().includes(needle));
+        const pct = s => s.overallPct == null ? -1 : s.overallPct;
+        if (sortBy.value === 'pct-asc') rows.sort((a, b) => pct(a) - pct(b));
+        if (sortBy.value === 'pct-desc') rows.sort((a, b) => pct(b) - pct(a));
+        if (sortBy.value === 'pending') rows.sort((a, b) => b.pendingAiCount - a.pendingAiCount);
+        document.getElementById('resultCount').textContent = `${rows.length} of ${students.length} students`;
+        if (!rows.length) {
+            grid.innerHTML = '<div class="g-empty">No students match.</div>';
+            return;
+        }
+        grid.innerHTML = rows.map(s => `
+            <a class="g-card" href="/mvc/synergy/gradebook/student/${s.id}">
+                <div class="g-name" title="${esc(s.name)}">${esc(s.name || '(no name)')}</div>
+                <div class="g-uid">${esc(s.uid)}</div>
+                <div class="g-pct ${pctClass(s.overallPct)}">${formatPct(s.overallPct)}</div>
+                <div class="g-meta">
+                    <span>${s.gradedCount}/${s.submittedCount} graded</span>
+                    ${s.role ? `<span class="g-badge">${esc(s.role)}</span>` : ''}
+                    ${s.pendingAiCount ? `<span class="g-badge warn">${s.pendingAiCount} in AI queue</span>` : ''}
+                </div>
+            </a>`).join('');
+    }
+
+    async function loadQueue() {
+        const banner = document.getElementById('queueBanner');
+        try {
+            const q = await api('/api/submissions/ai-queue');
+            if (!q.queueLength) {
+                banner.innerHTML = '<span class="g-badge ok">AI queue empty</span> Every submission has been through the AI grader.';
+                return;
+            }
+            const last = q.entries.length ? q.entries[q.entries.length - 1].etaSeconds : null;
+            banner.innerHTML = `<span class="g-badge warn">${q.queueLength} waiting for AI grading</span>
+                ${q.running ? 'Grading now.' : `Next run in ${esc(formatEta(q.nextRunInSeconds))}.`}
+                Queue clears in ${esc(formatEta(last))} (about ${Math.round(q.secondsPerGrade)}s per submission).`;
+        } catch (e) {
+            banner.textContent = `Could not load the AI queue: ${e.message}`;
+        }
+    }
+
+    tabs.forEach(tab => tab.addEventListener('click', () => loadCourse(tab.dataset.course)));
+    search.addEventListener('input', debounce(render, 150));
+    sortBy.addEventListener('change', render);
+
+    const initial = tabs.find(t => t.dataset.course === storedCourse()) || tabs[0];
+    if (initial) loadCourse(initial.dataset.course);
+    loadQueue();
+})();
+</script>
+</th:block>
+</html>

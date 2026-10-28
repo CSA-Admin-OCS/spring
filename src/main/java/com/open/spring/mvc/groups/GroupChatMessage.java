@@ -11,14 +11,18 @@ import java.util.UUID;
 @AllArgsConstructor
 public class GroupChatMessage {
     private String id;
-    private String name;
+    private String author;
+    private String author_uid;
     private String message;
     private String date;
     private String image;
+    /** Set once on the first edit; stays true even if edited again. */
+    private boolean edited;
 
-    public GroupChatMessage(String name, String message, String date, String image) {
+    public GroupChatMessage(String author, String author_uid, String message, String date, String image) {
         this.id = UUID.randomUUID().toString();
-        this.name = name;
+        this.author = author;
+        this.author_uid = author_uid;
         this.message = message;
         this.date = date;
         this.image = image;

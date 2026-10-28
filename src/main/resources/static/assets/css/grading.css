@@ -1,0 +1,121 @@
+/* Shared styles for the gradebook, AI queue, grade request and assignment tracker pages. */
+.grading, .g-modal {
+  --g-panel: rgba(255, 255, 255, 0.04);
+  --g-panel-strong: rgba(255, 255, 255, 0.08);
+  --g-border: rgba(255, 255, 255, 0.12);
+  --g-muted: #a0a4ab;
+  --g-accent: #5865F2;
+  --g-ok: #2ECC71;
+  --g-warn: #f0b429;
+  --g-bad: #E74C3C;
+}
+.grading {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.grading h2 { margin-bottom: 4px; }
+.g-sub { color: var(--g-muted); margin-bottom: 16px; font-size: 0.95rem; }
+
+/* toolbar: search + controls in one row that wraps on phones */
+.g-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+.g-toolbar .g-search { flex: 1 1 240px; min-width: 0; }
+.g-input, .grading input[type=text], .grading input[type=number], .grading input[type=date],
+.grading select, .grading textarea, .g-modal input[type=text], .g-modal input[type=number],
+.g-modal input[type=date], .g-modal select, .g-modal textarea {
+  background: var(--g-panel-strong); color: inherit; border: 1px solid var(--g-border);
+  border-radius: 6px; padding: 6px 10px; font-size: 0.95rem; max-width: 100%;
+}
+.grading textarea, .g-modal textarea { width: 100%; }
+
+/* tabs */
+.g-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--g-border); margin-bottom: 16px; }
+.g-tab {
+  background: none; border: none; color: var(--g-muted); padding: 8px 14px; cursor: pointer;
+  border-bottom: 2px solid transparent; font-weight: 600;
+}
+.g-tab.active { color: inherit; border-bottom-color: var(--g-accent); }
+
+/* buttons */
+.g-btn {
+  background: var(--g-panel-strong); color: inherit; border: 1px solid var(--g-border); border-radius: 6px;
+  padding: 6px 12px; cursor: pointer; font-size: 0.9rem; white-space: nowrap;
+}
+.g-btn:hover { border-color: var(--g-accent); }
+.g-btn.primary { background: var(--g-accent); border-color: var(--g-accent); color: #fff; }
+.g-btn.danger { border-color: var(--g-bad); color: var(--g-bad); }
+.g-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* student card grid */
+.g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.g-card {
+  background: var(--g-panel); border: 1px solid var(--g-border); border-radius: 10px; padding: 12px 14px;
+  color: inherit; text-decoration: none; display: block; transition: border-color 0.15s;
+}
+.g-card:hover { border-color: var(--g-accent); color: inherit; }
+.g-card .g-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.g-card .g-uid { color: var(--g-muted); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; }
+.g-card .g-pct { font-size: 1.6rem; font-weight: 700; margin-top: 6px; }
+.g-card .g-meta { color: var(--g-muted); font-size: 0.85rem; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* stat chips */
+.g-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.g-stat { background: var(--g-panel); border: 1px solid var(--g-border); border-radius: 8px; padding: 6px 12px; }
+.g-stat b { display: block; font-size: 1.2rem; }
+.g-stat span { color: var(--g-muted); font-size: 0.8rem; }
+
+/* status badges */
+.g-badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+  border: 1px solid currentColor; white-space: nowrap; }
+.g-badge.ok { color: var(--g-ok); }
+.g-badge.warn { color: var(--g-warn); }
+.g-badge.bad { color: var(--g-bad); }
+.g-badge.muted { color: var(--g-muted); }
+
+/* tables */
+.g-table-wrap { overflow-x: auto; border: 1px solid var(--g-border); border-radius: 8px; }
+.g-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.g-table th, .g-table td { padding: 7px 10px; border-bottom: 1px solid var(--g-border); text-align: left; vertical-align: middle; }
+.g-table th { color: var(--g-muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
+.g-table tr:last-child td { border-bottom: none; }
+.g-table tr.g-click { cursor: pointer; }
+.g-table tr.g-click:hover td { background: var(--g-panel); }
+.g-details { width: 100%; font-size: 0.9rem; }
+.g-details th { color: var(--g-muted); font-weight: 500; padding: 3px 12px 3px 0; white-space: nowrap; width: 1%; }
+.g-details td { padding: 3px 0; }
+
+.g-panel { background: var(--g-panel); border: 1px solid var(--g-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+.g-scroll { max-height: 180px; overflow: auto; white-space: pre-wrap; font-size: 0.85rem; margin: 0; }
+.g-empty { color: var(--g-muted); padding: 24px; text-align: center; }
+.g-grade-input { width: 80px; }
+
+/* dropdown panel (filters) */
+.g-drop { position: relative; }
+.g-drop-panel {
+  position: absolute; right: 0; top: calc(100% + 4px); z-index: 50; width: min(320px, calc(100vw - 32px));
+  background: #2b2d31; border: 1px solid var(--g-border); border-radius: 10px; padding: 12px; display: none;
+}
+.g-drop.open .g-drop-panel { display: block; }
+.g-drop-panel h6 { font-size: 0.75rem; text-transform: uppercase; color: var(--g-muted); margin: 10px 0 6px; }
+.g-drop-panel h6:first-child { margin-top: 0; }
+.g-drop-panel label { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; margin-bottom: 4px; }
+
+/* modal window */
+.g-modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 1050; display: none;
+  align-items: flex-start; justify-content: center; padding: 32px 16px; overflow-y: auto; }
+.g-modal.open { display: flex; }
+.g-modal-box { background: #2b2d31; border: 1px solid var(--g-border); border-radius: 12px; width: min(960px, 100%);
+  padding: 16px 18px; }
+.g-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.g-modal-head h3 { margin: 0; font-size: 1.3rem; }
+
+/* toast */
+.g-toast { position: fixed; bottom: 16px; right: 16px; z-index: 2000; padding: 10px 14px; border-radius: 8px;
+  background: #2b2d31; border: 1px solid var(--g-border); max-width: calc(100vw - 32px); }
+.g-toast.ok { border-color: var(--g-ok); }
+.g-toast.bad { border-color: var(--g-bad); }
+
+@media (max-width: 600px) {
+  .g-two-col { grid-template-columns: 1fr !important; }
+}
+.g-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

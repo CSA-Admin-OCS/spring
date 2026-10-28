@@ -1,0 +1,77 @@
+### Announcement API Tests
+
+This file exercises every route of the announcement API under
+`/api/announcements`: create, read (all, newest first, by author, by tags),
+edit and delete. See docs/announcement-architecture.md for how the API is
+built and what each route returns.
+
+Install the **REST Client** extension in VS Code and select the `local` or
+`deployed` environment. Configure the same `baseUrl`, `adminUid`, and
+`adminPassword` variables used by `toolchain.http` in the Git-ignored
+`.vscode/settings.json`. Never put passwords in this file.
+
+Run the requests in order. Request 3 creates an announcement titled
+"REST Client Test" and request 9 deletes it, so the run leaves no data
+behind. Titles must be unique: edit and delete find an announcement by title.
+
+### 1. Sign in (every announcement route needs a signed-in account)
+
+# @name loginAnnouncement
+POST {{baseUrl}}/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "uid": "{{adminUid}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Read every announcement -> 200 with a JSON array
+
+GET {{baseUrl}}/api/announcements
+Accept: application/json
+
+### 3. Create an announcement -> 201 with the saved announcement
+# The fields are query parameters, not a JSON body.
+
+POST {{baseUrl}}/api/announcements/create?author=REST%20Client&title=REST%20Client%20Test&body=Created%20from%20announcement.http&tags=rest-client
+Accept: application/json
+
+### 4. Read every announcement, newest first -> 200
+
+GET {{baseUrl}}/api/announcements/orderedByTime
+Accept: application/json
+
+### 5. Read the announcement by an author -> 200, or 404 when there is none
+
+GET {{baseUrl}}/api/announcements/author/REST%20Client
+Accept: application/json
+
+### 6. Read announcements whose tags equal a value -> 200 with an array (empty when none match)
+
+GET {{baseUrl}}/api/announcements/tags/rest-client
+Accept: application/json
+
+### 7. Edit the body -> 200 with the edited announcement
+# The new body is the plain-text request body.
+
+POST {{baseUrl}}/api/announcements/edit/REST%20Client%20Test
+Content-Type: text/plain
+
+Edited from announcement.http
+
+### 8. Confirm the edit -> 200 with the new body
+
+GET {{baseUrl}}/api/announcements/author/REST%20Client
+Accept: application/json
+
+### 9. Delete the test announcement -> 204
+
+POST {{baseUrl}}/api/announcements/delete/REST%20Client%20Test
+
+### 10. Known issue: editing a title that does not exist -> 500, not 404
+
+POST {{baseUrl}}/api/announcements/edit/No%20Such%20Title
+Content-Type: text/plain
+
+This request shows the current behavior described under Known issues.

@@ -15,6 +15,8 @@ public interface DirectMessageJpaRepository extends JpaRepository<DirectMessage,
 
     Optional<DirectMessage> findTopByConversationOrderByIdDesc(DirectMessageConversation conversation);
 
+    Optional<DirectMessage> findByIdAndConversation(Long id, DirectMessageConversation conversation);
+
     /**
      * One row per (conversation, sender) that has messages {@code person} hasn't read: messages
      * from someone else in the person's conversations, newer than the person's read marker for
@@ -23,7 +25,7 @@ public interface DirectMessageJpaRepository extends JpaRepository<DirectMessage,
     @Query("""
             SELECT new com.open.spring.mvc.directmessages.UnreadMessageCount(c.id, s.uid, s.name, COUNT(m))
             FROM DirectMessage m JOIN m.conversation c JOIN m.sender s JOIN c.participants p
-            WHERE p = :person AND s <> :person
+            WHERE p = :person AND s <> :person AND m.deleted = false
               AND m.id > COALESCE((SELECT r.lastReadMessageId FROM DirectMessageReadState r
                                    WHERE r.conversation = c AND r.person = :person), 0L)
             GROUP BY c.id, s.uid, s.name

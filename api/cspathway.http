@@ -1,0 +1,65 @@
+### Toolchain Feature - Compatibility API Tests
+
+This file tests the existing `/api/cs-pathway/...` routes used by Toolchain feature
+functions such as setup reports, help requests, and scores. The Java code for
+these functions now lives under `mvc.toolchain`, but the public route prefix is
+kept for compatibility with existing clients.
+
+The interactive station-agent API uses `/api/toolchain/...` and is tested in
+`toolchain.http`. Install the **REST Client** extension in VS Code to run requests.
+
+**Note on Authentication:**
+The application uses cookie-based JWT authentication. Run the `/authenticate`
+request first to receive the `jwt_java_spring` cookie before running requests
+that require a signed-in account. Select the `local` or `deployed` REST Client
+environment before sending requests.
+
+### 1. Authentication
+
+# @name login
+POST {{baseUrl}}/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "uid": "{{adminUid}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Setup Report Pairing
+
+# Generate a setup-report pairing code for a student
+# @name getPairingCode
+POST {{baseUrl}}/api/cs-pathway/setup-report/pairing-code
+Content-Type: application/json
+
+{}
+
+### 3. Help Requests
+
+# Send a help request (Requires Authentication)
+# Use the cookie from the authentication request above
+POST {{baseUrl}}/api/cs-pathway/help-requests
+Content-Type: application/json
+
+{
+  "levelKey": "toolchain-trail",
+  "station": "Git Village Hall",
+  "message": "I am stuck on the git commit step!"
+}
+
+### 4. Scoring & Progress
+
+# Get my current scores (Requires Authentication)
+GET {{baseUrl}}/api/cs-pathway/scores
+
+### 5. Updating Progress
+
+# Record progress for a specific level (Requires Authentication)
+# Replace {levelKey} with a valid level key, e.g., toolchain-trail
+PUT {{baseUrl}}/api/cs-pathway/scores/toolchain-trail
+Content-Type: application/json
+
+{
+  "percentComplete": 75.0
+}

@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.open.spring.mvc.slack.CalendarEvent;
-import com.open.spring.mvc.slack.CalendarEventRepository;
+import com.open.spring.mvc.calendar.CalendarEventEntity;
+import com.open.spring.mvc.calendar.CalendarEventJpaRepository;
 
 /**
  * Service for managing sprint dates and their associated calendar events.
@@ -24,7 +24,7 @@ import com.open.spring.mvc.slack.CalendarEventRepository;
 public class SprintDateService {
 
     @Autowired
-    private CalendarEventRepository calendarEventRepository;
+    private CalendarEventJpaRepository calendarEventRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -73,25 +73,25 @@ public class SprintDateService {
         int endWeek = sprintDate.getEndWeek();
 
         // 1. Create Sprint Start Event
-        CalendarEvent startEvent = new CalendarEvent(
+        CalendarEventEntity startEvent = new CalendarEventEntity(
             startDate,
             "🚀 " + sprintKey + " Start: " + sprintTitle,
             course + " " + sprintKey + " begins.\nSprint: " + sprintTitle + "\nWeeks " + startWeek + "-" + endWeek,
             "sprint",
             course
         );
-        CalendarEvent savedStartEvent = calendarEventRepository.save(startEvent);
+        CalendarEventEntity savedStartEvent = calendarEventRepository.save(startEvent);
         eventIds.add(savedStartEvent.getId());
 
         // 2. Create Sprint End Event
-        CalendarEvent endEvent = new CalendarEvent(
+        CalendarEventEntity endEvent = new CalendarEventEntity(
             endDate,
             "🏁 " + sprintKey + " End: " + sprintTitle,
             course + " " + sprintKey + " ends.\nSprint: " + sprintTitle,
             "sprint",
             course
         );
-        CalendarEvent savedEndEvent = calendarEventRepository.save(endEvent);
+        CalendarEventEntity savedEndEvent = calendarEventRepository.save(endEvent);
         eventIds.add(savedEndEvent.getId());
 
         // Parse week assignments
@@ -103,27 +103,27 @@ public class SprintDateService {
             LocalDate weekEndDate = calculateWeekDate(startDate, endDate, weekNum, startWeek, endWeek, true);
 
             // Week Start Event
-            CalendarEvent weekEvent = new CalendarEvent(
+            CalendarEventEntity weekEvent = new CalendarEventEntity(
                 weekStartDate,
                 "📅 Week " + weekNum + " - " + course,
                 course + " " + sprintKey + " - Week " + weekNum,
                 "week",
                 course
             );
-            CalendarEvent savedWeekEvent = calendarEventRepository.save(weekEvent);
+            CalendarEventEntity savedWeekEvent = calendarEventRepository.save(weekEvent);
             eventIds.add(savedWeekEvent.getId());
 
             // Assignment Due Dates for this week
             List<String> weekAssignments = assignments.getOrDefault(weekNum, Collections.emptyList());
             for (String assignment : weekAssignments) {
-                CalendarEvent assignmentEvent = new CalendarEvent(
+                CalendarEventEntity assignmentEvent = new CalendarEventEntity(
                     weekEndDate,
                     "📝 Due: " + assignment,
                     course + " Assignment Due\nWeek " + weekNum + " - " + sprintKey + "\n" + assignment,
                     "assignment",
                     course
                 );
-                CalendarEvent savedAssignmentEvent = calendarEventRepository.save(assignmentEvent);
+                CalendarEventEntity savedAssignmentEvent = calendarEventRepository.save(assignmentEvent);
                 eventIds.add(savedAssignmentEvent.getId());
             }
         }

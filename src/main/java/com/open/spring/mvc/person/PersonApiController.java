@@ -1,5 +1,6 @@
 package com.open.spring.mvc.person;
 
+import jakarta.validation.ConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +78,8 @@ public class PersonApiController {
     @Autowired
     private MentorTicketJpaRepository mentorTicketRepository;
 
-    @Value("${DEFAULT_PASSWORD:defaultPassword123}")
+    // application.properties default, overridden by DEFAULT_PASSWORD in .env
+    @Value("${person.default-password}")
     private String defaultPassword;
 
     /**
@@ -207,7 +209,7 @@ public class PersonApiController {
                 changedFields.append("email,");
             }
             if (passwordChanged) {
-                existingPerson.setPassword(passwordEncoder.encode(personDto.getPassword()));
+                existingPerson.setPassword(personDto.getPassword());
                 changedFields.append("password,");
             }
             if (isAdmin && uidChangeRequested) {
@@ -238,17 +240,17 @@ public class PersonApiController {
                 existingPerson.setKasmServerNeeded(personDto.getKasmServerNeeded());
                 changedFields.append("kasmServerNeeded,");
             }
-            // Save the updated person back to the repository
-            Person updatedPerson = repository.save(existingPerson);
+            // Save the updated person; JPA rejects a weak new password with a 400
+            personDetailsService.save(existingPerson, !passwordChanged);
 
             String changed = changedFields.length() == 0
                     ? "none"
                     : changedFields.substring(0, changedFields.length() - 1);
-            logger.info("AUDIT profile_update actor={} target={} fields={} admin={}", email, updatedPerson.getUid(),
+            logger.info("AUDIT profile_update actor={} target={} fields={} admin={}", email, existingPerson.getUid(),
                     changed, isAdmin);
 
             // Return the updated person entity
-            return new ResponseEntity<>(updatedPerson, HttpStatus.OK);
+            return new ResponseEntity<>(existingPerson, HttpStatus.OK);
         }
 
         // Return NOT_FOUND if person not found
@@ -473,6 +475,8 @@ public class PersonApiController {
             personDetailsService.save(person);
         } catch (DataIntegrityViolationException e) {
             return personCreateError(HttpStatus.CONFLICT, "Unable to create user due to duplicate constrained fields (likely uid/email/sid)");
+        } catch (ConstraintViolationException e) {
+            throw e; // JPA rejected a field (e.g. weak password); ExceptionHandlerAdvice sends the 400
         } catch (Exception e) {
             logger.error("Person create failed for uid={} email={}", uid, email, e);
             JSONObject responseObject = new JSONObject();
@@ -808,7 +812,7 @@ public class PersonApiController {
                 changedFields.append("email,");
             }
             if (passwordChanged) {
-                existingPerson.setPassword(passwordEncoder.encode(personDto.getPassword()));
+                existingPerson.setPassword(personDto.getPassword());
                 changedFields.append("password,");
             }
             if (nameChanged) {
@@ -833,8 +837,8 @@ public class PersonApiController {
                 existingPerson.setSid(personDto.getSid());
                 changedFields.append("sid,");
             }
-            // Save the updated person back to the repository
-            repository.save(existingPerson);
+            // Save the updated person; JPA rejects a weak new password with a 400
+            personDetailsService.save(existingPerson, !passwordChanged);
 
             String changed = changedFields.length() == 0
                     ? "none"

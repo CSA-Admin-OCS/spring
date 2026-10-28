@@ -1,0 +1,54 @@
+# Password rule checks for Spring, run with the VS Code REST Client extension.
+# The rule lives on Person (JPA). A weak password is rejected when it is saved,
+# and every endpoint answers with the same 400: {"error": "<Person.PASSWORD_RULE>"}.
+# Start the server (./mvnw spring-boot:run), then click "Send Request" above each block.
+
+# @name login
+POST {{baseUrl}}/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "uid": "{{adminUid}}",
+  "password": "{{adminPassword}}"
+}
+
+### Signup with a weak password -> 400 with the rule
+POST {{baseUrl}}/api/person/create
+Content-Type: application/json
+
+{
+  "uid": "{{uid}}",
+  "email": "{{email}}",
+  "name": "HTTP Test",
+  "password": "password"
+}
+
+### Signup with a strong password -> 200
+POST {{baseUrl}}/api/person/create
+Content-Type: application/json
+
+{
+  "uid": "{{uid}}",
+  "email": "{{email}}",
+  "name": "HTTP Test",
+  "password": "{{password}}"
+}
+
+
+### Change own password to a weak one -> 400 with the rule
+POST {{baseUrl}}/api/person/update
+Content-Type: application/json
+
+{
+  "currentPassword": "{{password}}",
+  "password": "password"
+}
+
+### Edit something other than the password -> 200 (the stored hash is not re-checked)
+POST {{baseUrl}}/api/person/update
+Content-Type: application/json
+
+{
+  "name": "HTTP Test Renamed"
+}

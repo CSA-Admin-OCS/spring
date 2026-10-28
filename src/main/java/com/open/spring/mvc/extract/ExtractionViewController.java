@@ -19,13 +19,13 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
 import com.open.spring.mvc.person.Person;
 import com.open.spring.mvc.assignments.Assignment;
 import com.open.spring.mvc.assignments.AssignmentQueue;
-import com.open.spring.mvc.slack.CalendarEvent;
+import com.open.spring.mvc.calendar.CalendarEventEntity;
 
 ///// repositories
 import com.open.spring.mvc.person.PersonJpaRepository;
 import com.open.spring.mvc.groups.GroupsJpaRepository;
 import com.open.spring.mvc.assignments.AssignmentJpaRepository;
-import com.open.spring.mvc.slack.CalendarEventRepository;
+import com.open.spring.mvc.calendar.CalendarEventJpaRepository;
 
 
 
@@ -45,7 +45,7 @@ private GroupsJpaRepository groupsJpaRepository;
 private AssignmentJpaRepository assignmentJpaRepository;
 
 @Autowired
-private CalendarEventRepository calendarEventRepository;
+private CalendarEventJpaRepository calendarEventRepository;
 
 /////////////////////////////////////////
 /// Export Objects
@@ -238,7 +238,7 @@ private CalendarEventRepository calendarEventRepository;
         if(!calendarEventRepository.existsById(id)){
             return new ResponseEntity<CalendarEventEmpty>(HttpStatus.NOT_FOUND);
         }
-        CalendarEvent calendarEvent = calendarEventRepository.findById(id).get();
+        CalendarEventEntity calendarEvent = calendarEventRepository.findById(id).get();
         CalendarEventEmpty calendarEventEmpty = new CalendarEventEmpty(
             calendarEvent.getId(),
             calendarEvent.getDate(),
@@ -252,7 +252,7 @@ private CalendarEventRepository calendarEventRepository;
 
     @GetMapping("all/calendar-event")
     public ResponseEntity<List<CalendarEventEmpty>> extractAllCalendarEvent(){
-        List<CalendarEvent> calendarEventList = calendarEventRepository.findAll();
+        List<CalendarEventEntity> calendarEventList = calendarEventRepository.findAll();
         ArrayList<CalendarEventEmpty> calendarEventEmpties = new ArrayList<CalendarEventEmpty>(0);
         calendarEventList.stream().forEach(calendarEvent -> {
             calendarEventEmpties.add(new CalendarEventEmpty(

@@ -1,8 +1,15 @@
 package com.open.spring.mvc.assignments;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -61,5 +68,20 @@ final class AssignmentCreatorFixtures {
         submission.setId(id);
         submission.setAssignment(assignment);
         return submission;
+    }
+
+    /** A real grading service over a mocked repository that knows only {@code submissions}. */
+    static SubmissionGradingService gradingService(AssignmentSubmissionJPA submissionRepo,
+            AssignmentSubmission... submissions) {
+        when(submissionRepo.lockForGrading(anyLong())).thenReturn(0);
+        for (AssignmentSubmission submission : submissions) {
+            when(submissionRepo.lockForGrading(submission.getId())).thenReturn(1);
+            when(submissionRepo.findById(submission.getId())).thenReturn(Optional.of(submission));
+            when(submissionRepo.findGradingState(submission.getId()))
+                .thenAnswer(invocation -> Optional.of(SubmissionGradingState.of(submission)));
+        }
+        when(submissionRepo.applyManualOverride(anyLong(), anyInt(), any(), any(), any())).thenReturn(1);
+        return new SubmissionGradingService(submissionRepo, mock(AssignmentJpaRepository.class), mock(SubmissionGradeEventJPA.class),
+            new AssignmentAuthorizationService());
     }
 }

@@ -135,9 +135,9 @@ public class MvcSecurityConfig {
                 .requestMatchers("/mvc/bathroom/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                .requestMatchers("/mvc/synergy/**").authenticated()
-                .requestMatchers(HttpMethod.GET, "/mvc/synergy/gradebook").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN", "ROLE_STUDENT")
+                // Specific synergy rules must come before the catch-all: the first match wins.
                 .requestMatchers(HttpMethod.GET, "/mvc/synergy/view-grade-requests").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
+                .requestMatchers("/mvc/synergy/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/mvc/assignments/tracker").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/mvc/teamteach/teachergrading").hasAnyAuthority("ROLE_TEACHER", "ROLE_ADMIN")
                 .requestMatchers(HttpMethod.GET,"/mvc/train/**").authenticated()
@@ -150,6 +150,7 @@ public class MvcSecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/ws-chat/**").permitAll()
                 .requestMatchers("/mvc/progress/read").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
                 .requestMatchers("/mvc/capstone/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
+                .requestMatchers("/mvc/cs-pathway/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
                 .requestMatchers("/ws-chat/**").permitAll()
                 .requestMatchers("/run/**").permitAll()  // Java runner endpoints - public access
                 .anyRequest().authenticated()

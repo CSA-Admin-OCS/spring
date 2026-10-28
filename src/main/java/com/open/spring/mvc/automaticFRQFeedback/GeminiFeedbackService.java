@@ -44,6 +44,9 @@ public class GeminiFeedbackService {
     private com.open.spring.mvc.assignments.AssignmentSubmissionJPA submissionRepo;
 
     @Autowired
+    private com.open.spring.mvc.assignments.SubmissionGradingService gradingService;
+
+    @Autowired
     private com.open.spring.mvc.synergy.SynergyGradeJpaRepository gradesRepo;
     
     public GeminiFeedbackService(RestTemplate restTemplate, ObjectMapper objectMapper) {
@@ -114,14 +117,18 @@ public class GeminiFeedbackService {
 
         Feedback saved = feedbackRepository.save(fb);
 
-        // Update assignment submission with short feedback and normalized grade
+        // Recorded as the AI grade for the revision Gemini read; a manual override stays effective.
         String shortFeedback = parsed.getOverallFeedback() != null && !parsed.getOverallFeedback().isEmpty()
                 ? String.join("; ", parsed.getOverallFeedback().subList(0, Math.min(3, parsed.getOverallFeedback().size())))
                 : null;
 
-        submission.setGrade(normalized);
-        submission.setFeedback(shortFeedback);
-        submissionRepo.save(submission);
+        var outcome = gradingService.recordAiGrade(submissionId, submission.currentRevision(),
+                com.open.spring.mvc.assignments.AssignmentAiGradingService.GradeResult.graded(normalized, null, shortFeedback, false))
+                .outcome();
+        if (outcome != com.open.spring.mvc.assignments.GradingOutcome.AI_GRADE_APPLIED) {
+            log.info("Gemini grade for submission {} not made effective: {}", submissionId, outcome);
+            return saved;
+        }
 
         // Update SynergyGrade records for students
         try {

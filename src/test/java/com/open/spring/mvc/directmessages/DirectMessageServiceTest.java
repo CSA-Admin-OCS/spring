@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,10 +72,16 @@ class DirectMessageServiceTest {
                 case "findTopByConversationOrderByIdDesc" -> savedMessages.stream()
                     .filter(message -> message.getConversation() == arguments[0])
                     .reduce((first, second) -> second);
+                case "findByIdAndConversation" -> savedMessages.stream()
+                    .filter(message -> message.getId().equals(arguments[0])
+                        && message.getConversation() == arguments[1])
+                    .findFirst();
                 case "save" -> {
                     DirectMessage message = (DirectMessage) arguments[0];
-                    ReflectionTestUtils.setField(message, "id", (long) (savedMessages.size() + 1));
-                    savedMessages.add(message);
+                    if (message.getId() == null) {
+                        ReflectionTestUtils.setField(message, "id", (long) (savedMessages.size() + 1));
+                        savedMessages.add(message);
+                    }
                     yield message;
                 }
                 default -> throw new UnsupportedOperationException(methodName);
@@ -181,6 +189,68 @@ class DirectMessageServiceTest {
 
         assertEquals(event.getId(), readStateFor(conversation, alice).getLastReadMessageId());
         assertTrue(readStates.stream().noneMatch(state -> state.getPerson() == bob));
+    }
+
+    @Test
+    void editingOwnMessageUpdatesTheBody() {
+        DirectMessageConversation conversation = service.getOrCreateConversation(alice, List.of(bob));
+        DirectMessageEvent posted = service.postMessage(conversation, alice, "hello");
+
+        DirectMessage updated = service.editMessage(conversation, alice, posted.getId(), "hello, edited");
+
+        assertEquals("hello, edited", updated.getBody());
+        assertFalse(updated.isDeleted());
+    }
+
+    @Test
+    void editingSomeoneElsesMessageIsRejected() {
+        DirectMessageConversation conversation = service.getOrCreateConversation(alice, List.of(bob));
+        DirectMessageEvent posted = service.postMessage(conversation, alice, "hello");
+
+        assertThrows(SecurityException.class,
+            () -> service.editMessage(conversation, bob, posted.getId(), "not mine to edit"));
+    }
+
+    @Test
+    void editingAMissingMessageIsNotFound() {
+        DirectMessageConversation conversation = service.getOrCreateConversation(alice, List.of(bob));
+
+        assertThrows(NoSuchElementException.class,
+            () -> service.editMessage(conversation, alice, 999L, "no such message"));
+    }
+
+    @Test
+    void deletingOwnMessageClearsTheBodyAndMarksItDeleted() {
+        DirectMessageConversation conversation = service.getOrCreateConversation(alice, List.of(bob));
+        DirectMessageEvent posted = service.postMessage(conversation, alice, "hello");
+
+        service.deleteMessage(conversation, alice, posted.getId());
+
+        DirectMessage stored = savedMessages.stream()
+            .filter(message -> message.getId().equals(posted.getId()))
+            .findFirst()
+            .orElseThrow();
+        assertTrue(stored.isDeleted());
+        assertEquals("", stored.getBody());
+    }
+
+    @Test
+    void deletingSomeoneElsesMessageIsRejected() {
+        DirectMessageConversation conversation = service.getOrCreateConversation(alice, List.of(bob));
+        DirectMessageEvent posted = service.postMessage(conversation, alice, "hello");
+
+        assertThrows(SecurityException.class,
+            () -> service.deleteMessage(conversation, bob, posted.getId()));
+    }
+
+    @Test
+    void editingADeletedMessageIsRejected() {
+        DirectMessageConversation conversation = service.getOrCreateConversation(alice, List.of(bob));
+        DirectMessageEvent posted = service.postMessage(conversation, alice, "hello");
+        service.deleteMessage(conversation, alice, posted.getId());
+
+        assertThrows(IllegalStateException.class,
+            () -> service.editMessage(conversation, alice, posted.getId(), "too late"));
     }
 
     private DirectMessageReadState readStateFor(DirectMessageConversation conversation, Person person) {

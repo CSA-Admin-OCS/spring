@@ -187,6 +187,21 @@ class AssignmentSubmissionViewControllerManagedTest {
     }
 
     @Test
+    void olderDuplicateRowsAreLeftOutAsEarlierVersions() {
+        authenticateAs(admin(4L, "toby"), "ROLE_ADMIN");
+        Person student = student(5L, "lex");
+        AssignmentSubmission older = submission(101L, ownedAssignment);
+        older.setSubmitter(student);
+        AssignmentSubmission newer = submission(102L, ownedAssignment);
+        newer.setSubmitter(student);
+        when(submissionRepo.findAll()).thenReturn(List.of(older, newer, foreignSubmission));
+
+        List<SubmissionListDTO> body = dtos(controller.getManagedSubmissions());
+
+        assertEquals(List.of(102L, 200L), body.stream().map(SubmissionListDTO::getId).toList());
+    }
+
+    @Test
     void unauthenticatedManagedRequestsAreRejected() {
         SecurityContextHolder.clearContext();
 

@@ -11,8 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
@@ -208,10 +206,9 @@ class UserLoginRequest {
 
 /**
  * Service class responsible for managing the logic related to user stocks.
- * Implements UserDetailsService for handling user authentication.
  */
 @Service
-class UserStocksTableService implements UserDetailsService {
+class UserStocksTableService {
     @Autowired
 private BankJpaRepository bankJpaRepository;
 
@@ -238,25 +235,6 @@ private BankJpaRepository bankJpaRepository;
     // Cache map: symbol -> cached price
     private final Map<String, CachedStockPrice> stockPriceCache = new ConcurrentHashMap<>();
     
-
-    /**
-     * Loads user by username for authentication.
-     * 
-     * @param username The username to load user details for.
-     * @return User details object.
-     * @throws UsernameNotFoundException If user is not found.
-     */
-    @Override
-    public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        userStocksTable user = userRepository.findByEmail(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found");
-        }
-
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getPerson_name())
-                .build();
-    }
 
     /**
      * Fetches the current stock price for a given stock symbol from Yahoo Finance.

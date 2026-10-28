@@ -11,14 +11,15 @@ import java.util.Optional;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.open.spring.mvc.announcement.Announcement;
-import com.open.spring.mvc.announcement.AnnouncementJPA;
+import com.open.spring.mvc.announcement.AnnouncementEntity;
+import com.open.spring.mvc.announcement.AnnouncementJpaRepository;
 import com.open.spring.mvc.assignments.Assignment;
 import com.open.spring.mvc.assignments.AssignmentJpaRepository;
 import com.open.spring.mvc.assignments.AssignmentSubmissionJPA;
@@ -74,7 +75,7 @@ public class ModelInit {
     @Autowired PersonRoleJpaRepository roleJpaRepository;
     @Autowired PersonDetailsService personDetailsService;
     @Autowired PersonJpaRepository personJpaRepository;
-    @Autowired AnnouncementJPA announcementJPA;
+    @Autowired AnnouncementJpaRepository announcementJPA;
     @Autowired CommentJPA CommentJPA;
     @Autowired TinkleJPARepository tinkleJPA;
     @Autowired BathroomQueueJPARepository queueJPA;
@@ -101,6 +102,9 @@ public class ModelInit {
     @Autowired QuizScoreRepository quizScoreRepository;
     @Autowired ResumeJpaRepository resumeJpaRepository;
     @Autowired StatsRepository statsRepository; // curators - stats
+
+    // application.properties default, overridden by DEFAULT_PASSWORD in .env
+    @Value("${person.default-password}") String defaultPassword;
 
     @Bean
     @Transactional
@@ -129,6 +133,20 @@ public class ModelInit {
                     String defaultAssignmentRubric = com.open.spring.mvc.assignments.Assignment.DEFAULT_AI_RUBRIC.replace("'", "''");
                     st.executeUpdate("UPDATE assignment SET ai_rubric = '" + defaultAssignmentRubric
                             + "' WHERE ai_rubric IS NULL OR TRIM(ai_rubric) = ''");
+
+                    try {
+                        st.execute("ALTER TABLE direct_message ADD COLUMN deleted BOOLEAN DEFAULT FALSE;");
+                        System.out.println("Added 'deleted' column to 'direct_message' table");
+                    } catch (SQLException ignore) {
+                        // column may already exist; ignore
+                    }
+
+                    try {
+                        st.execute("ALTER TABLE direct_message ADD COLUMN edited BOOLEAN DEFAULT FALSE;");
+                        System.out.println("Added 'edited' column to 'direct_message' table");
+                    } catch (SQLException ignore) {
+                        // column may already exist; ignore
+                    }
 
                     try {
                         Iterable<Adventure> all = adventureJpaRepository.findAll();
@@ -160,6 +178,10 @@ public class ModelInit {
                     String createGames = buildGamesTableSql(conn);
                     st.execute(createGames);
                     System.out.println("Ensured 'games' table exists");
+
+                    String createDirectMessageReadState = buildDirectMessageReadStateTableSql(conn);
+                    st.execute(createDirectMessageReadState);
+                    System.out.println("Ensured 'direct_message_read_state' table exists");
 
                     try {
                         long gameCount = 0L;
@@ -270,7 +292,7 @@ public class ModelInit {
             }
         
             System.out.println("Loading default sample data...");
-            Person[] personArray = Person.init();
+            Person[] personArray = Person.init(defaultPassword);
             for (Person person : personArray) {
                 List<Person> personFound = personDetailsService.list(person.getName(), person.getEmail());
                 if (personFound.isEmpty()) { 
@@ -287,7 +309,7 @@ public class ModelInit {
                     
                     // Ensure password is not null or empty
                     if (person.getPassword() == null || person.getPassword().isEmpty()) {
-                        person.setPassword("DefaultPassword123!"); // Must satisfy Person.checkPassword()
+                        person.setPassword(defaultPassword); // Must satisfy Person.PASSWORD_RULE
                     }
                     
                     personDetailsService.save(person);
@@ -308,11 +330,11 @@ public class ModelInit {
                 }
             }
             
-            List<Announcement> announcements = Announcement.init();
-            for (Announcement announcement : announcements) {
-                Announcement announcementFound = announcementJPA.findByAuthor(announcement.getAuthor());  
+            List<AnnouncementEntity> announcements = AnnouncementEntity.init();
+            for (AnnouncementEntity announcement : announcements) {
+                AnnouncementEntity announcementFound = announcementJPA.findByAuthor(announcement.getAuthor());  
                 if (announcementFound == null) {
-                    announcementJPA.save(new Announcement(announcement.getAuthor(), announcement.getTitle(), announcement.getBody(), announcement.getTags())); // JPA save
+                    announcementJPA.save(new AnnouncementEntity(announcement.getAuthor(), announcement.getTitle(), announcement.getBody(), announcement.getTags())); // JPA save
                 }
             }
             // Adventure sub-APIs have been merged into a single Adventure table/entity.
@@ -627,6 +649,21 @@ public class ModelInit {
                 + quoteIdentifier(connection, "success") + " INTEGER,"
                 + quoteIdentifier(connection, "details") + " TEXT,"
                 + quoteIdentifier(connection, "created_at") + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                + ");";
+    }
+
+    private String buildDirectMessageReadStateTableSql(Connection connection) throws SQLException {
+        String idColumn = isMySqlDatabase(connection)
+            ? quoteIdentifier(connection, "id") + " BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY"
+            : quoteIdentifier(connection, "id") + " INTEGER PRIMARY KEY AUTOINCREMENT";
+
+        return "CREATE TABLE IF NOT EXISTS " + quoteIdentifier(connection, "direct_message_read_state") + " ("
+                + idColumn + ","
+                + quoteIdentifier(connection, "conversation_id") + " BIGINT,"
+                + quoteIdentifier(connection, "person_id") + " BIGINT,"
+                + quoteIdentifier(connection, "last_read_message_id") + " BIGINT,"
+                + "UNIQUE (" + quoteIdentifier(connection, "conversation_id") + ","
+                        + quoteIdentifier(connection, "person_id") + ")"
                 + ");";
     }
 }

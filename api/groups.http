@@ -1,0 +1,117 @@
+### Groups and Group Chat API Tests
+
+This file exercises the group and group chat REST routes under
+`/api/groups`. It creates a test group, adds and removes you as a member,
+sends and reads chat messages, checks unread counts, and deletes the group
+at the end. See docs/group-chat-architecture.md for how groups and chat fit
+together, including the realtime WebSocket side, which a .http file cannot
+test.
+
+Install the **REST Client** extension in VS Code and select the `local` or
+`deployed` environment. Configure the same `baseUrl`, `adminUid`, and
+`adminPassword` variables used by `toolchain.http` in the Git-ignored
+`.vscode/settings.json`. Never put passwords in this file.
+
+Run the requests in order: later requests use the ids that requests 3 and 4
+return. Chat history lives in S3, so on a server without AWS settings,
+message reads return an empty list even after a send.
+
+### 1. Sign in (every /api/groups route needs a signed-in account)
+
+# @name loginGroups
+POST {{baseUrl}}/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "uid": "{{adminUid}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Read every group -> 200 with a JSON array
+
+GET {{baseUrl}}/api/groups
+Accept: application/json
+
+### 3. Create a test group -> 201 with the group
+# It also creates the group's chat storage in S3 when S3 is configured.
+# On a local SQLite server, the first group created after a restart can fail with
+# 500 (SQLITE_BUSY_SNAPSHOT); send it again. See Known issues in the guide.
+
+# @name createGroup
+POST {{baseUrl}}/api/groups
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "REST Client Test Group",
+  "period": "0",
+  "course": "CSA",
+  "memberIds": []
+}
+
+### 4. Read your own account, for its person id -> 200
+
+# @name me
+GET {{baseUrl}}/api/person/get
+Accept: application/json
+
+### 5. Read the test group by id -> 200
+
+GET {{baseUrl}}/api/groups/{{createGroup.response.body.$.id}}
+Accept: application/json
+
+### 6. Search groups by name -> 200 with the matches
+
+GET {{baseUrl}}/api/groups/search?name=REST%20Client%20Test
+Accept: application/json
+
+### 7. Add yourself to the test group -> 200
+
+POST {{baseUrl}}/api/groups/{{createGroup.response.body.$.id}}/members/{{me.response.body.$.id}}
+Accept: application/json
+
+### 8. Read the groups you belong to -> 200, including the test group
+
+GET {{baseUrl}}/api/groups/person/{{me.response.body.$.id}}
+Accept: application/json
+
+### 9. Send a chat message -> 200 with the group's messages
+# The sender is the signed-in account; the request cannot choose it.
+
+POST {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/messages
+Content-Type: application/json
+Accept: application/json
+
+{
+  "message": "Hello from groups.http"
+}
+
+### 10. Read the chat messages -> 200 with an array (empty when S3 is not configured)
+
+GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/messages
+Accept: application/json
+
+### 11. Read your unread counts across your groups -> 200
+
+GET {{baseUrl}}/api/groups/chat/unread
+Accept: application/json
+
+### 12. Mark the test group read -> 200
+
+POST {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/read
+
+### 13. List the group's shared files -> 200 with an array
+
+GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files
+Accept: application/json
+
+### 14. Remove yourself from the test group -> 200
+
+DELETE {{baseUrl}}/api/groups/{{createGroup.response.body.$.id}}/members/{{me.response.body.$.id}}
+Accept: application/json
+
+### 15. Delete the test group -> 200
+
+DELETE {{baseUrl}}/api/groups/{{createGroup.response.body.$.id}}
+Accept: application/json

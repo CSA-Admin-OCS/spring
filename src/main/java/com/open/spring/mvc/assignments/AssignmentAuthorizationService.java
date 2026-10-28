@@ -1,5 +1,6 @@
 package com.open.spring.mvc.assignments;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
@@ -23,7 +24,10 @@ public class AssignmentAuthorizationService {
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     /**
-     * @return true when the user is a teacher, an admin, or a creator of this assignment.
+     * @return true when the user is a teacher, an admin, a creator of this assignment, or a
+     *         grader assigned to it (/assignGraders/{id} - a whole-assignment grant, as
+     *         opposed to the narrower per-submission one checked by
+     *         {@link #canManage(Person, AssignmentSubmission)}).
      */
     public boolean canManage(Person user, Assignment assignment) {
         if (user == null) {
@@ -32,7 +36,32 @@ public class AssignmentAuthorizationService {
         if (isTeacherOrAdmin(user)) {
             return true;
         }
-        return isCreator(user, assignment);
+        if (isCreator(user, assignment)) {
+            return true;
+        }
+        return isAssignedGrader(user, assignment);
+    }
+
+    /**
+     * Distinct name rather than an overload of canManage(Person, Assignment): a bare `null`
+     * second argument (as in existing tests) is ambiguous between the two otherwise, since
+     * neither Assignment nor AssignmentSubmission is more specific than the other.
+     *
+     * @return true when {@link #canManage(Person, Assignment)} already allows this user on
+     *         the submission's assignment, or they were assigned this specific submission to
+     *         grade (/submissions/{id}/assignGraders - e.g. peer grading, where a student
+     *         grades one particular classmate's work without managing the whole assignment).
+     */
+    public boolean canManageSubmission(Person user, AssignmentSubmission submission) {
+        if (user == null || submission == null) {
+            return false;
+        }
+        if (canManage(user, submission.getAssignment())) {
+            return true;
+        }
+        List<Person> submissionGraders = submission.getAssignedGraders();
+        return submissionGraders != null
+            && submissionGraders.stream().anyMatch(grader -> isSamePerson(grader, user));
     }
 
     public boolean isTeacherOrAdmin(Person user) {
@@ -50,6 +79,18 @@ public class AssignmentAuthorizationService {
             return false;
         }
         return assignment.getCreators().stream().anyMatch(creator -> isSamePerson(creator, user));
+    }
+
+    /**
+     * Deliberately separate from isCreator: assignedGraders is work assigned via
+     * /assignGraders/{id}, not ownership (see the field comment on Assignment.creators).
+     */
+    public boolean isAssignedGrader(Person user, Assignment assignment) {
+        if (user == null || assignment == null) {
+            return false;
+        }
+        List<Person> graders = assignment.getAssignedGraders();
+        return graders != null && graders.stream().anyMatch(grader -> isSamePerson(grader, user));
     }
 
     /**

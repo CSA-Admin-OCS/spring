@@ -400,10 +400,14 @@ public class CapstoneApiController {
         if (!mayAccess(projectOpt.get(), authentication)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
-        if (message == null || message.getName() == null || message.getMessage() == null) {
-            return new ResponseEntity<>("name and message are required", HttpStatus.BAD_REQUEST);
+        if (message == null || message.getMessage() == null) {
+            return new ResponseEntity<>("message is required", HttpStatus.BAD_REQUEST);
         }
+        // The author is the signed-in person, as in GroupChatRealtimeService, never what the client sends.
+        Person author = personRepository.findByUid(authentication.getName());
+        GroupChatMessage saved = new GroupChatMessage(
+                author.getName(), author.getUid(), message.getMessage(), java.time.Instant.now().toString(), message.getImage());
         return new ResponseEntity<>(
-                groupChatService.addMessage(chatKey(projectOpt.get()), message), HttpStatus.OK);
+                groupChatService.addMessage(chatKey(projectOpt.get()), saved), HttpStatus.OK);
     }
 }

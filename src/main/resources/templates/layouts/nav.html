@@ -62,6 +62,9 @@
                                     th:href="@{/mvc/capstone/read}">Capstone Projects</a></li>
                                 <li><a class="dropdown-item" 
                                     th:href="@{/mvc/person/cookie-clicker}">Cookie Clicker Game</a></li>
+                                <li><a class="dropdown-item"
+                                        sec:authorize="hasRole('ROLE_TEACHER') or hasRole('ROLE_ADMIN')"
+                                        th:href="@{/mvc/cs-pathway/read}">CS Pathway Scores</a></li>
                                 <li><a class="dropdown-item" sec:authorize="hasRole('ROLE_ADMIN')"
                                      th:href="@{/api/imports/backups}">Database Backups</a></li>
                                 <li><a class="dropdown-item" sec:authorize="hasRole('ROLE_ADMIN')"
@@ -82,19 +85,18 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-dark"
                                 aria-labelledby="navbarDarkDropdownMenuGrading">
-                                <li><a class="dropdown-item"
-                                        sec:authorize="hasRole('ROLE_TEACHER') or hasRole('ROLE_ADMIN')"
-                                        th:href="@{/mvc/assignments/tracker}">Assignment Tracker</a></li>
-                                <li><a class="dropdown-item"
-                                        sec:authorize="hasRole('ROLE_TEACHER') or hasRole('ROLE_ADMIN')"
-                                        th:href="@{/mvc/synergy/gradebook}">Edit Student Grades</a></li>
-                                <li><a class="dropdown-item" sec:authorize="hasRole('ROLE_STUDENT')"
-                                        th:href="@{/mvc/synergy/gradebook}">View Grades</a></li>
+                                <li sec:authorize="hasRole('ROLE_TEACHER') or hasRole('ROLE_ADMIN')"><a
+                                        class="dropdown-item" th:href="@{/mvc/assignments/tracker}">Assignment Tracker</a></li>
+                                <li><a class="dropdown-item" th:href="@{/mvc/synergy/gradebook}">Gradebook</a></li>
+                                <li><a class="dropdown-item" th:href="@{/mvc/synergy/ai-queue}">AI Grading Queue</a></li>
                                 <li><a class="dropdown-item" th:href="@{/mvc/synergy/create-grade-request}">Create Grade
                                         Request</a></li>
-                                <li><a class="dropdown-item" th:href="@{/mvc/teamteach/teachergrading}">Teacher Grading
-                                        Team Teach</a>
-                                <li>
+                                <li sec:authorize="hasRole('ROLE_TEACHER') or hasRole('ROLE_ADMIN')"><a
+                                        class="dropdown-item" th:href="@{/mvc/synergy/view-grade-requests}">View Grade
+                                        Requests</a></li>
+                                <li sec:authorize="hasRole('ROLE_TEACHER') or hasRole('ROLE_ADMIN')"><a
+                                        class="dropdown-item" th:href="@{/mvc/teamteach/teachergrading}">Teacher Grading
+                                        Team Teach</a></li>
                                 <li><a class="dropdown-item"
                                     th:href="@{/mvc/assignments/queue-management}">Assignment Queue</a></li>
                             </ul>

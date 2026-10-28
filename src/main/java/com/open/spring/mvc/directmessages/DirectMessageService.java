@@ -2,8 +2,11 @@ package com.open.spring.mvc.directmessages;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class DirectMessageService {
 
     public static final String DM_TOPIC_PREFIX = "/topic/dm/";
+    public static final int MAX_BODY_LENGTH = 2000; // matches @Column(length = 2000) on DirectMessage.body
 
     private final DirectMessageConversationJpaRepository conversationRepository;
     private final DirectMessageJpaRepository messageRepository;
@@ -51,8 +55,16 @@ public class DirectMessageService {
      */
     @Transactional
     public DirectMessageConversation getOrCreateConversation(Person requester, List<Person> others) {
-        if (others.size() == 1) {
-            Person other = others.get(0);
+        if (requester == null) {
+            throw new IllegalArgumentException("requester is required");
+        }
+        if (others == null || others.isEmpty()) {
+            throw new IllegalArgumentException("at least one other participant is required");
+        }
+
+        List<Person> dedupedOthers = dedupeParticipants(others, requester);
+        if (dedupedOthers.size() == 1) {
+            Person other = dedupedOthers.get(0);
             List<DirectMessageConversation> existing = conversationRepository.findByParticipantsContaining(requester);
             for (DirectMessageConversation conversation : existing) {
                 List<Person> participants = conversation.getParticipants();
@@ -64,7 +76,7 @@ public class DirectMessageService {
 
         List<Person> participants = new ArrayList<>();
         participants.add(requester);
-        participants.addAll(others);
+        participants.addAll(dedupedOthers);
 
         return conversationRepository.save(new DirectMessageConversation(participants));
     }
@@ -85,14 +97,32 @@ public class DirectMessageService {
 
     @Transactional
     public DirectMessageEvent postMessage(DirectMessageConversation conversation, Person sender, String body) {
-        DirectMessage message = messageRepository.save(new DirectMessage(conversation, sender, body));
+        return postMessage(conversation, sender, body, null);
+    }
+
+    /** {@code image} is an optional data URL; a message may be an image with no text. */
+    @Transactional
+    public DirectMessageEvent postMessage(DirectMessageConversation conversation, Person sender,
+            String body, String image) {
+        String text = body == null ? "" : body.trim();
+        // Only a text-only message has to have text in it.
+        if (image == null || image.isBlank()) {
+            validateMessageBody(body);
+        } else if (text.length() > MAX_BODY_LENGTH) {
+            throw new IllegalArgumentException("body is too long");
+        }
+        DirectMessage message = messageRepository.save(
+                new DirectMessage(conversation, sender, text, image));
 
         DirectMessageEvent event = DirectMessageEvent.builder()
                 .id(message.getId())
                 .conversationId(conversation.getId())
+                .type("message")
                 .senderUid(sender.getUid())
                 .senderName(sender.getName())
-                .body(body)
+                .senderPfp(sender.getPfp())
+                .body(text)
+                .image(image)
                 .sentAt(message.getSentAt().toString())
                 .build();
 
@@ -101,6 +131,80 @@ public class DirectMessageService {
 
         messagingTemplate.convertAndSend(DM_TOPIC_PREFIX + conversation.getId(), event);
         return event;
+    }
+
+    /**
+     * Only the original sender may edit, and only while the message hasn't been deleted.
+     * Throws {@link NoSuchElementException} if {@code messageId} isn't in this conversation,
+     * {@link SecurityException} if {@code requester} didn't send it.
+     *
+     * {@code noRollbackFor}: these are expected, caller-handled outcomes (404/403/409), not
+     * failures -- without it, the exception crossing this method's transactional boundary
+     * marks the (shared, REQUIRED-propagation) transaction rollback-only, and the controller's
+     * own @Transactional then fails to commit with UnexpectedRollbackException even though it
+     * catches the exception and returns a normal response.
+     */
+    @Transactional(noRollbackFor = {NoSuchElementException.class, SecurityException.class, IllegalStateException.class})
+    public DirectMessage editMessage(
+            DirectMessageConversation conversation, Person requester, Long messageId, String newBody) {
+        DirectMessage message = messageRepository.findByIdAndConversation(messageId, conversation)
+                .orElseThrow(() -> new NoSuchElementException("Message not found"));
+        if (!message.getSender().getId().equals(requester.getId())) {
+            throw new SecurityException("Not the message sender");
+        }
+        if (message.isDeleted()) {
+            throw new IllegalStateException("Message was deleted");
+        }
+
+        message.setBody(newBody);
+        message.setEdited(true);
+        messageRepository.save(message);
+
+        DirectMessageEvent event = DirectMessageEvent.builder()
+                .id(message.getId())
+                .conversationId(conversation.getId())
+                .senderUid(requester.getUid())
+                .senderName(requester.getName())
+                .body(newBody)
+                .sentAt(message.getSentAt().toString())
+                .type("edited")
+                .edited(true)
+                .build();
+        messagingTemplate.convertAndSend(DM_TOPIC_PREFIX + conversation.getId(), event);
+        return message;
+    }
+
+    /**
+     * Soft-delete: the row stays (so the conversation's order and read-state markers aren't
+     * disturbed) but its body is cleared and {@code deleted} is set, so history shows a
+     * tombstone instead of just dropping the message. Same ownership rule as {@link #editMessage},
+     * and the same {@code noRollbackFor} reasoning -- see the comment there.
+     */
+    @Transactional(noRollbackFor = {NoSuchElementException.class, SecurityException.class})
+    public void deleteMessage(DirectMessageConversation conversation, Person requester, Long messageId) {
+        DirectMessage message = messageRepository.findByIdAndConversation(messageId, conversation)
+                .orElseThrow(() -> new NoSuchElementException("Message not found"));
+        if (!message.getSender().getId().equals(requester.getId())) {
+            throw new SecurityException("Not the message sender");
+        }
+        if (message.isDeleted()) {
+            return;
+        }
+
+        message.setDeleted(true);
+        message.setBody("");
+        messageRepository.save(message);
+
+        DirectMessageEvent event = DirectMessageEvent.builder()
+                .id(message.getId())
+                .conversationId(conversation.getId())
+                .senderUid(requester.getUid())
+                .senderName(requester.getName())
+                .sentAt(message.getSentAt().toString())
+                .type("deleted")
+                .deleted(true)
+                .build();
+        messagingTemplate.convertAndSend(DM_TOPIC_PREFIX + conversation.getId(), event);
     }
 
     @Transactional(readOnly = true)
@@ -132,5 +236,28 @@ public class DirectMessageService {
 
     private boolean containsPerson(List<Person> people, Person target) {
         return people.stream().anyMatch(person -> person.getId().equals(target.getId()));
+    }
+
+    private void validateMessageBody(String body) {
+        if (body == null || body.isBlank()) {
+            throw new IllegalArgumentException("body is required");
+        }
+        if (body.trim().length() > MAX_BODY_LENGTH) {
+            throw new IllegalArgumentException("body is too long");
+        }
+    }
+
+    private List<Person> dedupeParticipants(List<Person> others, Person requester) {
+        Set<Long> seenIds = new LinkedHashSet<>();
+        List<Person> deduped = new ArrayList<>();
+        for (Person person : others) {
+            if (person == null || person.getId() == null || person.getId().equals(requester.getId())) {
+                continue;
+            }
+            if (seenIds.add(person.getId())) {
+                deduped.add(person);
+            }
+        }
+        return deduped;
     }
 }

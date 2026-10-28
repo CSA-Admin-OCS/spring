@@ -25,20 +25,20 @@ public class AssignmentSubmissionUploadService {
     private final FileHandler fileHandler;
     private final PersonJpaRepository personRepo;
     private final AssignmentJpaRepository assignmentRepo;
-    private final AssignmentSubmissionJPA submissionRepo;
-    private final AssignmentAiGradingService aiGradingService;
+    private final AssignmentSubmissionHistoryService historyService;
+    private final SubmissionAiGrader aiGrader;
 
     public AssignmentSubmissionUploadService(
             FileHandler fileHandler,
             PersonJpaRepository personRepo,
             AssignmentJpaRepository assignmentRepo,
-            AssignmentSubmissionJPA submissionRepo,
-            AssignmentAiGradingService aiGradingService) {
+            AssignmentSubmissionHistoryService historyService,
+            SubmissionAiGrader aiGrader) {
         this.fileHandler = fileHandler;
         this.personRepo = personRepo;
         this.assignmentRepo = assignmentRepo;
-        this.submissionRepo = submissionRepo;
-        this.aiGradingService = aiGradingService;
+        this.historyService = historyService;
+        this.aiGrader = aiGrader;
     }
 
     public Map<String, Object> upload(
@@ -58,11 +58,12 @@ public class AssignmentSubmissionUploadService {
         validateAuthentication(userDetails);
         validateRequiredFields(userId, username, file);
 
-        String selfAssessmentError = AssignmentSubmission.validateSelfAssessment(
-                technicalExcellence, communication, workHabits, aiOrchestration, selfAssessmentReflection);
-        if (selfAssessmentError != null) {
-            throw new UploadException(HttpStatus.BAD_REQUEST, selfAssessmentError);
-        }
+        // Self-assessment is paused (Pages no longer sends it); uncomment this block to require it again.
+        // String selfAssessmentError = AssignmentSubmission.validateSelfAssessment(
+        //         technicalExcellence, communication, workHabits, aiOrchestration, selfAssessmentReflection);
+        // if (selfAssessmentError != null) {
+        //     throw new UploadException(HttpStatus.BAD_REQUEST, selfAssessmentError);
+        // }
 
         Person authenticatedUser = getAuthenticatedUser(userDetails);
         Person targetUser = getTargetUser(userId);
@@ -74,6 +75,10 @@ public class AssignmentSubmissionUploadService {
 
         validateUsernameMatchesTarget(username, targetUser);
         validateSubmitPermission(authenticatedUser, userId);
+        // Checked again when saving; checking now avoids uploading a file that would be refused.
+        if (assignment.isClosed()) {
+            throw new UploadException(GradingOutcome.ASSIGNMENT_CLOSED);
+        }
 
         String originalFilename = sanitizeFilename(file);
         String s3Filename = buildS3Filename(assignment.getName(), originalFilename);
@@ -96,7 +101,8 @@ public class AssignmentSubmissionUploadService {
             aiOrchestration,
             selfAssessmentReflection);
 
-        savedSubmission = tryAutoGrade(savedSubmission);
+        // Best-effort: a grading failure never fails the upload; the revision is queued for a retry.
+        aiGrader.autoGrade(savedSubmission);
 
         return buildResponse(
             assignment,
@@ -108,27 +114,6 @@ public class AssignmentSubmissionUploadService {
                 s3Filename,
             storedFilename,
             savedSubmission);
-    }
-
-    /**
-     * Attempts to AI-grade a freshly uploaded submission immediately (e.g. a .ipynb
-     * notebook), best-effort. Grading failures never fail the upload itself.
-     */
-    private AssignmentSubmission tryAutoGrade(AssignmentSubmission submission) {
-        try {
-            AssignmentAiGradingService.GradeResult result = aiGradingService.grade(submission);
-            if ("graded".equals(result.status())) {
-                submission.setQualityScore(result.score());
-                submission.setGrade(result.score().doubleValue());
-                submission.setFeedback(result.feedback());
-                submission.setAiSummary(result.feedback());
-                return submissionRepo.save(submission);
-            }
-        } catch (Exception e) {
-            // Best-effort: the upload already succeeded, so a grading failure is logged, not thrown.
-            System.err.println("Auto-grade failed for submission " + submission.getId() + ": " + e.getMessage());
-        }
-        return submission;
     }
 
     private void validateAuthentication(UserDetails userDetails) {
@@ -268,7 +253,12 @@ public class AssignmentSubmissionUploadService {
         submission.setAiOrchestration(aiOrchestration);
         submission.setSelfAssessmentReflection(selfAssessmentReflection);
 
-        return submissionRepo.save(submission);
+        // A student's earlier submission for this assignment gets this upload as its next revision.
+        AssignmentSubmissionHistoryService.SubmitResult submitted = historyService.submit(submission, authenticatedUser);
+        if (submitted.result().outcome() != GradingOutcome.REVISION_CREATED) {
+            throw new UploadException(submitted.result().outcome());
+        }
+        return submitted.submission();
     }
 
     private Map<String, Object> buildResponse(
@@ -332,14 +322,27 @@ public class AssignmentSubmissionUploadService {
 
     public static class UploadException extends RuntimeException {
         private final HttpStatus status;
+        private final GradingOutcome outcome;
 
         public UploadException(HttpStatus status, String message) {
             super(message);
             this.status = status;
+            this.outcome = null;
+        }
+
+        /** An expected grading outcome, answered as a GradingResponse. */
+        public UploadException(GradingOutcome outcome) {
+            super(outcome.name());
+            this.status = GradingResponse.statusOf(outcome);
+            this.outcome = outcome;
         }
 
         public HttpStatus getStatus() {
             return status;
+        }
+
+        public GradingOutcome getOutcome() {
+            return outcome;
         }
     }
 }

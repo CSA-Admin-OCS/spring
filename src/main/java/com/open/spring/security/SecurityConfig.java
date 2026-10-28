@@ -50,8 +50,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * - For MVC endpoint security (form-based login), see MvcSecurityConfig.java
  * 
  * Filter Chain Order:
- * 1. RateLimitFilter - Rate limiting
- * 2. JwtRequestFilter - JWT token validation
+ * 1. JwtRequestFilter - JWT token validation
+ * 2. RateLimitFilter - Rate limiting (per user when logged in, per IP otherwise)
  * 3. Standard Spring Security filters
  */
 
@@ -94,21 +94,23 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**", "/authenticate", "/run/**").permitAll()  // Allow only relevant CORS preflight requests
                         .requestMatchers("/authenticate").permitAll()
                         .requestMatchers(HttpMethod.POST, "/authenticate").permitAll() // allow POST on auth
+                        // Logout only expires the caller's own cookies. It must work with an expired
+                        // or invalid token, or a stale jwt cookie can never be cleared.
+                        .requestMatchers(HttpMethod.POST, "/api/logout").permitAll()
                         // Admin-only writes are listed FIRST: rules are first-match-wins, and a
                         // method-less permitAll on /api/person/create would otherwise also permit
                         // DELETE and PUT on that path, shadowing the ROLE_ADMIN rules below.
                         .requestMatchers(HttpMethod.DELETE, "/api/person/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/person/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/person/create").permitAll()
-                        // Public grades submission - no authentication required
-                        .requestMatchers(HttpMethod.POST, "/api/grades").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/grades/").permitAll()
                         // updated so that it takes auth to actually hit endpoint
                         .requestMatchers("/api/scraper/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
-                        // ← GIST CREATION ENDPOINTS - PUBLIC (NO AUTH)
-                        .requestMatchers(HttpMethod.POST, "/api/grades/create-gist").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/grades/create-gist/").permitAll()
-                        // ← GIST READ - PUBLIC (mirrors create-gist; a gist URL is
+                        // Personal connections and Gist creation require the caller's login.
+                        .requestMatchers("/api/gist-connection", "/api/gist-connection/").authenticated()
+                        .requestMatchers("/api/ai-connections", "/api/ai-connections/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/grades/create-gist").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/grades/create-gist/").authenticated()
+                        // Gist reading stays public; an unlisted URL is
                         //    already shareable, so reading one adds no exposure)
                         .requestMatchers(HttpMethod.GET, "/api/grades/read-gist/**").permitAll()
                         // ← MAKE DEBUGGER - PUBLIC (NO AUTH)
@@ -129,7 +131,8 @@ public class SecurityConfig {
                         // ========== API ENDPOINTS (REQUIRE AT LEAST USER) ==========
                         // Previously public endpoints now require authenticated roles
                         .requestMatchers("/api/jokes/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
-                        // Pause Menu APIs should be public
+                        // Pause Menu APIs should be public, except deleting a score
+                        .requestMatchers(HttpMethod.DELETE, "/api/pausemenu/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/pausemenu/**").permitAll()
                         // Leaderboard should be public - displays scores without authentication
                         .requestMatchers("/api/leaderboard/**").permitAll()
@@ -217,11 +220,30 @@ public class SecurityConfig {
                         // =============================================
 
                         // ========== ASSIGNMENT SUBMISSION ==========
-                        // Assignment text/link submissions - public (student identity passed in payload)
-                        .requestMatchers(HttpMethod.POST, "/api/submissions/**").permitAll()
+                        // Submission authors must be authenticated before their personal AI keys can be used.
+                        .requestMatchers(HttpMethod.POST, "/api/submissions/**").authenticated()
                         // Assignment file uploads - public (student identity passed in multipart fields)
                         .requestMatchers(HttpMethod.POST, "/api/assignment-submissions/upload").permitAll()
                         // ==========================================
+
+                        // ========== CS PATHWAY SETUP REPORT ==========
+                        // A student's Terminal has no JWT cookie, so the report upload is public and
+                        // is tied to a student by the short-lived pairing code in its path. The
+                        // pairing-code rule comes FIRST (first match wins) so only signed-in users get codes.
+                        .requestMatchers(HttpMethod.POST, "/api/cs-pathway/setup-report/pairing-code").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/api/cs-pathway/setup-report/review/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
+                        .requestMatchers(HttpMethod.POST, "/api/cs-pathway/setup-report/*").permitAll()
+                        // =============================================
+
+                        // ========== TOOLCHAIN TRAIL DEVICE PAIRING ==========
+                        // The local agent has no JWT cookie. /pair is guarded by the one-time pairing
+                        // code; /next and /results by the scoped agent token. Both are checked in
+                        // ToolchainSessionService. Starting, polling and requesting checks (POST /sessions,
+                        // GET /sessions/*, POST /sessions/*/check) stay under the default /api/** rule.
+                        .requestMatchers(HttpMethod.POST, "/api/toolchain/pair").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/toolchain/sessions/*/next").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/toolchain/sessions/*/results").permitAll()
+                        // ====================================================
 
                         // ========== OCS ANALYTICS ==========
                         // OCS Analytics endpoints - require authentication to associate data with user
@@ -268,7 +290,8 @@ public class SecurityConfig {
 
                 // Session related configuration
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(rateLimitFilter, JwtRequestFilter.class);
+                // Rate limit after the JWT filter so logged-in users are limited per user, not per IP
+                .addFilterAfter(rateLimitFilter, JwtRequestFilter.class);
 
         return http.build();
     }
@@ -281,8 +304,6 @@ public class SecurityConfig {
         policy.put("/api/person/create", "permitAll");
         policy.put("/api/person/create/", "permitAll");
         policy.put("POST /api/person/create", "permitAll");
-        policy.put("POST /api/grades", "permitAll");
-        policy.put("POST /api/grades/", "permitAll");
         policy.put("DELETE /api/person/**", "ROLE_ADMIN");
         policy.put("PUT /api/person/**", "ROLE_ADMIN");
         policy.put("GET /api/person/uid/**", "permitAll");
@@ -293,6 +314,18 @@ public class SecurityConfig {
         policy.put("/api/face/**", "ROLE_TEACHER|ROLE_ADMIN");
         policy.put("POST /api/assignment-submissions/upload", "permitAll");
         policy.put("POST /api/assignments/auto-create", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT|ROLE_ASSIGNMENT_SYNC");
+        policy.put("/api/gist-connection", "authenticated");
+        policy.put("/api/ai-connections", "authenticated");
+        policy.put("/api/ai-connections/**", "authenticated");
+        policy.put("POST /api/submissions/**", "authenticated");
+        policy.put("POST /api/grades/create-gist", "authenticated");
+        policy.put("POST /api/cs-pathway/setup-report/pairing-code", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT");
+        policy.put("POST /api/cs-pathway/setup-report/review/**", "ROLE_ADMIN|ROLE_TEACHER");
+        policy.put("POST /api/cs-pathway/setup-report/*", "permitAll");
+        policy.put("POST /api/toolchain/pair", "permitAll");
+        policy.put("GET /api/toolchain/sessions/*/next", "permitAll");
+        policy.put("POST /api/toolchain/sessions/*/results", "permitAll");
+        policy.put("DELETE /api/pausemenu/**", "ROLE_ADMIN");
         policy.put("/api/pausemenu/**", "permitAll");
         policy.put("/api/leaderboard/**", "permitAll");
         policy.put("/api/exports/**", "ROLE_ADMIN");

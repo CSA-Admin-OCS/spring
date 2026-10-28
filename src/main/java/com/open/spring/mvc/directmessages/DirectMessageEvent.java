@@ -16,8 +16,14 @@ import lombok.NoArgsConstructor;
 public class DirectMessageEvent {
     private Long id;
     private Long conversationId;
+    private String type;      // "message" for new posts, "edited" for edits
     private String senderUid;
     private String senderName;
+    private String senderPfp;
     private String body;
+    /** Data URL for a message that carries an image; null otherwise. */
+    private String image;
     private String sentAt;
+    private boolean deleted;
+    private boolean edited;
 }

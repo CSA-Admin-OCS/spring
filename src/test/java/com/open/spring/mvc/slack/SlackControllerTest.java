@@ -16,13 +16,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.open.spring.mvc.calendar.CalendarEventApiRestController;
+
 public class SlackControllerTest {
 
     @Mock
     private RestTemplate restTemplate;
 
     @Mock
-    private CalendarEventController calendarEventController;
+    private CalendarEventApiRestController calendarEventController;
 
     @Mock
     private SlackService slackService;

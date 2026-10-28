@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Value("${security.rate-limit.exempt-paths:}")
     private String exemptPaths;
 
+    // /authenticate is always anonymous, so it is keyed by IP. It gets its own, higher
+    // limit so a school full of students logging in at once is not blocked.
+    @Value("${security.rate-limit.login-requests-per-minute:300}")
+    private int loginRequestsPerMinute;
+
     private final Map<String, Bucket> cache = new ConcurrentHashMap<>();
     private final Map<String, Integer> userLimits = new ConcurrentHashMap<>();
     private final Map<String, Boolean> activeUsers = new ConcurrentHashMap<>();
@@ -51,20 +57,40 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String username = request.getUserPrincipal() != null
-                ? request.getUserPrincipal().getName()
-                : request.getRemoteAddr();
+        // This filter runs after JwtRequestFilter, so a valid JWT cookie has already set the
+        // authenticated user. Key logged-in users by username so users behind a shared IP
+        // (e.g. school NAT) each get their own bucket; fall back to the IP only when anonymous.
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean loggedIn = auth != null && auth.isAuthenticated()
+                && !(auth instanceof AnonymousAuthenticationToken);
+        boolean isLogin = "/authenticate".equals(request.getServletPath());
+
+        String username;
+        if (loggedIn) {
+            username = "user:" + auth.getName();
+        } else if (isLogin) {
+            username = "login-ip:" + request.getRemoteAddr();
+        } else {
+            username = "ip:" + request.getRemoteAddr();
+        }
 
         // Track logged-in users
-        if (request.getUserPrincipal() != null) {
+        if (loggedIn) {
             activeUsers.put(username, true);
         }
 
         // Check if user is an admin
-        boolean isAdmin = isAdminUser();
+        boolean isAdmin = loggedIn && isAdminUser(auth);
 
         int activeUserCount = activeUsers.size();
-        int dynamicLimit = isAdmin ? adminRequestsPerMinute : computeDynamicLimit(username, activeUserCount);
+        int dynamicLimit;
+        if (isAdmin) {
+            dynamicLimit = adminRequestsPerMinute;
+        } else if (!loggedIn && isLogin) {
+            dynamicLimit = loginRequestsPerMinute;
+        } else {
+            dynamicLimit = computeDynamicLimit(username, activeUserCount);
+        }
 
         // Check if limit has changed for this user
         Integer previousLimit = userLimits.get(username);
@@ -106,11 +132,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
     }
 
-    private boolean isAdminUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }
+    private boolean isAdminUser(Authentication auth) {
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }

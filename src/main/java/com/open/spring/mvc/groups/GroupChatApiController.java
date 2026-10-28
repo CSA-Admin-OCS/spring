@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +35,7 @@ public class GroupChatApiController {
 
     private final GroupChatService groupChatService;
     private final GroupChatRealtimeService realtimeService;
+    private final GroupChatReadService readService;
     private final GroupsJpaRepository groupsRepository;
     private final PersonJpaRepository personRepository;
     private final CapstoneProjectJpaRepository capstoneRepository;
@@ -41,11 +43,13 @@ public class GroupChatApiController {
     public GroupChatApiController(
             GroupChatService groupChatService,
             GroupChatRealtimeService realtimeService,
+            GroupChatReadService readService,
             GroupsJpaRepository groupsRepository,
             PersonJpaRepository personRepository,
             CapstoneProjectJpaRepository capstoneRepository) {
         this.groupChatService = groupChatService;
         this.realtimeService = realtimeService;
+        this.readService = readService;
         this.groupsRepository = groupsRepository;
         this.personRepository = personRepository;
         this.capstoneRepository = capstoneRepository;
@@ -123,6 +127,23 @@ public class GroupChatApiController {
         return roles.contains("ROLE_MENTOR") && !roles.contains("ROLE_USER") && !roles.contains("ROLE_STUDENT");
     }
 
+    /** The signed-in Person, or null when nobody is signed in. */
+    private Person currentPerson() {
+        String uid = getCurrentUsername();
+        return uid == null ? null : personRepository.findByUid(uid);
+    }
+
+    // GroupChatMessage only stores the sender's display name (no Person link), so the
+    // ownership check needs the authenticated uid resolved to that same display name.
+    private String resolveCurrentDisplayName() {
+        String uid = getCurrentUsername();
+        if (uid == null) {
+            return null;
+        }
+        Person person = personRepository.findByUid(uid);
+        return person == null ? null : person.getName();
+    }
+
     @GetMapping("/analytics/{personId}")
     public ResponseEntity<?> getUserAnalytics(@PathVariable Long personId) {
         Optional<Person> personOpt = personRepository.findById(personId);
@@ -177,12 +198,12 @@ public class GroupChatApiController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
-        if (message == null || message.getName() == null || message.getMessage() == null) {
+        if (message == null || message.getMessage() == null) {
             return new ResponseEntity<>("name and message are required", HttpStatus.BAD_REQUEST);
         }
 
         try {
-            realtimeService.publishMessage(groupId, message.getName(), message.getMessage(), message.getImage());
+            realtimeService.publishMessage(groupId, message.getMessage(), message.getImage());
         } catch (RuntimeException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -190,6 +211,42 @@ public class GroupChatApiController {
         String groupName = groupOpt.get().getName();
         List<GroupChatMessage> updated = groupChatService.getMessages(groupName);
         return new ResponseEntity<>(updated, HttpStatus.OK);
+    }
+
+    @PatchMapping("/{groupId}/messages/{messageId}")
+    public ResponseEntity<?> editMessage(
+            @PathVariable Long groupId,
+            @PathVariable String messageId,
+            @RequestBody GroupChatMessage request) {
+        Optional<Groups> groupOpt = groupsRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        String requesterDisplayName = resolveCurrentDisplayName();
+        if (requesterDisplayName == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        if (request == null || request.getMessage() == null || request.getMessage().isBlank()) {
+            return new ResponseEntity<>("message is required", HttpStatus.BAD_REQUEST);
+        }
+
+        boolean updated;
+        try {
+            updated = realtimeService.editMessage(groupId, messageId, request.getMessage(), requesterDisplayName);
+        } catch (SecurityException ex) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        } catch (RuntimeException ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+        if (!updated) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        String groupName = groupOpt.get().getName();
+        List<GroupChatMessage> messages = groupChatService.getMessages(groupName);
+        return new ResponseEntity<>(messages, HttpStatus.OK);
     }
 
     @DeleteMapping("/{groupId}/messages/{messageId}")
@@ -201,12 +258,56 @@ public class GroupChatApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
+        String requesterDisplayName = resolveCurrentDisplayName();
+        if (requesterDisplayName == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
         try {
-            realtimeService.deleteMessage(groupId, messageId);
+            realtimeService.deleteMessage(groupId, messageId, requesterDisplayName);
+        } catch (SecurityException ex) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         } catch (RuntimeException ex) {
             return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * Unread counts for the signed-in member's own groups, keyed by group id. Groups
+     * with nothing unread are left out, so an empty map means nothing is waiting.
+     */
+    @GetMapping("/unread")
+    public ResponseEntity<?> getUnread() {
+        Person person = currentPerson();
+        if (person == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Map<Long, Long> unreadByGroup = readService.unreadByGroup(person);
+        long total = unreadByGroup.values().stream().mapToLong(Long::longValue).sum();
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("unreadByGroup", unreadByGroup);
+        body.put("total", total);
+        return new ResponseEntity<>(body, HttpStatus.OK);
+    }
+
+    /** Marks a group read, as of now, for the signed-in member. */
+    @PostMapping("/{groupId}/read")
+    public ResponseEntity<?> markRead(@PathVariable Long groupId) {
+        Person person = currentPerson();
+        if (person == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Optional<Groups> groupOpt = groupsRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        readService.markRead(groupOpt.get(), person);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -252,7 +353,11 @@ public class GroupChatApiController {
         }
 
         try {
-            realtimeService.publishFile(groupId, null, request.getFilename(), request.getBase64Data());
+            // Resolved from the session, never taken from the request body: who shared a
+            // file is attribution, and a client should not be able to claim someone else
+            // did it. Null for an unauthenticated caller, which reads as "unknown".
+            realtimeService.publishFile(groupId, resolveCurrentDisplayName(),
+                    request.getFilename(), request.getBase64Data());
             Map<String, String> response = new HashMap<>();
             response.put("message", "File uploaded successfully");
             response.put("filename", request.getFilename());

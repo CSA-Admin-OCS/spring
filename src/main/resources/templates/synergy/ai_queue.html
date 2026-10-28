@@ -1,0 +1,171 @@
+<!DOCTYPE HTML>
+<html xmlns:layout="http://www.w3.org/1999/xhtml" xmlns:th="http://www.w3.org/1999/xhtml"
+    layout:decorate="~{layouts/base}" lang="en">
+
+<th:block layout:fragment="style" th:remove="tag">
+    <link rel="stylesheet" th:href="@{/assets/css/grading.css}">
+</th:block>
+
+<th:block layout:fragment="title" th:remove="tag">AI Grading Queue</th:block>
+
+<th:block layout:fragment="body" th:remove="tag">
+<div class="grading">
+    <h2>AI Grading Queue</h2>
+    <div class="g-sub" th:text="${isStaff} ? 'Every submission waiting for an AI grade. Times are estimates.'
+        : 'Your submissions waiting for an AI grade, and roughly how long until they are graded.'">
+    </div>
+
+    <div class="g-stats" id="queueStats"></div>
+    <div class="g-toolbar" th:if="${isStaff}">
+        <input type="text" class="g-search" id="submitterSearch" placeholder="Search by student name or username"
+            aria-label="Search queue by student name or username">
+        <button type="button" class="g-btn primary" id="runQueueNow">Run queue now</button>
+        <span class="g-sub" id="queueMsg"></span>
+    </div>
+
+    <div class="g-table-wrap">
+        <table class="g-table">
+            <thead>
+                <tr>
+                    <th>Position</th>
+                    <th>Assignment</th>
+                    <th th:if="${isStaff}">Submitted by</th>
+                    <th>Estimated wait</th>
+                    <th th:if="${isStaff}">Skip queue</th>
+                </tr>
+            </thead>
+            <tbody id="queueRows"><tr><td th:colspan="${isStaff} ? 5 : 3" class="g-empty">Loading…</td></tr></tbody>
+        </table>
+    </div>
+    <div class="g-sub mt-2">The countdown is live; the list refreshes every 30 seconds. Estimates use the grader's recent speed and the AI key's rate limit.</div>
+</div>
+</th:block>
+
+<th:block layout:fragment="script" th:remove="tag">
+<script th:src="@{/js/grading/common.js}"></script>
+<script th:inline="javascript">
+(function () {
+    const isStaff = /*[[${isStaff}]]*/ false;
+    const { esc, api, formatEta } = window.Grading;
+    const cols = isStaff ? 5 : 3;
+    let lastEntries = [];
+    const msg = text => { const el = document.getElementById('queueMsg'); if (el) el.textContent = text; };
+    // Live countdown to the next timed run; resynced from the server on every load().
+    let nextRunAt = null;
+    let queueRunning = false;
+    let reloadQueued = false;
+
+    function countdownText() {
+        if (queueRunning) return 'Grading now';
+        if (nextRunAt == null) return '—';
+        const left = Math.max(0, Math.round((nextRunAt - Date.now()) / 1000));
+        if (left === 0) return 'Starting…';
+        const m = Math.floor(left / 60);
+        return `${m}:${String(left % 60).padStart(2, '0')}`;
+    }
+
+    function tick() {
+        const el = document.getElementById('nextRunCountdown');
+        if (el) el.textContent = countdownText();
+        // Once the timer runs out, refresh shortly after to show the run and the new timer.
+        // While a run is going, keep checking so the new timer appears when it finishes.
+        if ((queueRunning || (nextRunAt != null && Date.now() >= nextRunAt)) && !reloadQueued) {
+            reloadQueued = true;
+            setTimeout(() => { reloadQueued = false; load(); }, queueRunning ? 5000 : 3000);
+        }
+    }
+
+    function searchQuery() {
+        const input = document.getElementById('submitterSearch');
+        return input ? input.value.trim().toLowerCase() : '';
+    }
+
+    /** Matches the submitter's name or uid; for a group, also its name and any member's name/uid. */
+    function matches(e, query) {
+        if (!query) return true;
+        return [e.submitterName, e.submitterUid, ...(e.members || [])]
+            .some(text => text && text.toLowerCase().includes(query));
+    }
+
+    function submitterCell(e) {
+        if (e.members && e.members.length) {
+            return `${esc(e.submitterName || 'Group')}<div class="g-sub">${esc(e.members.join(', '))}</div>`;
+        }
+        const uid = e.submitterUid ? ` <span class="g-sub">(${esc(e.submitterUid)})</span>` : '';
+        return `${esc(e.submitterName || e.submitterUid || 'Unknown')}${uid}`;
+    }
+
+    function render() {
+        const rows = document.getElementById('queueRows');
+        const query = searchQuery();
+        const shown = lastEntries.filter(e => matches(e, query));
+        if (query) msg(`${shown.length} of ${lastEntries.length} queued submission(s) match.`);
+        rows.innerHTML = shown.length
+            ? shown.map(e => `<tr>
+                    <td>#${e.position}</td>
+                    <td>${esc(e.assignmentName || '(deleted assignment)')}</td>
+                    ${isStaff ? `<td>${submitterCell(e)}</td>` : ''}
+                    <td>${e.gradingNow ? 'Grading now…' : esc(formatEta(e.etaSeconds))}</td>
+                    ${isStaff ? `<td><button type="button" class="g-btn" data-grade-now="${e.submissionId}"
+                        ${e.gradingNow ? 'disabled' : ''}>Grade now</button></td>` : ''}
+                </tr>`).join('')
+            : `<tr><td colspan="${cols}" class="g-empty">${query ? 'No queued submissions from anyone matching that search.'
+                : isStaff ? 'The queue is empty.'
+                : 'Nothing of yours is waiting. Your submitted work has been graded.'}</td></tr>`;
+    }
+
+    async function load() {
+        const rows = document.getElementById('queueRows');
+        try {
+            const q = await api('/api/submissions/ai-queue');
+            queueRunning = q.running;
+            nextRunAt = Date.now() + q.nextRunInSeconds * 1000;
+            document.getElementById('queueStats').innerHTML = `
+                <div class="g-stat"><b>${q.queueLength}</b><span>in queue overall</span></div>
+                ${isStaff ? '' : `<div class="g-stat"><b>${q.entries.length}</b><span>yours</span></div>`}
+                <div class="g-stat"><b id="nextRunCountdown">${countdownText()}</b><span>until next grading run</span></div>`;
+            lastEntries = q.entries;
+            render();
+        } catch (e) {
+            rows.innerHTML = `<tr><td colspan="${cols}" class="g-empty">Could not load the queue: ${esc(e.message)}</td></tr>`;
+        }
+    }
+
+    if (isStaff) {
+        document.getElementById('submitterSearch').addEventListener('input', () => {
+            if (!searchQuery()) msg('');
+            render();
+        });
+        document.getElementById('queueRows').addEventListener('click', async ev => {
+            const btn = ev.target.closest('[data-grade-now]');
+            if (!btn) return;
+            btn.disabled = true;
+            btn.textContent = 'Grading…';
+            try {
+                await api(`/api/submissions/ai-queue/${btn.dataset.gradeNow}/grade-now`, { method: 'POST' });
+                msg(`Submission ${btn.dataset.gradeNow} graded.`);
+            } catch (e) {
+                msg(`Submission ${btn.dataset.gradeNow}: ${e.message}`);
+            }
+            load();
+        });
+        document.getElementById('runQueueNow').addEventListener('click', async ev => {
+            ev.target.disabled = true;
+            try {
+                await api('/api/submissions/ai-queue/run-now', { method: 'POST' });
+                msg('Grading run started.');
+            } catch (e) {
+                msg(e.message);
+            }
+            ev.target.disabled = false;
+            setTimeout(load, 1000);
+        });
+    }
+
+    load();
+    setInterval(load, 30000);
+    setInterval(tick, 1000);
+})();
+</script>
+</th:block>
+</html>

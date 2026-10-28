@@ -81,16 +81,31 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
         return personJpaRepository.findByLikeTermNative(like_term);
     }
 
-    // encode password prior to sava
+    // Hashes the plaintext in person.password. The plaintext stays in the transient
+    // newPassword field so JPA can check it against Person.PASSWORD_RULE on save.
+    private void hashNewPassword(Person person) {
+        person.setNewPassword(person.getPassword());
+        person.setPassword(passwordEncoder.encode(person.getPassword()));
+    }
+
+    // Saves and flushes, so JPA validates now and a weak password throws
+    // ConstraintViolationException here instead of later, wrapped in a commit error.
+    // save() on an existing person is a merge, which skips @Transient fields, so the
+    // plaintext is copied onto the managed copy that JPA actually validates.
+    private void saveAndValidate(Person person) {
+        String newPassword = person.getNewPassword();
+        Person managed = personJpaRepository.save(person);
+        managed.setNewPassword(newPassword);
+        personJpaRepository.flush();
+    }
+
+    // encode password prior to save
     public void save(Person person) {
         if (person.getPassword() == null || person.getPassword().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
-        // New-account creation and seed init do not check complexity: it caused support issues
-        // and instability between Flask and Spring. Login forces a reset for a weak or default
-        // password, and changing a password still goes through save(person, samePassword).
-        person.setPassword(passwordEncoder.encode(person.getPassword()));
-        personJpaRepository.save(person);
+        hashNewPassword(person);
+        saveAndValidate(person);
     }
 
     public void save(Person person, Boolean samePassword) {
@@ -98,21 +113,14 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
             throw new IllegalArgumentException("Password cannot be null");
         }
         if (!samePassword) {
-            // Only check complexity when the password is actually changing -- when
-            // samePassword is true, person.getPassword() holds the existing BCrypt
-            // hash (re-saved unchanged for an unrelated profile edit), not a
-            // plaintext candidate, and checking a hash against these rules would
-            // fail unpredictably depending on its byte content.
-            if (!person.checkPassword()) {
-                throw new IllegalArgumentException("Password does not meet complexity requirements");
-            }
-            // Encode the password only if it's not the same as before
-            person.setPassword(passwordEncoder.encode(person.getPassword()));
+            // Only a changing password is plaintext here; when samePassword is true,
+            // person.password already holds the stored BCrypt hash.
+            hashNewPassword(person);
             // Invalidates every JWT already issued to this person -- see the field
             // comment on Person.tokenVersion.
             person.setTokenVersion((person.getTokenVersion() == null ? 0L : person.getTokenVersion()) + 1);
         }
-        personJpaRepository.save(person); // Save the person to the database
+        saveAndValidate(person); // Save the person to the database
     }
 
     public Person get(long id) {

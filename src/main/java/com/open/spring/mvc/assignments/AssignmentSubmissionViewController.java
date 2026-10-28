@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -150,13 +151,30 @@ public class AssignmentSubmissionViewController {
             if (assignmentAuthorizationService.isTeacherOrAdmin(person)) {
                 submissions = submissionRepo.findAll();
             } else {
-                List<Long> ownedAssignmentIds = assignmentRepo.findByCreatorId(person.getId()).stream()
-                        .map(Assignment::getId)
-                        .collect(Collectors.toList());
-                // A student who owns nothing gets an empty list without hitting the submission table.
-                submissions = ownedAssignmentIds.isEmpty()
-                        ? List.of()
-                        : submissionRepo.findByAssignmentIdIn(ownedAssignmentIds);
+                // Owning an assignment and being assigned to grade it (whole-assignment via
+                // /assignGraders/{id}, or a single submission via
+                // /submissions/{id}/assignGraders) are separate grants - see
+                // AssignmentAuthorizationService.canManage. A grader who owns nothing would
+                // otherwise see an empty dashboard despite being able to actually grade.
+                Set<Long> manageableAssignmentIds = Stream.concat(
+                        assignmentRepo.findByCreatorId(person.getId()).stream(),
+                        assignmentRepo.findByAssignedGraders(person).stream())
+                    .map(Assignment::getId)
+                    .collect(Collectors.toSet());
+
+                // A student who owns and is assigned nothing gets an empty list without
+                // hitting the submission table.
+                Map<Long, AssignmentSubmission> byId = new LinkedHashMap<>();
+                if (!manageableAssignmentIds.isEmpty()) {
+                    for (AssignmentSubmission submission
+                            : submissionRepo.findByAssignmentIdIn(new ArrayList<>(manageableAssignmentIds))) {
+                        byId.put(submission.getId(), submission);
+                    }
+                }
+                for (AssignmentSubmission submission : submissionRepo.findByAssignedGraders(person)) {
+                    byId.putIfAbsent(submission.getId(), submission);
+                }
+                submissions = new ArrayList<>(byId.values());
             }
 
             List<SubmissionListDTO> dtos = toDtos(submissions);
@@ -171,8 +189,13 @@ public class AssignmentSubmissionViewController {
         }
     }
 
-    /** Build all course membership metadata in one query before mapping individual rows. */
-    private List<SubmissionListDTO> toDtos(List<AssignmentSubmission> submissions) {
+    /**
+     * Build all course membership metadata in one query before mapping individual rows.
+     * Lists only the current submission per assignment and submitter: rows a resubmit superseded
+     * before resubmits replaced the row are earlier versions, shown in the gradebook's history.
+     */
+    private List<SubmissionListDTO> toDtos(List<AssignmentSubmission> allRows) {
+        List<AssignmentSubmission> submissions = AssignmentSubmissionHistoryService.latestOnly(allRows);
         Map<Long, List<String>> courseCodesByPersonId = loadCourseCodesByPersonId(submissions);
         List<String> canonicalCourses = courseGroupProperties.getGroupNames();
         List<SubmissionListDTO> dtos = new ArrayList<>();
@@ -295,6 +318,7 @@ public class AssignmentSubmissionViewController {
         private Boolean isGroup;
         private String aiSummary;
         private Integer qualityScore;
+        private SubmissionGradingState grading;
 
         // Private constructor for factory use
         private SubmissionListDTO() {}
@@ -379,6 +403,7 @@ public class AssignmentSubmissionViewController {
                 dto.isLate = submission.getIsLate() != null ? submission.getIsLate() : false;
                 dto.aiSummary = submission.getAiSummary();
                 dto.qualityScore = submission.getQualityScore();
+                dto.grading = SubmissionGradingState.of(submission);
             } catch (Exception e) {
                 dto.content = null;
                 dto.comment = "";
@@ -439,6 +464,7 @@ public class AssignmentSubmissionViewController {
         public Boolean getIsGroup() { return isGroup; }
         public String getAiSummary() { return aiSummary; }
         public Integer getQualityScore() { return qualityScore; }
+        public SubmissionGradingState getGrading() { return grading; }
     }
 
     /**

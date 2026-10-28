@@ -1,0 +1,133 @@
+### Calendar API Tests
+
+Exercises `/api/calendar` (events and breaks) with the VS Code REST Client.
+Select the `local` or `deployed` environment; `baseUrl`, `adminUid` and
+`adminPassword` are the same variables `toolchain.http` uses, set in the
+Git-ignored `.vscode/settings.json`.
+
+Run the requests in order. They write to that environment's real calendar, so
+they use 2099 dates and "HTTP test" titles, and the last ones delete them.
+
+### 1. Sign in (the JWT cookie is kept for the requests below)
+
+# @name loginCalendar
+POST {{baseUrl}}/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "uid": "{{adminUid}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Add an event: the body becomes an EventRequest, the answer is an EventView
+
+# @name addCalendarEvent
+POST {{baseUrl}}/api/calendar/add_event
+Content-Type: application/json
+
+{
+  "title": "HTTP test: sprint review",
+  "date": "2099-01-05",
+  "description": "Created by api/calendar.http",
+  "type": "event",
+  "period": "CSA"
+}
+
+### 3. Missing title: expect 400 {"message": "Invalid input: 'title' cannot be null or empty."}
+
+POST {{baseUrl}}/api/calendar/add_event
+Content-Type: application/json
+
+{
+  "date": "2099-01-05"
+}
+
+### 4. Read a date range
+
+GET {{baseUrl}}/api/calendar/events/range?start=2099-01-01&end=2099-01-31
+
+### 5. Filter (every parameter is optional)
+
+GET {{baseUrl}}/api/calendar/events/filter?type=event&start=2099-01-01&end=2099-01-31
+
+### 6. Edit the event from step 2 (the edit body names the title newTitle; fields left out keep their values)
+
+PUT {{baseUrl}}/api/calendar/edit/{{addCalendarEvent.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "newTitle": "HTTP test: sprint review (moved)",
+  "description": "Edited by api/calendar.http",
+  "date": "2099-01-06",
+  "period": "CSA"
+}
+
+### 7. Add events in bulk: expect created 2, failed 1 (the last one has no date)
+
+POST {{baseUrl}}/api/calendar/add_events
+Content-Type: application/json
+
+{
+  "events": [
+    { "title": "HTTP test: unit 3 quiz", "date": "2099-01-07", "period": "CSA" },
+    { "title": "HTTP test: retrospective", "date": "2099-01-08", "period": "CSA" },
+    { "title": "HTTP test: no date" }
+  ]
+}
+
+### 8. Import a Slack weekly plan: CalendarImportMsg makes 3 events (Mon, and a Tue - Wed check-in)
+
+POST {{baseUrl}}/api/calendar/add
+Content-Type: application/json
+
+{
+  "channel": "CRRJL1F1D",
+  "text": "Week of 1/12/2099\n[Mon]: HTTP test: plan review\n[Tue - Wed]: *HTTP test: check-ins\n• bring your kanban board"
+}
+
+### 9. Read the imported plan
+
+GET {{baseUrl}}/api/calendar/events/range?start=2099-01-12&end=2099-01-18
+
+### 10. Create a break. moveToNextNonBreakDay is false: true would move every user's events that day.
+
+# @name createCalendarBreak
+POST {{baseUrl}}/api/calendar/breaks/create
+Content-Type: application/json
+
+{
+  "date": "2099-01-09",
+  "name": "HTTP test break",
+  "moveToNextNonBreakDay": false
+}
+
+### 11. Is that date a break day? Expect {"isBreakDay": true}
+
+GET {{baseUrl}}/api/calendar/breaks/is-break-day?date=2099-01-09
+
+### 12. Rename the break
+
+PUT {{baseUrl}}/api/calendar/breaks/{{createCalendarBreak.response.body.$.break.id}}
+Content-Type: application/json
+
+{
+  "name": "HTTP test break (renamed)"
+}
+
+### 13. Clean up: delete the break
+
+DELETE {{baseUrl}}/api/calendar/breaks/{{createCalendarBreak.response.body.$.break.id}}
+
+### 14. Clean up: delete the event from step 2
+
+DELETE {{baseUrl}}/api/calendar/delete/{{addCalendarEvent.response.body.$.id}}
+
+### 15. Clean up: delete the bulk and imported events by title (this removes every user's events with these titles)
+
+DELETE {{baseUrl}}/api/calendar/delete_events
+Content-Type: application/json
+
+{
+  "titles": ["HTTP test: unit 3 quiz", "HTTP test: retrospective", "HTTP test: plan review", "HTTP test: check-ins"]
+}

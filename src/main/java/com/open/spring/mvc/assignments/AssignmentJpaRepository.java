@@ -1,8 +1,10 @@
 package com.open.spring.mvc.assignments;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -35,4 +37,18 @@ public interface AssignmentJpaRepository extends JpaRepository<Assignment, Long>
     /** Fetch-joins creators so DTO mapping does not trigger a lazy load per assignment. */
     @Query("SELECT DISTINCT a FROM AssignmentEntity a LEFT JOIN FETCH a.creators")
     List<Assignment> findAllWithCreators();
+
+    /** Closes the assignment if it is open; returns 0 if it was already closed or doesn't exist. */
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE AssignmentEntity a SET a.closedAt = :now, a.closedById = :closedById "
+            + "WHERE a.id = :id AND a.closedAt IS NULL")
+    int markClosed(@Param("id") Long id, @Param("now") LocalDateTime now, @Param("closedById") Long closedById);
+
+    /**
+     * Locks the assignment row with a no-op UPDATE if it is open (SQLite has no SELECT ... FOR
+     * UPDATE); returns 0 if it is closed or doesn't exist.
+     */
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE AssignmentEntity a SET a.closedAt = a.closedAt WHERE a.id = :id AND a.closedAt IS NULL")
+    int lockIfOpen(@Param("id") Long id);
 }

@@ -1,0 +1,97 @@
+### Toolchain Agent API Tests
+
+This file exercises the interactive Toolchain Trail session API under
+`/api/toolchain`. It covers the browser/game starting a session, the local
+agent exchanging a one-time pairing code, the agent polling and submitting
+evidence, and the game reading the session status.
+
+Install the **REST Client** extension in VS Code and select the `local` or
+`deployed` environment. Configure the same `baseUrl`, `adminUid`, and
+`adminPassword` variables used by `cspathway.http` in the Git-ignored
+`.vscode/settings.json`.
+
+Run the requests in order. Pairing codes are single-use; start a new session
+before pairing again. The agent token is a credential. Do not share or commit
+response data. The sample evidence below deliberately fails, so it will not
+mark a station complete. Replace it only with the actual output and exit codes
+from the local agent when testing a successful check.
+
+### 1. Authenticate the game/student
+
+# @name loginToolchain
+POST {{baseUrl}}/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "uid": "{{adminUid}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Start a station session and get a one-time pairing code
+
+# @name startToolchainSession
+POST {{baseUrl}}/api/toolchain/sessions
+Content-Type: application/json
+
+{
+  "stationId": "terminal-town-gate"
+}
+
+### 3. Agent exchanges the one-time code for a scoped token
+
+# @name pairToolchainAgent
+POST {{baseUrl}}/api/toolchain/pair
+Content-Type: application/json
+
+{
+  "pairingCode": "{{startToolchainSession.response.body.$.pairingCode}}"
+}
+
+### 4. Agent polls for the station used to start the session
+
+# @name pollToolchainAgent
+GET {{baseUrl}}/api/toolchain/sessions/{{pairToolchainAgent.response.body.$.sessionId}}/next
+Authorization: Bearer {{pairToolchainAgent.response.body.$.agentToken}}
+
+### 5. Game requests a check at the next station
+
+# @name requestToolchainNextStation
+POST {{baseUrl}}/api/toolchain/sessions/{{pairToolchainAgent.response.body.$.sessionId}}/check
+Content-Type: application/json
+
+{
+  "stationId": "editor-isle-tower"
+}
+
+### 6. Agent polls for the newly requested station
+
+# @name pollToolchainNextStation
+GET {{baseUrl}}/api/toolchain/sessions/{{pairToolchainAgent.response.body.$.sessionId}}/next
+Authorization: Bearer {{pairToolchainAgent.response.body.$.agentToken}}
+
+### 7. Agent submits evidence for the newly requested station
+
+# This example intentionally reports failed checks. Replace the exit codes and
+# output with actual `code --version` results from the local agent before testing a successful pass.
+# @name submitToolchainResults
+POST {{baseUrl}}/api/toolchain/sessions/{{pairToolchainAgent.response.body.$.sessionId}}/results
+Authorization: Bearer {{pairToolchainAgent.response.body.$.agentToken}}
+Content-Type: application/json
+
+{
+  "os": "macos",
+  "stationId": "editor-isle-tower",
+  "checks": [
+    {
+      "id": "editor",
+      "exitCode": 1,
+      "output": "Example intentionally fails; replace with actual code --version output."
+    }
+  ]
+}
+
+### 8. Game reads the evaluated session/check status
+
+# @name readToolchainSession
+GET {{baseUrl}}/api/toolchain/sessions/{{pairToolchainAgent.response.body.$.sessionId}}

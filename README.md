@@ -1,4 +1,18 @@
-# Runtime links
+# Introduction
+
+Founded and maintained by John Mortensen, Open Coding Society's Spring project supports students as they progress from learning object-oriented programming in Java to building integrated, data-driven applications.
+
+In the OCS computer science pathway, students move beyond individual classes and methods to explore how software components work together. Spring provides a foundation for building APIs, organizing application logic, mapping objects to persistent data, and connecting Java applications to databases and other services.
+
+The project connects classroom concepts—including classes, objects, encapsulation, and data structures—to the architecture of working applications. Students can examine how controllers, services, persistence layers, and application models fit together, then use those patterns in their own projects.
+
+As students progress into Computer Science A and Honors Capstone, this foundation supports more substantial work: integrating frontend applications with backend services, managing shared data, implementing application workflows, and collaborating on systems that serve real users.
+
+This repository is both a starter for student projects and a codebase to learn from. Students can use it as a template, adapt its components to new problems, and contribute improvements back to Open Coding Society.
+
+The goal is not simply to learn a framework. It is to develop the engineering judgment needed to understand, build, test, and maintain software systems.
+
+## Runtime links
 
 Backend UI
 
@@ -31,6 +45,23 @@ This Backend UI is to manage adminstrative functions like reseting passwords and
 
 The site is build on Springboot.  The project is primarly used to store and retrieve data through APIs.  The site has JWT authorization and implements security.  In optimal deployed form the data would be served through a professional database, it supports SQLite for development and deployment verification.
 
+## Architecture guides
+
+- [Group chat architecture guide](docs/group-chat-architecture.md) — explains groups and group chat: the REST routes, the STOMP WebSocket on port 8589, S3 message storage, a diagram, known issues, and `api/groups.http`.
+- [Toolchain architecture guide](docs/toolchain-architecture.md) — explains Setup, Scoring, Help, the interactive local agent, report-upload versus station-check flows, API routes, and persistence.
+- [Announcement architecture guide](docs/announcement-architecture.md) — a small example of the five standard parts (REST controller, entity, JPA repository, service, table initializer), with its routes, a diagram, and `api/announcement.http`.
+
+The Java implementation for CS Pathway is now together in `src/main/java/com/open/spring/mvc/toolchain/`. The interactive Toolchain Trail agent/session flow is the current integrated station-check implementation. A separate text-report upload and AI-review flow is still present in the code; confirm whether students still use it before removing it. Existing `/api/cs-pathway` and `/api/toolchain` routes are preserved even though the Java package and class names are now unified.
+
+## Testing Toolchain REST endpoints
+
+Use the **REST Client** VS Code extension and select the `local` or `deployed` environment:
+
+- [api/cspathway.http](api/cspathway.http) tests the existing `/api/cs-pathway/...` compatibility routes for setup reports, help requests, and scores.
+- [api/toolchain.http](api/toolchain.http) tests the interactive `/api/toolchain/...` agent/session flow.
+
+Authenticate first for requests that require the signed-in game/student. Configure `baseUrl`, `adminUid`, and `adminPassword` under `rest-client.environmentVariables` in `.vscode/settings.json`. The `.vscode/` directory is Git-ignored; keep passwords and other secrets there locally, never in an `.http` file or commit. The Toolchain agent example submits deliberately failing sample evidence unless replaced with actual local results. Treat returned pairing codes and agent tokens as credentials. Test only systems and accounts you are authorized to use.
+
 ## Getting started
 
 Java 21 or higher is requirement using VSCode tooling.
@@ -52,10 +83,10 @@ Java 21 or higher is requirement using VSCode tooling.
 ### Configuration Requirements
 
 - Create custom `.env` file to setup default user passwords to satisfy code in Person.java.  Students of OCS should leave users as default until competency is obtained.
+- The default password for seed users and password resets comes from `application.properties`. Set `DEFAULT_PASSWORD` in `.env` to override it. It must meet the password rule (8+ characters, uppercase, lowercase, number, symbol).
 
-```java
-final String adminPassword = dotenv.get("ADMIN_PASSWORD");
-final String defaultPassword = dotenv.get("DEFAULT_PASSWORD");
+```text
+person.default-password=${DEFAULT_PASSWORD:DefaultPassword123!}
 ```
 
 - Modify `application.properties` ports to be unique for your indivdual project.
@@ -92,7 +123,7 @@ The `.env` file provides local environment-specific configuration that overrides
 **Required .env setup for local development:**
 
 ```bash
-# Default password and reset passwor
+# Default password for seed users and resets (overrides person.default-password)
 DEFAULT_PASSWORD=123Qwerty!
 
 # Admin user defaults
@@ -116,7 +147,7 @@ USER_NAME=Grace Hopper
 USER_UID=hop
 USER_EMAIL=hop@example.com
 USER_SID=0000003
-USER_PASSWORD=123Hop!
+USER_PASSWORD=123Grace!
 USER_PFP=/images/hop.png
 
 # Trusted Pages assignment synchronization bot (use a unique local password)
@@ -141,6 +172,8 @@ GAMIFY_API_KEY=your-openai-api-key-here
 GEMINI_API_KEY=your-gemini-api-key-here
 GITHUB_API_TOKEN=your-github-token-here
 
+GIST_TOKEN=your-github-gist-token-here
+
 # Email Configuration (optional - overrides application.properties)
 # spring.mail.username=your-email@gmail.com
 # spring.mail.password=your-app-password
@@ -150,7 +183,11 @@ AWS_BUCKET_NAME=your-bucket-name
 AWS_ACCESS_KEY_ID=your-access-key
 AWS_SECRET_ACCESS_KEY=your-secret-key
 AWS_REGION=us-east-2
+# if developing locally, set the endoint heree
+# AWS_S3_ENDPOINT=http://localhost:9000
 ```
+
+
 
 **Production Configuration:**
 - Production uses the secure defaults from `application.properties` (HTTPS settings)
@@ -332,6 +369,18 @@ of what was wrong with the old scripts -- lives at
 <https://pages.opencodingsociety.com/documentation/migration-runbook>. Read it before your
 first migration; this section is the summary.
 
+## Local S3 Development
+
+1. Start the local instance of RustFS:
+```
+docker-compose -f rustfs.yml up -d
+```
+2. Uncomment this line in `.env`:
+```
+AWS_S3_ENDPOINT=http://localhost:9000
+```
+
+
 # Testing Grade FRQs API with Postman
 
 ## Step 1: Authenticate
@@ -357,3 +406,17 @@ first migration; this section is the summary.
 **Headers:** `Cookie: jwt_java_spring=YOUR_TOKEN_HERE`
 
 **Action:** Send request
+
+## Creating a GitHub Gist Token
+
+1. Sign in to [GitHub](https://github.com).
+2. Click your profile picture (top right) → **Settings**.
+3. In the left sidebar, scroll down and click **Developer settings**.
+4. Go to **Personal access tokens** → **Tokens (classic)**.
+5. Click **Generate new token** → **Generate new token (classic)**.
+6. Fill in the form:
+   - **Note:** give it a name you'll recognize (e.g. `my-app-gist`)
+   - **Expiration:** pick how long the token should last
+   - **Scopes:** check only **`gist`**
+7. Scroll down and click **Generate token**.
+8. **Copy the token now.**

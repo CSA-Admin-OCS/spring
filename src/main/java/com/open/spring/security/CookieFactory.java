@@ -17,8 +17,7 @@ public class CookieFactory {
 
     public static final String JWT_COOKIE = "jwt_java_spring";
 
-    /** The JWT is only ever sent to the API chain, so it is scoped to /api. */
-    private static final String JWT_PATH = "/api";
+    private static final String JWT_PATH = "/";
 
     private static final String PRODUCTION_DOMAIN = ".opencodingsociety.com";
 

@@ -23,6 +23,7 @@ public class AssignmentSubmissionReturnDto {
     public Boolean isLate;
     public String aiSummary;
     public Integer qualityScore;
+    public SubmissionGradingState grading;
     public Integer technicalExcellence;
     public Integer communication;
     public Integer workHabits;
@@ -41,6 +42,7 @@ public class AssignmentSubmissionReturnDto {
         this.isLate = submission.getIsLate();
         this.aiSummary = submission.getAiSummary();
         this.qualityScore = submission.getQualityScore();
+        this.grading = SubmissionGradingState.of(submission);
         this.technicalExcellence = submission.getTechnicalExcellence();
         this.communication = submission.getCommunication();
         this.workHabits = submission.getWorkHabits();

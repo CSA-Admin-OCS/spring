@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.open.spring.mvc.assignments.Assignment;
 import com.open.spring.mvc.assignments.AssignmentJpaRepository;
+import com.open.spring.mvc.assignments.AssignmentSubmissionJPA;
 import com.open.spring.mvc.groups.GroupsJpaRepository;
 import com.open.spring.mvc.groups.Submitter;
 import com.open.spring.mvc.person.Person;
@@ -45,6 +46,12 @@ public class SynergyApiController {
 
     @Autowired
     private PersonJpaRepository personRepository;
+
+    @Autowired
+    private GradebookService gradebookService;
+
+    @Autowired
+    private AssignmentSubmissionJPA submissionRepository;
 
     /**
      * A data transfer object that stores information about a grade request.
@@ -86,6 +93,53 @@ public class SynergyApiController {
 
     SynergyApiController(GroupsJpaRepository groupsJpaRepository) {
         this.groupsJpaRepository = groupsJpaRepository;
+    }
+
+    private static boolean isStaff(Person person) {
+        return person.hasRoleWithName("ROLE_TEACHER") || person.hasRoleWithName("ROLE_ADMIN");
+    }
+
+    private Person currentPerson(UserDetails userDetails) {
+        Person person = userDetails == null ? null : personRepository.findByUid(userDetails.getUsername());
+        if (person == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
+        }
+        return person;
+    }
+
+    /**
+     * Gradebook cards for one course (or every class group when {@code course} is blank),
+     * filtered by name. Teachers and admins only.
+     */
+    @GetMapping("/gradebook/students")
+    public ResponseEntity<?> gradebookStudents(
+        @AuthenticationPrincipal UserDetails userDetails,
+        @RequestParam(required = false) String course,
+        @RequestParam(required = false) String q
+    ) {
+        if (!isStaff(currentPerson(userDetails))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Teacher or admin role required");
+        }
+        try {
+            return ResponseEntity.ok(gradebookService.roster(course, q));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /** One student's card. Students may only load their own. */
+    @GetMapping("/gradebook/students/{personId}")
+    public ResponseEntity<?> gradebookCard(
+        @AuthenticationPrincipal UserDetails userDetails,
+        @PathVariable Long personId
+    ) {
+        Person current = currentPerson(userDetails);
+        if (!isStaff(current) && !current.getId().equals(personId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only view your own grades");
+        }
+        Person person = personRepository.findById(personId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found"));
+        return ResponseEntity.ok(gradebookService.card(person));
     }
 
     /**
@@ -174,8 +228,31 @@ public class SynergyApiController {
             );
         }
 
+        boolean isGroup = Boolean.TRUE.equals(requestData.getIsGroup());
+        if (requestData.getSubmitterId() == null || requestData.getAssignmentId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "submitterId and assignmentId are required");
+        }
+        if (!isStaff(grader)) {
+            // Students may only request a change to their own (or their group's) submitted work.
+            List<Long> ownSubmitterIds = new ArrayList<>(List.of(grader.getId()));
+            groupsJpaRepository.findGroupsByPersonId(grader.getId()).forEach(group -> ownSubmitterIds.add(group.getId()));
+            boolean own = isGroup
+                ? !requestData.getSubmitterId().equals(grader.getId()) && ownSubmitterIds.contains(requestData.getSubmitterId())
+                : grader.getId().equals(requestData.getSubmitterId());
+            if (!own) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only request grade changes for yourself");
+            }
+            boolean submitted = ownSubmitterIds.stream()
+                .flatMap(submitterId -> submissionRepository.findBySubmitterId(submitterId).stream())
+                .anyMatch(submission -> submission.getAssignment() != null
+                    && requestData.getAssignmentId().equals(submission.getAssignment().getId()));
+            if (!submitted) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You haven't submitted this assignment");
+            }
+        }
+
         Submitter submitter;
-        if (requestData.isGroup) {
+        if (isGroup) {
             // If the submitter is a group, we need to find the group by ID
             submitter = groupsJpaRepository.findById(requestData.getSubmitterId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid group ID passed"));
