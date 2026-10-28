@@ -357,8 +357,7 @@ public class Person extends Submitter implements Comparable<Person> {
         ArrayList<Person> people = new ArrayList<>();
         final Dotenv dotenv = Dotenv.load();
 
-        // Must satisfy checkPassword()'s complexity rule -- seed init goes through
-        // PersonDetailsService.save() like everything else.
+        // Seed init goes through PersonDetailsService.save(), which no longer checks complexity.
         String defaultPassword = envOrDefault(dotenv, "DEFAULT_PASSWORD", "DefaultPassword123!");
 
         // JSON-like list of person data using Map.ofEntries

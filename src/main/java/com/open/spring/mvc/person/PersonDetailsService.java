@@ -86,11 +86,9 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
         if (person.getPassword() == null || person.getPassword().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
-        // Always a plaintext password here (new-account creation / seed init), so
-        // this is the only place in this overload where complexity applies.
-        if (!person.checkPassword()) {
-            throw new IllegalArgumentException("Password does not meet complexity requirements");
-        }
+        // New-account creation and seed init do not check complexity: it caused support issues
+        // and instability between Flask and Spring. Login forces a reset for a weak or default
+        // password, and changing a password still goes through save(person, samePassword).
         person.setPassword(passwordEncoder.encode(person.getPassword()));
         personJpaRepository.save(person);
     }
