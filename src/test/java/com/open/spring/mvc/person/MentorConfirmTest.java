@@ -44,6 +44,9 @@ public class MentorConfirmTest {
         ReflectionTestUtils.setField(controller, "personDetailsService", personDetailsService);
         ReflectionTestUtils.setField(controller, "mentorStatementSecret", SECRET);
         when(authentication.getName()).thenReturn("someone");
+        Person someone = new Person();
+        someone.setUid("someone");
+        when(personDetailsService.getByUid("someone")).thenReturn(someone);
         when(personDetailsService.setRole(anyString(), anyString(), anyBoolean())).thenReturn(true);
     }
 
@@ -101,7 +104,7 @@ public class MentorConfirmTest {
     public void flaskCanOnlyEverSetTheMentorRole() throws Exception {
         for (String role : new String[] { "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER", "ROLE_STUDENT" }) {
             ResponseEntity<Object> response = confirm(statement("someone", role, true, inAMinute(), SECRET));
-            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), role);
+            assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode(), role);
         }
         verify(personDetailsService, never()).setRole(anyString(), anyString(), anyBoolean());
     }
@@ -123,7 +126,7 @@ public class MentorConfirmTest {
 
     @Test
     public void aPersonSpringDoesNotHaveIsNotFound() throws Exception {
-        when(personDetailsService.setRole(anyString(), anyString(), anyBoolean())).thenReturn(false);
+        when(personDetailsService.getByUid("someone")).thenReturn(null);
         assertEquals(HttpStatus.NOT_FOUND, confirm(statement("someone", "ROLE_MENTOR", true, inAMinute(), SECRET)).getStatusCode());
     }
 }

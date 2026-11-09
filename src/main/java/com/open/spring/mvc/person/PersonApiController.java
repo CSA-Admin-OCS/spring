@@ -273,9 +273,6 @@ public class PersonApiController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    /** The only role Flask may give or take away this way. */
-    private static final String ROLE_MENTOR = "ROLE_MENTOR";
-
     // The secret Spring shares with Flask (it also signs password-reset tokens). Blank when it is not set.
     @Value("${RESET_TOKEN_SECRET:}")
     private String mentorStatementSecret;
@@ -284,7 +281,7 @@ public class PersonApiController {
     @Getter
     @Setter
     public static class MentorConfirmDto {
-        // The statement Flask signed at login (see MentorRoleStatement)
+        // The statement Flask signed at login (see Person.mentorStatus)
         private String attestation;
     }
 
@@ -302,20 +299,19 @@ public class PersonApiController {
         if (mentorStatementSecret == null || mentorStatementSecret.isBlank()) {
             return jsonError(HttpStatus.SERVICE_UNAVAILABLE, "mentor role statements are not configured on this server");
         }
-        java.util.Optional<MentorRoleStatement> statement = MentorRoleStatement.verify(body.getAttestation(), mentorStatementSecret);
-        if (statement.isEmpty() || !statement.get().getUid().equals(authentication.getName())) {
-            return jsonError(HttpStatus.FORBIDDEN, "not a valid statement for you");
-        }
-        if (!ROLE_MENTOR.equals(statement.get().getRole())) {
-            return jsonError(HttpStatus.BAD_REQUEST, "that role cannot be set this way");
-        }
-        if (!personDetailsService.setRole(statement.get().getUid(), ROLE_MENTOR, statement.get().isGranted())) {
+        Person person = personDetailsService.getByUid(authentication.getName());
+        if (person == null) {
             return jsonError(HttpStatus.NOT_FOUND, "no such person");
         }
-        logger.info("AUDIT mentor_role uid={} granted={}", statement.get().getUid(), statement.get().isGranted());
+        java.util.Optional<Boolean> granted = person.mentorStatus(body.getAttestation(), mentorStatementSecret);
+        if (granted.isEmpty()) {
+            return jsonError(HttpStatus.FORBIDDEN, "not a valid statement for you");
+        }
+        personDetailsService.setRole(person.getUid(), Person.ROLE_MENTOR, granted.get());
+        logger.info("AUDIT mentor_role uid={} granted={}", person.getUid(), granted.get());
         JSONObject responseObject = new JSONObject();
-        responseObject.put("role", ROLE_MENTOR);
-        responseObject.put("granted", statement.get().isGranted());
+        responseObject.put("role", Person.ROLE_MENTOR);
+        responseObject.put("granted", granted.get());
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.APPLICATION_JSON);
         return new ResponseEntity<>(responseObject.toString(), responseHeaders, HttpStatus.OK);

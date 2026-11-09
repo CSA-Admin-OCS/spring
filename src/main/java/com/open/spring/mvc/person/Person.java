@@ -1,12 +1,20 @@
 package com.open.spring.mvc.person;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,6 +31,7 @@ import jakarta.persistence.CascadeType;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.json.JSONObject;
 import jakarta.persistence.Convert;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -346,6 +355,67 @@ public class Person extends Submitter implements Comparable<Person> {
             }
         }
         return false;
+    }
+
+    /** The one role Flask can give or take away: a mentor a Teacher or Admin has verified. */
+    public static final String ROLE_MENTOR = "ROLE_MENTOR";
+
+    private static final String MENTOR_STATEMENT_LABEL = "mentor-role-v1:";
+
+    /**
+     * What Flask says about this person's mentor role: true when a Teacher or Admin has verified them, false when
+     * they no longer are, and empty when the token is not a good statement about this person.
+     *
+     * Whether a mentor is verified is kept in Flask, which signs a statement at login. The page passes it to
+     * POST /api/person/mentor/confirm. The same secret, RESET_TOKEN_SECRET, signs password-reset tokens, so the
+     * signed text starts with a label, and has no dot in it, so a signature made for any other purpose can never be
+     * accepted here. Anything wrong with the token, however it is wrong, gives empty: no error, no detail why.
+     *
+     *   token     = base64url(json) + "." + signature
+     *   json      = {"exp": seconds, "granted": true or false, "role": "ROLE_MENTOR", "uid": uid}
+     *   signature = base64url(HMAC-SHA256(secret, "mentor-role-v1:" + base64url(json)))
+     *
+     * Flask's side is model/role_attestation.py.
+     *
+     * @param token, a String, the statement Flask signed
+     * @param secret, a String, the secret Flask and Spring share
+     * @param nowEpochSeconds, a long, the time to check the end of the statement against
+     * @return Optional of Boolean, whether Flask says this person is a verified mentor
+     */
+    public Optional<Boolean> mentorStatus(String token, String secret, long nowEpochSeconds) {
+        if (token == null || secret == null || secret.isBlank()) {
+            return Optional.empty();
+        }
+        String[] parts = token.trim().split("\\.", -1);
+        if (parts.length != 2 || parts[0].isEmpty() || parts[1].isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] expected = mac.doFinal((MENTOR_STATEMENT_LABEL + parts[0]).getBytes(StandardCharsets.UTF_8));
+            byte[] given = Base64.getUrlDecoder().decode(parts[1]);
+            if (!MessageDigest.isEqual(expected, given)) {  // constant time
+                return Optional.empty();
+            }
+            JSONObject json = new JSONObject(new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8));
+            Object statementUid = json.opt("uid");
+            Object statementRole = json.opt("role");
+            Object granted = json.opt("granted");
+            Object exp = json.opt("exp");
+            boolean wellFormed = statementUid instanceof String && statementRole instanceof String
+                    && granted instanceof Boolean && exp instanceof Number;
+            // It must be about this person, about the mentor role and nothing else, and not past its end
+            boolean forThisPerson = wellFormed && statementUid.equals(this.uid) && ROLE_MENTOR.equals(statementRole)
+                    && ((Number) exp).longValue() > nowEpochSeconds;
+            return forThisPerson ? Optional.of((Boolean) granted) : Optional.empty();
+        } catch (Exception e) {  // bad base64, bad JSON: not a statement
+            return Optional.empty();
+        }
+    }
+
+    public Optional<Boolean> mentorStatus(String token, String secret) {
+        return mentorStatus(token, secret, Instant.now().getEpochSecond());
     }
 
     /**
