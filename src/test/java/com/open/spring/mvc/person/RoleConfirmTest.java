@@ -25,10 +25,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * POST /api/person/mentor/confirm: Spring gives a person ROLE_MENTOR, or takes it away, only on a statement
- * Flask signed about that same person.
+ * POST /api/person/role/confirm: Spring gives a person a role, or takes it away, only on a statement Flask
+ * signed about that same person, and only for a role on the list Flask may set.
  */
-public class MentorConfirmTest {
+public class RoleConfirmTest {
 
     private static final String SECRET = "shared-test-secret";
 
@@ -43,7 +43,11 @@ public class MentorConfirmTest {
         controller = new PersonApiController();
         ReflectionTestUtils.setField(controller, "personDetailsService", personDetailsService);
         ReflectionTestUtils.setField(controller, "mentorStatementSecret", SECRET);
+        ReflectionTestUtils.setField(controller, "flaskSettableRoles", "ROLE_MENTOR");
         when(authentication.getName()).thenReturn("someone");
+        Person someone = new Person();
+        someone.setUid("someone");
+        when(personDetailsService.getByUid("someone")).thenReturn(someone);
         when(personDetailsService.setRole(anyString(), anyString(), anyBoolean())).thenReturn(true);
     }
 
@@ -98,7 +102,7 @@ public class MentorConfirmTest {
     }
 
     @Test
-    public void flaskCanOnlyEverSetTheMentorRole() throws Exception {
+    public void withTheDefaultListFlaskCanOnlyEverSetTheMentorRole() throws Exception {
         for (String role : new String[] { "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_USER", "ROLE_STUDENT" }) {
             ResponseEntity<Object> response = confirm(statement("someone", role, true, inAMinute(), SECRET));
             assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(), role);
@@ -123,7 +127,41 @@ public class MentorConfirmTest {
 
     @Test
     public void aPersonSpringDoesNotHaveIsNotFound() throws Exception {
-        when(personDetailsService.setRole(anyString(), anyString(), anyBoolean())).thenReturn(false);
+        when(personDetailsService.getByUid("someone")).thenReturn(null);
         assertEquals(HttpStatus.NOT_FOUND, confirm(statement("someone", "ROLE_MENTOR", true, inAMinute(), SECRET)).getStatusCode());
+    }
+
+    @Test
+    public void aRoleOnTheListCanBeSetAndOneOffItCannot() throws Exception {
+        ReflectionTestUtils.setField(controller, "flaskSettableRoles", " ROLE_MENTOR , ROLE_TEACHER ");
+        assertEquals(HttpStatus.OK, confirm(statement("someone", "ROLE_TEACHER", true, inAMinute(), SECRET)).getStatusCode());
+        verify(personDetailsService).setRole("someone", "ROLE_TEACHER", true);
+        assertEquals(HttpStatus.OK, confirm(statement("someone", "ROLE_MENTOR", false, inAMinute(), SECRET)).getStatusCode());
+        verify(personDetailsService).setRole("someone", "ROLE_MENTOR", false);
+        assertEquals(HttpStatus.BAD_REQUEST, confirm(statement("someone", "ROLE_ADMIN", true, inAMinute(), SECRET)).getStatusCode());
+        verify(personDetailsService, never()).setRole("someone", "ROLE_ADMIN", true);
+    }
+
+    @Test
+    public void aBlankListMeansFlaskCanSetNothing() throws Exception {
+        for (String blank : new String[] { "", "  ", " , ,", null }) {
+            ReflectionTestUtils.setField(controller, "flaskSettableRoles", blank);
+            assertEquals(HttpStatus.BAD_REQUEST, confirm(statement("someone", "ROLE_MENTOR", true, inAMinute(), SECRET)).getStatusCode(), String.valueOf(blank));
+        }
+        verify(personDetailsService, never()).setRole(anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    public void aRoleNameThatOnlyLooksLikeAnAllowedOneIsRefused() throws Exception {
+        assertEquals(HttpStatus.BAD_REQUEST, confirm(statement("someone", "ROLE_MENTORS", true, inAMinute(), SECRET)).getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, confirm(statement("someone", "role_mentor", true, inAMinute(), SECRET)).getStatusCode());
+        verify(personDetailsService, never()).setRole(anyString(), anyString(), anyBoolean());
+    }
+
+    @Test
+    public void theOldMentorConfirmPathStillReachesTheSameMethod() throws Exception {
+        java.lang.reflect.Method method = PersonApiController.class.getMethod("confirmMentorRole", PersonApiController.MentorConfirmDto.class, Authentication.class);
+        String[] paths = method.getAnnotation(org.springframework.web.bind.annotation.PostMapping.class).value();
+        assertEquals(java.util.List.of("/person/role/confirm", "/person/mentor/confirm"), java.util.List.of(paths));
     }
 }
