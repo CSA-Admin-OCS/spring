@@ -23,7 +23,9 @@ import lombok.RequiredArgsConstructor;
  * Moves each person's roles from the person_roles join table into one JSON array in person.roles_json.
  *
  * Hibernate runs with ddl-auto=none, so the new column and its data reach a live database only through hand-written
- * idempotent SQL like this (see AssignmentContentUrlMigration). It runs first on every boot and is a no-op once
+ * idempotent SQL like this. The statements are unquoted, as in TableSchema, so they run on SQLite and on MySQL: MySQL
+ * reads a double-quoted name as a string unless ANSI_QUOTES is on, and an error here is swallowed, which would leave
+ * the column missing. It runs first on every boot and is a no-op once
  * applied: a person whose roles_json is already filled in is never touched, and a database that never had the join
  * table (a new one) just gets empty arrays.
  *
@@ -46,13 +48,13 @@ public class PersonRolesJsonMigration {
         return args -> {
             addRolesJsonColumn();
             fillFromJoinTable();
-            jdbcTemplate.update("UPDATE \"person\" SET \"roles_json\" = '[]' WHERE \"roles_json\" IS NULL");
+            jdbcTemplate.update("UPDATE person SET roles_json = '[]' WHERE roles_json IS NULL");
         };
     }
 
     private void addRolesJsonColumn() {
         try {
-            jdbcTemplate.execute("ALTER TABLE \"person\" ADD COLUMN \"roles_json\" TEXT");
+            jdbcTemplate.execute("ALTER TABLE person ADD COLUMN roles_json TEXT");
             logger.info("Added 'roles_json' column to 'person' table");
         } catch (DataAccessException ignored) {
             // Column already exists on every boot after the first.
@@ -62,8 +64,8 @@ public class PersonRolesJsonMigration {
     private void fillFromJoinTable() {
         List<Map<String, Object>> rows;
         try {
-            rows = jdbcTemplate.queryForList("SELECT pr.\"person_id\" AS person_id, r.\"name\" AS name "
-                    + "FROM \"person_roles\" pr JOIN \"person_role\" r ON r.\"id\" = pr.\"roles_id\" ORDER BY pr.\"person_id\", r.\"id\"");
+            rows = jdbcTemplate.queryForList("SELECT pr.person_id AS person_id, r.name AS name "
+                    + "FROM person_roles pr JOIN person_role r ON r.id = pr.roles_id ORDER BY pr.person_id, r.id");
         } catch (DataAccessException noJoinTable) {
             return;  // a new database: nothing to move
         }
@@ -74,7 +76,7 @@ public class PersonRolesJsonMigration {
         int moved = 0;
         for (Map.Entry<Object, List<String>> entry : byPerson.entrySet()) {
             try {
-                moved += jdbcTemplate.update("UPDATE \"person\" SET \"roles_json\" = ? WHERE \"id\" = ? AND \"roles_json\" IS NULL",
+                moved += jdbcTemplate.update("UPDATE person SET roles_json = ? WHERE id = ? AND roles_json IS NULL",
                         MAPPER.writeValueAsString(entry.getValue()), entry.getKey());
             } catch (Exception e) {
                 throw new IllegalStateException("Could not move the roles of person " + entry.getKey() + " to JSON", e);
