@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -877,13 +878,28 @@ public class AssignmentsApiController {
      * If the student is not found, returns a 404 error.
      * If the student has no submissions, returns an empty list.
      * If the student has submissions, returns a list of AssignmentSubmissionReturnDto objects.
+     * Access is restricted to the student requesting their own submissions, or a teacher/admin.
      */
     @Transactional
     @GetMapping("/submissions/student/{studentId}")
-    public ResponseEntity<?> getSubmissions(@PathVariable Long studentId) {
-        if (personRepo.findById(studentId).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Student not found");
-        }
+    public ResponseEntity<?> getStudentSubmissions(@PathVariable Long studentId, @AuthenticationPrincipal UserDetails userDetails) {
+	// check if requested studentId exists
+	Person p = personRepo.findById(studentId)
+		.orElseThrow(() -> new ResponseStatusException(
+			HttpStatus.NOT_FOUND, "Student not found"
+		));
+
+	// fetch credentials of the requester
+	String requesterUid = userDetails.getUsername();
+	Person requester = Optional.ofNullable(personRepo.findByUid(requesterUid))
+		.orElseThrow(() -> new ResponseStatusException(
+			HttpStatus.NOT_FOUND, "User not found with uid: " + requesterUid
+		));
+	// if the uid from the AuthenticationPrincipal does not match the requested studentId,
+	// reject the request; EXCEPTION: admins/teachers are allowed
+	if (!p.getUid().equals(requesterUid) && !(requester.hasRoleWithName("ROLE_TEACHER") || requester.hasRoleWithName("ROLE_ADMIN"))) {
+		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to this resource");
+	}
 
         List<AssignmentSubmissionReturnDto> dtos = Stream.concat(
             submissionRepo.findBySubmitterId(studentId).stream(),
