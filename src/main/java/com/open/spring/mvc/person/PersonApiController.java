@@ -467,7 +467,7 @@ public class PersonApiController {
         person.setName(name);
         person.setPfp(profilePicture);
         person.setKasmServerNeeded(kasmServerNeeded);
-        person.getRoles().add(defaultRole);
+        person.setRoles(new ArrayList<>(List.of(defaultRole.getName())));
 
         // Non-critical feature entities should be created lazily in their own flows.
         person.setBanks(null);

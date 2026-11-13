@@ -179,8 +179,8 @@ public class AssignmentSubmissionUploadService {
     }
 
     private void validateSubmitPermission(Person authenticatedUser, Long userId) {
-        boolean privileged = authenticatedUser.hasRoleWithName("ROLE_TEACHER")
-                || authenticatedUser.hasRoleWithName("ROLE_ADMIN");
+        boolean privileged = authenticatedUser.hasRole("ROLE_TEACHER")
+                || authenticatedUser.hasRole("ROLE_ADMIN");
         if (!privileged && !Objects.equals(authenticatedUser.getId(), userId)) {
             throw new UploadException(HttpStatus.FORBIDDEN, "You can only submit assignments for your own account");
         }

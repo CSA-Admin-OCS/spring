@@ -61,7 +61,7 @@ class LessonFeedbackServiceTest {
         ReflectionTestUtils.setField(person, "id", id);
         person.setUid(uid);
         person.setName(uid);
-        person.setRoles(new ArrayList<>(List.of(new PersonRole("ROLE_USER"), new PersonRole(role))));
+        person.setRoles(new ArrayList<>(List.of("ROLE_USER", role)));
         return person;
     }
 

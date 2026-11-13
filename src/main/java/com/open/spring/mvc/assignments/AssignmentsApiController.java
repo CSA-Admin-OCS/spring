@@ -1081,7 +1081,7 @@ public class AssignmentsApiController {
 
         Stream<AssignmentSubmission> submissions = submissionRepo.findByAssignmentId(assignmentId).stream();
 
-        if (!(user.hasRoleWithName("ROLE_TEACHER") || user.hasRoleWithName("ROLE_ADMIN"))) {
+        if (!(user.hasRole("ROLE_TEACHER") || user.hasRole("ROLE_ADMIN"))) {
             // if they aren't a teacher or admin, only let them see submissions they are assigned to grade
             submissions = submissions
                 .filter(submission -> submission.getAssignedGraders().contains(user));
@@ -1510,7 +1510,7 @@ public class AssignmentsApiController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Authentication required");
         }
         Person user = personRepo.findByUid(userDetails.getUsername());
-        if (user == null || !(user.hasRoleWithName("ROLE_TEACHER") || user.hasRoleWithName("ROLE_ADMIN"))) {
+        if (user == null || !(user.hasRole("ROLE_TEACHER") || user.hasRole("ROLE_ADMIN"))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Teacher or admin role required");
         }
         return user;
