@@ -116,12 +116,19 @@ public class PersonApiController {
      */
     @GetMapping("/person/uid/{uid}")
     @PreAuthorize("hasAnyAuthority('ROLE_USER','ROLE_STUDENT','ROLE_TEACHER','ROLE_ADMIN')")
-    public ResponseEntity<Person> getPersonByUid(@PathVariable String uid) {
+    public ResponseEntity<Person> getPersonByUid(@PathVariable String uid, Authentication authentication) {
+        
         Person person = repository.findByUid(uid);
-        if (person != null) {
-            return new ResponseEntity<>(person, HttpStatus.OK);
+
+        if (person == null) {
+            return ResponseEntity.notFound().build();
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+        if (!authentication.getName().equals(person.getUid()) && !authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_TEACHER"))) {
+            person.setGradesJson(null);
+        }
+
+        return ResponseEntity.ok(person);
     }
 
     // Removed: GET /api/person/faces has been moved to FaceApiController (/api/face/faces).
