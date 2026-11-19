@@ -250,10 +250,15 @@ public class PersonApiController {
      *         NOT_FOUND status if not found.
      */
     @GetMapping("/person/{id}")
-    public ResponseEntity<Person> getPerson(@PathVariable long id) {
+    public ResponseEntity<Person> getPerson(Authentication authentication, @PathVariable long id) {
         Optional<Person> optional = repository.findById(id);
         if (optional.isPresent()) { // Good ID
             Person person = optional.get(); // value from findByID
+
+            if (!authentication.getName().equals(person.getUid()) && !authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_TEACHER"))) {
+                person.setGradesJson(null);
+            }
+
             return new ResponseEntity<>(person, HttpStatus.OK); // OK HTTP response: status code, headers, and body
         }
         // Bad ID
