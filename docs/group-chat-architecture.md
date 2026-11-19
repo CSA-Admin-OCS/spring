@@ -140,7 +140,7 @@ Every route needs a signed-in account (the JWT cookie from `POST /authenticate`)
 | GET | `/api/groups/chat/{groupId}/files` | Shared files with who uploaded them, each with its bytes as `base64Data` | Any signed-in account |
 | GET | `/api/groups/chat/{groupId}/files/index` | Shared files as `[{path, size, uploadedBy, uploadedAt}]`, sorted by path, without bytes | Any signed-in account |
 | GET | `/api/groups/chat/{groupId}/files/content?path=` | One shared file's bytes (`application/octet-stream`, named by the last part of its path); 400 for a path that isn't valid, 404 when there is no such file | Any signed-in account |
-| POST | `/api/groups/chat/{groupId}/files` | Upload `{filename, base64Data}`; 400 when `filename` isn't a valid path. Broadcasts `sendFileServer` with `filename` and `size`, not the bytes | Any signed-in account |
+| POST | `/api/groups/chat/{groupId}/files` | Upload `{filename, base64Data}`; 400 when `filename` isn't a valid path, 409 `{message, filename}` when a file is already shared at that path. Broadcasts `sendFileServer` with `filename` and `size`, not the bytes | Any signed-in account |
 | GET | `/api/groups/chat/analytics/{personId}` | Message and file counts across a person's groups | Any signed-in account |
 
 ## Persistence
@@ -150,7 +150,7 @@ Every route needs a signed-in account (the JWT cookie from `POST /authenticate`)
 | Groups and members | SQL: `groups`, `group_members`, and the shared `submitter` table | Ids come from `submitter_seq`, shared with `Person`. |
 | Read states | SQL: `group_chat_read_state` (`group_id`, `person_id`, `last_read_at`) | One row per member per group. |
 | Messages | S3: `<group name>/messages-images/messages.jsonl` | One JSON line per message: `id`, `author` (display name), `author_uid`, `message`, `date`, `image`, `edited`. |
-| Shared files | S3: `<group name>/shared-files/` plus `shared-files-meta.json` for who uploaded each | A file shared from a folder keeps its folders: `filename` is a path like `project/src/Main.java` (`SharedFilePaths`: no `..`, `.` or empty names, nothing absolute, no backslashes or control characters, at most 512 characters and 255 per name). The same path again replaces the file. Writes to the metadata file take a lock per group, so uploads that land together keep every name. |
+| Shared files | S3: `<group name>/shared-files/` plus `shared-files-meta.json` for who uploaded each | A file shared from a folder keeps its folders: `filename` is a path like `project/src/Main.java` (`SharedFilePaths`: no `..`, `.` or empty names, nothing absolute, no backslashes or control characters, at most 512 characters and 255 per name). A shared file is never written over: the same path again is refused with 409, and so is an upload of a path another upload is writing at that moment (`sharesInFlight`, within one server), so two people sharing `notes.md` at once keep both files. The page then shares its copy under the next free name. Writes to the metadata file take a lock per group, so uploads that land together keep every name. |
 | Presence | Memory only | Lost on restart; rebuilt as clients rejoin. |
 
 - **History is keyed by group name, not id.** Renaming a group with `PUT /api/groups/{id}` leaves its history under the old name.
@@ -162,7 +162,7 @@ Every route needs a signed-in account (the JWT cookie from `POST /authenticate`)
 
 - `api/groups.http`: open it in VS Code with the REST Client extension and run the 15 requests in order. Set `baseUrl`, `adminUid` and `adminPassword` under `rest-client.environmentVariables` in the Git-ignored `.vscode/settings.json`. Never put passwords in the file. It creates a test group, adds you, sends and reads messages, checks unread counts, and deletes the group.
 - **The WebSocket can't be tested from a `.http` file.** To check it, open a course page with a chat against a local server and watch the browser's Network panel (WS filter) for frames on `/topic/group/{id}`. Or connect any STOMP client to `ws://localhost:8589/ws-chat/websocket` (SockJS's raw WebSocket transport), send `CONNECT`, `SUBSCRIBE` to `/topic/group/{id}`, and `SEND` JSON events to `/app/groups.chat`.
-- Run the chat regression tests with `./mvnw test '-Dtest=GroupChat*Test'`. They cover UID-based ownership, REST identity forwarding and unread counts. `GroupChatFilesTest` covers the file index, one-file downloads, the path rules, the bytes-free frame, and uploads that land together.
+- Run the chat regression tests with `./mvnw test '-Dtest=GroupChat*Test'`. They cover UID-based ownership, REST identity forwarding and unread counts. `GroupChatFilesTest` covers the file index, one-file downloads, the path rules, the bytes-free frame, uploads that land together, a path that is already shared, and two uploads of one path at once.
 
 ## Known issues
 

@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -87,7 +88,11 @@ class GroupChatFilesTest {
 
     @BeforeEach
     void setUp() {
-        storage = new InMemoryStorage();
+        useStorage(new InMemoryStorage());
+    }
+
+    private void useStorage(InMemoryStorage store) {
+        storage = store;
         GroupChatService chat = new GroupChatService(storage, new ObjectMapper());
         GroupsJpaRepository groups = mock(GroupsJpaRepository.class);
         messaging = mock(SimpMessagingTemplate.class);
@@ -201,6 +206,60 @@ class GroupChatFilesTest {
         assertEquals("Ada Lovelace", event.getSender());
         assertEquals(16L, event.getSize());
         assertNull(event.getBase64Data());
+    }
+
+    @Test
+    void aPathAlreadySharedIsRefusedAndTheFirstFileIsKept() {
+        assertEquals(HttpStatus.OK, upload("notes.md", "Ada's notes").getStatusCode());
+
+        ResponseEntity<?> second = upload("notes.md", "Grace's notes");
+
+        assertEquals(HttpStatus.CONFLICT, second.getStatusCode());
+        @SuppressWarnings("unchecked")
+        Map<String, String> body = (Map<String, String>) second.getBody();
+        assertEquals("notes.md", body.get("filename"));
+        assertArrayEquals("Ada's notes".getBytes(StandardCharsets.UTF_8), storage.objects.get("CSA/shared-files/notes.md"));
+        // Only the upload that was kept tells the group a file arrived.
+        verify(messaging, times(1)).convertAndSend(eq("/topic/group/7"), any(Object.class));
+    }
+
+    @Test
+    void twoUploadsOfOnePathAtOnceKeepOneAndRefuseTheOther() throws Exception {
+        // Each write waits until both uploads are writing (or half a second passes), so two
+        // uploads that both checked the path first would both write.
+        CountDownLatch bothWriting = new CountDownLatch(2);
+        useStorage(new InMemoryStorage() {
+            @Override
+            public String uploadFile(String base64Data, String filename, String uid) {
+                if (filename.startsWith("shared-files/")) {
+                    bothWriting.countDown();
+                    try {
+                        bothWriting.await(500, TimeUnit.MILLISECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                return super.uploadFile(base64Data, filename, uid);
+            }
+        });
+        ExecutorService pool = Executors.newFixedThreadPool(2);
+        CountDownLatch start = new CountDownLatch(1);
+        List<java.util.concurrent.Future<ResponseEntity<?>>> results = new ArrayList<>();
+        for (String text : List.of("Ada's notes", "Grace's notes")) {
+            results.add(pool.submit(() -> {
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken("ada", null, List.of()));
+                start.await();
+                return upload("notes.md", text);
+            }));
+        }
+        start.countDown();
+        List<Object> statuses = new ArrayList<>();
+        for (var result : results) statuses.add(result.get(10, TimeUnit.SECONDS).getStatusCode());
+        pool.shutdown();
+
+        assertEquals(1, statuses.stream().filter(HttpStatus.OK::equals).count(), statuses.toString());
+        assertEquals(1, statuses.stream().filter(HttpStatus.CONFLICT::equals).count(), statuses.toString());
     }
 
     @Test

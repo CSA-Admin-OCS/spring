@@ -389,6 +389,12 @@ public class GroupChatApiController {
             response.put("message", "File uploaded successfully");
             response.put("filename", request.getFilename());
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (SharedFileExistsException ex) {
+            // Someone shared a file under this name first, and it is never written over.
+            Map<String, String> response = new HashMap<>();
+            response.put("message", ex.getMessage());
+            response.put("filename", ex.getPath());
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
         } catch (RuntimeException ex) {
             return new ResponseEntity<>("Upload failed", HttpStatus.INTERNAL_SERVER_ERROR);
         }

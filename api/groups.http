@@ -126,6 +126,13 @@ GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files/content
 
 GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files/content?path=../messages-images/messages.jsonl
 
+### 13f. Sharing a path that is already shared is refused -> 409, and 13d still answers "hello"
+
+POST {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files
+Content-Type: application/json
+
+{"filename": "notes/hello.txt", "base64Data": "Z29vZGJ5ZQ=="}
+
 ### 14. Remove yourself from the test group -> 200
 
 DELETE {{baseUrl}}/api/groups/{{createGroup.response.body.$.id}}/members/{{me.response.body.$.id}}
