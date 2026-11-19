@@ -263,6 +263,37 @@ class GroupChatFilesTest {
     }
 
     @Test
+    void aPathBeingWrittenInOneGroupDoesNotHoldUpALookAlikeInAnother() throws Exception {
+        // "a/b" sharing "c" and "a" sharing "b/c" read the same if group and path are joined.
+        CountDownLatch writing = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        InMemoryStorage slow = new InMemoryStorage() {
+            @Override
+            public String uploadFile(String base64Data, String filename, String uid) {
+                if ("a/b".equals(uid) && filename.startsWith("shared-files/")) {
+                    writing.countDown();
+                    try {
+                        release.await(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                return super.uploadFile(base64Data, filename, uid);
+            }
+        };
+        GroupChatService chat = new GroupChatService(slow, new ObjectMapper());
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+        var first = pool.submit(() -> chat.uploadSharedFile("a/b", "c", base64("one"), "Ada"));
+        assertTrue(writing.await(5, TimeUnit.SECONDS));
+
+        assertEquals("shared-files/b/c", chat.uploadSharedFile("a", "b/c", base64("two"), "Grace"));
+
+        release.countDown();
+        assertEquals("shared-files/c", first.get(5, TimeUnit.SECONDS));
+        pool.shutdown();
+    }
+
+    @Test
     void uploadsThatLandTogetherAllKeepWhoSharedThem() throws Exception {
         int count = 24;
         ExecutorService pool = Executors.newFixedThreadPool(8);

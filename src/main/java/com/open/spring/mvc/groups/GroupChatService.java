@@ -38,10 +38,11 @@ public class GroupChatService {
     // and without this the last write would drop the others' attribution.
     private final Map<String, Object> fileMetaLocks = new ConcurrentHashMap<>();
 
-    // The "<group>/<path>" of every shared file being written right now. Two uploads of one
-    // path at once would both find it free and the later would replace the earlier, so the
-    // second is refused while the first is held here (within this server).
-    private final Set<String> sharesInFlight = ConcurrentHashMap.newKeySet();
+    // Every [group, path] being written right now. Two uploads of one path at once would both
+    // find it free and the later would replace the earlier, so the second is refused while the
+    // first is held here (within this server). A pair, not "group/path": group "a/b" sharing
+    // "c" and group "a" sharing "b/c" would read the same.
+    private final Set<List<String>> sharesInFlight = ConcurrentHashMap.newKeySet();
 
     /** One shared file as the Files list shows it: no bytes, just what to show and fetch. */
     public record SharedFile(String path, long size, String uploadedBy, String uploadedAt) {
@@ -250,7 +251,7 @@ public class GroupChatService {
 
     /** Stores a shared file, never over one already there: that throws SharedFileExistsException. */
     public String uploadSharedFile(String groupName, String filename, String base64Data, String uploadedBy) {
-        String key = groupName + "/" + filename;
+        List<String> key = List.of(groupName, filename);
         if (!sharesInFlight.add(key)) {
             throw new SharedFileExistsException(filename);
         }
