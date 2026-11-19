@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 // TODO: Change the BUCKET NAME from pages-assignments to something else
 
@@ -237,6 +238,29 @@ public class S3FileHandler implements FileHandler {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    /**
+     * Like fileExists, but only "not found" (404) reads as false: any other failure to check
+     * (a throttle, a 5xx, no connection) throws. For a caller that must never write over a
+     * file, a check that failed is not a free path.
+     */
+    public boolean fileExistsOrThrow(String uid, String filename) {
+        if (s3Client == null) {
+            throw new IllegalStateException("S3 client is not configured");
+        }
+        try {
+            s3Client.headObject(HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(generateKey(uid, filename))
+                    .build());
+            return true;
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                return false;
+            }
+            throw e;
         }
     }
 

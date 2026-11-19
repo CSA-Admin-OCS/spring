@@ -256,7 +256,8 @@ public class GroupChatService {
             throw new SharedFileExistsException(filename);
         }
         try {
-            if (s3FileHandler.fileExists(groupName, SHARED_FILES_PREFIX + filename)) {
+            // Strict: a check that failed throws, rather than reading as a free path.
+            if (s3FileHandler.fileExistsOrThrow(groupName, SHARED_FILES_PREFIX + filename)) {
                 throw new SharedFileExistsException(filename);
             }
             String result = s3FileHandler.uploadFile(base64Data, SHARED_FILES_PREFIX + filename, groupName);

@@ -70,6 +70,11 @@ class GroupChatFilesTest {
         }
 
         @Override
+        public boolean fileExistsOrThrow(String uid, String filename) {
+            return objects.containsKey(uid + "/" + filename);
+        }
+
+        @Override
         public List<String> listFiles(String prefix) {
             return objects.keySet().stream().filter(key -> key.startsWith(prefix)).sorted().collect(Collectors.toList());
         }
@@ -260,6 +265,28 @@ class GroupChatFilesTest {
 
         assertEquals(1, statuses.stream().filter(HttpStatus.OK::equals).count(), statuses.toString());
         assertEquals(1, statuses.stream().filter(HttpStatus.CONFLICT::equals).count(), statuses.toString());
+    }
+
+    @Test
+    void aCheckThatFailsRefusesTheUploadRatherThanRiskWritingOver() {
+        useStorage(new InMemoryStorage() {
+            // S3 not answering (throttled, a 5xx): fileExists hides that as "not stored".
+            @Override
+            public boolean fileExists(String uid, String filename) {
+                return false;
+            }
+
+            @Override
+            public boolean fileExistsOrThrow(String uid, String filename) {
+                throw new IllegalStateException("S3 did not answer");
+            }
+        });
+        storage.objects.put("CSA/shared-files/notes.md", "Ada's notes".getBytes(StandardCharsets.UTF_8));
+
+        ResponseEntity<?> response = upload("notes.md", "Grace's notes");
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertArrayEquals("Ada's notes".getBytes(StandardCharsets.UTF_8), storage.objects.get("CSA/shared-files/notes.md"));
     }
 
     @Test
