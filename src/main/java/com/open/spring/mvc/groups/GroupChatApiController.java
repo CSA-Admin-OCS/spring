@@ -5,7 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.open.spring.mvc.groups.GroupChatIdentityService.AuthenticatedIdentity;
@@ -309,6 +315,44 @@ public class GroupChatApiController {
         return new ResponseEntity<>(files, HttpStatus.OK);
     }
 
+    /**
+     * The group's shared files by path, with each one's size and who shared it, but none of
+     * their bytes: what a Files list needs. GET /{groupId}/files above still answers with
+     * every file's bytes, for pages that read it that way.
+     */
+    @GetMapping("/{groupId}/files/index")
+    public ResponseEntity<?> getSharedFileIndex(@PathVariable Long groupId) {
+        Optional<Groups> groupOpt = groupsRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(groupChatService.sharedFileIndex(groupOpt.get().getName()), HttpStatus.OK);
+    }
+
+    /** One shared file's bytes, named for download by the last part of its path. */
+    @GetMapping("/{groupId}/files/content")
+    public ResponseEntity<?> getSharedFileContent(@PathVariable Long groupId, @RequestParam String path) {
+        String cleanPath = SharedFilePaths.clean(path);
+        if (cleanPath == null) {
+            return new ResponseEntity<>("path is not a valid shared file path", HttpStatus.BAD_REQUEST);
+        }
+        Optional<Groups> groupOpt = groupsRepository.findById(groupId);
+        if (groupOpt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        byte[] bytes = groupChatService.readSharedFile(groupOpt.get().getName(), cleanPath);
+        if (bytes == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        ContentDisposition disposition = ContentDisposition.attachment()
+                .filename(SharedFilePaths.lastSegment(cleanPath), StandardCharsets.UTF_8)
+                .build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(bytes);
+    }
+
     @PostMapping("/{groupId}/files")
     public ResponseEntity<?> uploadSharedFile(
             @PathVariable Long groupId,
@@ -328,6 +372,11 @@ public class GroupChatApiController {
 
         if (request == null || request.getFilename() == null || request.getBase64Data() == null) {
             return new ResponseEntity<>("filename and base64Data are required", HttpStatus.BAD_REQUEST);
+        }
+        // A file shared from a folder keeps its folders in its name, so the name is a path:
+        // it has to stay inside the group's shared files.
+        if (SharedFilePaths.clean(request.getFilename()) == null) {
+            return new ResponseEntity<>("filename is not a valid path", HttpStatus.BAD_REQUEST);
         }
 
         try {
