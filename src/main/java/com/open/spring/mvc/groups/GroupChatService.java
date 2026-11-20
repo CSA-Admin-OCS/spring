@@ -21,6 +21,8 @@ import com.open.spring.mvc.S3uploads.S3FileHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Service
 @RequiredArgsConstructor
@@ -249,15 +251,17 @@ public class GroupChatService {
         }
     }
 
-    /** Stores a shared file, never over one already there: that throws SharedFileExistsException. */
+    /**
+     * Stores a shared file, never over one already there: that throws SharedFileExistsException.
+     * When S3 can't say for now whether the path is taken, it throws SharedFileCheckFailedException.
+     */
     public String uploadSharedFile(String groupName, String filename, String base64Data, String uploadedBy) {
         List<String> key = List.of(groupName, filename);
         if (!sharesInFlight.add(key)) {
             throw new SharedFileExistsException(filename);
         }
         try {
-            // Strict: a check that failed throws, rather than reading as a free path.
-            if (s3FileHandler.fileExistsOrThrow(groupName, SHARED_FILES_PREFIX + filename)) {
+            if (isAlreadyShared(groupName, filename)) {
                 throw new SharedFileExistsException(filename);
             }
             String result = s3FileHandler.uploadFile(base64Data, SHARED_FILES_PREFIX + filename, groupName);
@@ -268,6 +272,24 @@ public class GroupChatService {
             return result;
         } finally {
             sharesInFlight.remove(key);
+        }
+    }
+
+    /**
+     * Whether a file is stored at this path. Strict: a check that failed throws, rather than
+     * reading as a free path. S3 out of reach or answering a 5xx is something to wait out, so
+     * that throws SharedFileCheckFailedException; anything else goes up as it is.
+     */
+    private boolean isAlreadyShared(String groupName, String path) {
+        try {
+            return s3FileHandler.fileExistsOrThrow(groupName, SHARED_FILES_PREFIX + path);
+        } catch (SdkClientException | S3Exception e) {
+            if (e instanceof S3Exception answered && answered.statusCode() < 500) {
+                // S3 refused the request (no permission, a bad key): waiting won't fix that.
+                throw e;
+            }
+            log.warn("Could not check whether {} is shared in group {}", path, groupName, e);
+            throw new SharedFileCheckFailedException(path, e);
         }
     }
 
