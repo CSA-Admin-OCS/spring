@@ -27,12 +27,20 @@ import org.springframework.stereotype.Service;
 import com.open.spring.scraper.dto.ScrapeField;
 import com.open.spring.scraper.dto.ScrapeRequest;
 import com.open.spring.scraper.dto.ScrapeResponse;
+import com.open.spring.scraper.security.UrlSafetyValidator;
 
 @Service
 public class GenericScraperService {
     private static final String DEFAULT_USER_AGENT =
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6) AppleWebKit/537.36 "
                     + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+    private static final int MAX_REDIRECTS = 5;
+
+    private final UrlSafetyValidator urlSafetyValidator;
+
+    public GenericScraperService(UrlSafetyValidator urlSafetyValidator) {
+        this.urlSafetyValidator = urlSafetyValidator;
+    }
 
     public ScrapeResponse run(ScrapeRequest request) {
         long startedAt = System.currentTimeMillis();
@@ -292,18 +300,37 @@ public class GenericScraperService {
         return pages;
     }
 
+    // Every fetch (next-page links, detail links, redirect targets) comes from the scraped page,
+    // not the user, so each hop is re-checked; otherwise a public page could steer us to internal hosts.
     private Document getDoc(String url, ScrapeRequest request) throws IOException {
-        Connection connection = Jsoup.connect(url)
-                .userAgent(DEFAULT_USER_AGENT)
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                .header("Accept-Language", "en-US,en;q=0.9")
-                .timeout(clamp(request.getLimits().getTimeoutMs(), 1000, 60000));
+        String current = url;
+        for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
+            try {
+                urlSafetyValidator.validateTargetUrl(current);
+            } catch (IllegalArgumentException e) {
+                throw new IOException("Blocked " + current + ": " + e.getMessage());
+            }
 
-        Map<String, String> headers = request.getHeaders();
-        if (headers != null) {
-            headers.forEach(connection::header);
+            Connection connection = Jsoup.connect(current)
+                    .userAgent(DEFAULT_USER_AGENT)
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .header("Accept-Language", "en-US,en;q=0.9")
+                    .timeout(clamp(request.getLimits().getTimeoutMs(), 1000, 60000))
+                    .followRedirects(false);
+
+            Map<String, String> headers = request.getHeaders();
+            if (headers != null) {
+                headers.forEach(connection::header);
+            }
+
+            Connection.Response response = connection.execute();
+            int status = response.statusCode();
+            if (status < 300 || status >= 400 || !response.hasHeader("Location")) {
+                return response.parse();
+            }
+            current = toAbsoluteUrl(current, response.header("Location"));
         }
-        return connection.get();
+        throw new IOException("Too many redirects: " + url);
     }
 
     private boolean shouldSkip(Map<String, Object> item, ScrapeRequest.FilterConfig filters) {
