@@ -41,6 +41,9 @@ import com.open.spring.mvc.S3uploads.S3FileHandler;
 import com.open.spring.mvc.person.Person;
 import com.open.spring.mvc.person.PersonJpaRepository;
 
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
 /**
  * Shared files in a group chat: the index without bytes, one file's bytes, the paths a
  * file may be stored under, the socket frame an upload sends, and who shared what when
@@ -268,25 +271,56 @@ class GroupChatFilesTest {
     }
 
     @Test
-    void aCheckThatFailsRefusesTheUploadRatherThanRiskWritingOver() {
-        useStorage(new InMemoryStorage() {
-            // S3 not answering (throttled, a 5xx): fileExists hides that as "not stored".
-            @Override
-            public boolean fileExists(String uid, String filename) {
-                return false;
-            }
+    void aCheckThatFailsRefusesTheUploadWithA503RatherThanRiskWritingOver() {
+        // S3 throttled (503 Slow Down) or out of reach: what fileExistsOrThrow lets through.
+        List<RuntimeException> failures = List.of(
+                (S3Exception) S3Exception.builder().statusCode(503).message("Slow Down").build(),
+                SdkClientException.create("Unable to execute HTTP request: Connect timed out"));
+        for (RuntimeException failure : failures) {
+            useStorage(new InMemoryStorage() {
+                // fileExists hides a failure as "not stored", so only the strict check is safe.
+                @Override
+                public boolean fileExists(String uid, String filename) {
+                    return false;
+                }
 
-            @Override
-            public boolean fileExistsOrThrow(String uid, String filename) {
-                throw new IllegalStateException("S3 did not answer");
-            }
-        });
-        storage.objects.put("CSA/shared-files/notes.md", "Ada's notes".getBytes(StandardCharsets.UTF_8));
+                @Override
+                public boolean fileExistsOrThrow(String uid, String filename) {
+                    throw failure;
+                }
+            });
+            storage.objects.put("CSA/shared-files/notes.md", "Ada's notes".getBytes(StandardCharsets.UTF_8));
 
-        ResponseEntity<?> response = upload("notes.md", "Grace's notes");
+            ResponseEntity<?> response = upload("notes.md", "Grace's notes");
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertArrayEquals("Ada's notes".getBytes(StandardCharsets.UTF_8), storage.objects.get("CSA/shared-files/notes.md"));
+            // S3 not answering isn't a bug in this server: 503 says try again, and when.
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode(), failure.toString());
+            String retryAfter = response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER);
+            assertTrue(retryAfter != null && retryAfter.matches("[1-9][0-9]*"), "Retry-After: " + retryAfter);
+            @SuppressWarnings("unchecked")
+            Map<String, String> body = (Map<String, String>) response.getBody();
+            assertEquals("notes.md", body.get("filename"));
+            assertArrayEquals("Ada's notes".getBytes(StandardCharsets.UTF_8), storage.objects.get("CSA/shared-files/notes.md"));
+        }
+    }
+
+    @Test
+    void aBugOrARequestS3RefusesIsStillA500() {
+        // A fault in this server, or S3 refusing the request (no permission, a bad key):
+        // trying again won't help, so neither is a 503.
+        List<RuntimeException> faults = List.of(
+                new NullPointerException("a bug here, not S3"),
+                (S3Exception) S3Exception.builder().statusCode(403).message("Access Denied").build());
+        for (RuntimeException fault : faults) {
+            useStorage(new InMemoryStorage() {
+                @Override
+                public boolean fileExistsOrThrow(String uid, String filename) {
+                    throw fault;
+                }
+            });
+
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, upload("notes.md", "Grace's notes").getStatusCode(), fault.toString());
+        }
     }
 
     @Test
