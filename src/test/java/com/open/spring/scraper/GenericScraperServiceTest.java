@@ -1,12 +1,17 @@
 package com.open.spring.scraper;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import com.open.spring.scraper.dto.ScrapeRequest;
+
+import com.open.spring.scraper.security.UrlSafetyValidator;
 
 /**
  * Covers looksLikeHeaderRow, which strips a real header row that slipped into the matched
@@ -16,7 +21,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 class GenericScraperServiceTest {
 
-    private final GenericScraperService service = new GenericScraperService();
+    private final GenericScraperService service = new GenericScraperService(new UrlSafetyValidator());
 
     private boolean looksLikeHeaderRow(Element row) {
         return ReflectionTestUtils.invokeMethod(service, "looksLikeHeaderRow", row);
@@ -47,5 +52,14 @@ class GenericScraperServiceTest {
         Element row = firstRow("<table><tr><td>A</td><td>B</td></tr></table>");
 
         assertFalse(looksLikeHeaderRow(row));
+    }
+
+    @Test
+    void aFollowUpFetchToAnInternalHostIsBlocked() {
+        // next-page and detail links come from the scraped page, so they must pass the same check as the start url
+        Throwable thrown = assertThrows(Throwable.class, () ->
+            ReflectionTestUtils.invokeMethod(service, "getDoc", "http://169.254.169.254/latest/meta-data/", new ScrapeRequest()));
+
+        assertTrue(thrown.getCause() instanceof java.io.IOException);
     }
 }
