@@ -89,10 +89,19 @@ public class GroupChatRealtimeService {
         broadcastToGroup(groupId, event);
     }
 
+    /**
+     * Stores a shared file and tells the group's topic about it. The frame names the file and
+     * its size but carries no bytes: a big file sent to every member's socket could overflow
+     * its send buffer and close it, and a member downloads a file by path when they open it.
+     */
     public GroupChatEvent publishFile(Long groupId, String sender, String filename, String base64Data) {
         Groups group = getGroupOrThrow(groupId);
+        String path = SharedFilePaths.clean(filename);
+        if (path == null) {
+            throw new IllegalArgumentException("Invalid file path");
+        }
 
-        String uploadResult = groupChatService.uploadSharedFile(group.getName(), filename, base64Data, sender);
+        String uploadResult = groupChatService.uploadSharedFile(group.getName(), path, base64Data, sender);
         if (uploadResult == null) {
             throw new IllegalStateException("Upload failed");
         }
@@ -101,8 +110,8 @@ public class GroupChatRealtimeService {
                 .context("sendFileServer")
                 .groupId(groupId)
                 .sender(sender)
-                .filename(filename)
-                .base64Data(base64Data)
+                .filename(path)
+                .size(decodedLength(base64Data))
                 .date(Instant.now().toString())
                 .build();
 
@@ -140,6 +149,15 @@ public class GroupChatRealtimeService {
                 .date(Instant.now().toString())
                 .build();
         broadcastToGroup(groupId, event);
+    }
+
+    /** How many bytes a base64 string holds, without decoding a second copy of a big file. */
+    static long decodedLength(String base64Data) {
+        int length = base64Data.length();
+        int padding = 0;
+        if (length > 0 && base64Data.charAt(length - 1) == '=') padding++;
+        if (length > 1 && base64Data.charAt(length - 2) == '=') padding++;
+        return Math.max(0, (long) length / 4 * 3 - padding);
     }
 
     private void broadcastToGroup(Long groupId, GroupChatEvent event) {

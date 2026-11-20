@@ -44,4 +44,13 @@ public interface FileHandler {
      * @return List of S3 object keys matching the prefix
      */
     java.util.List<String> listFiles(String prefix);
+
+    /**
+     * Every object key under a prefix with its size in bytes, without reading any bytes:
+     * what a list of shared files shows. Follows the listing past S3's 1000 keys per page.
+     *
+     * @param prefix          The S3 key prefix to list
+     * @return Map of S3 object key to size in bytes, empty when nothing matches or on error
+     */
+    java.util.Map<String, Long> listFileSizes(String prefix);
 }
