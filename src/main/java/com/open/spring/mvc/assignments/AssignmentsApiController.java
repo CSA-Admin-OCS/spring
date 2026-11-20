@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -258,6 +259,17 @@ public class AssignmentsApiController {
         if (request.assignmentType != null && !request.assignmentType.isBlank()) {
             assignment.setAssignmentType(request.assignmentType.trim());
         }
+        // Optional, so an omitted URL never clears it. Canonical like auto-create, and unique, since
+        // auto-create finds the assignment by this URL.
+        if (request.contentUrl != null && !request.contentUrl.isBlank()) {
+            String canonicalUrl = AssignmentContentUrls.canonicalize(request.contentUrl);
+            Assignment existing = canonicalUrl == null ? null : assignmentRepo.findFirstByContentUrlOrderByIdAsc(canonicalUrl);
+            if (canonicalUrl == null || (existing != null && !existing.getId().equals(id))) {
+                return ResponseEntity.badRequest().body(Map.of("error", canonicalUrl == null
+                        ? "Content URL is not a page URL" : "Another assignment (#" + existing.getId() + ") already uses that content URL"));
+            }
+            assignment.setContentUrl(canonicalUrl);
+        }
         return ResponseEntity.ok(new AssignmentDto(assignmentRepo.save(assignment)));
     }
 
@@ -270,6 +282,7 @@ public class AssignmentsApiController {
         public Double points;
         public String dueDate;
         public String assignmentType;
+        public String contentUrl;
     }
 
     /**
@@ -877,13 +890,28 @@ public class AssignmentsApiController {
      * If the student is not found, returns a 404 error.
      * If the student has no submissions, returns an empty list.
      * If the student has submissions, returns a list of AssignmentSubmissionReturnDto objects.
+     * Access is restricted to the student requesting their own submissions, or a teacher/admin.
      */
     @Transactional
     @GetMapping("/submissions/student/{studentId}")
-    public ResponseEntity<?> getSubmissions(@PathVariable Long studentId) {
-        if (personRepo.findById(studentId).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Student not found");
-        }
+    public ResponseEntity<?> getStudentSubmissions(@PathVariable Long studentId, @AuthenticationPrincipal UserDetails userDetails) {
+	// check if requested studentId exists
+	Person p = personRepo.findById(studentId)
+		.orElseThrow(() -> new ResponseStatusException(
+			HttpStatus.NOT_FOUND, "Student not found"
+		));
+
+	// fetch credentials of the requester
+	String requesterUid = userDetails.getUsername();
+	Person requester = Optional.ofNullable(personRepo.findByUid(requesterUid))
+		.orElseThrow(() -> new ResponseStatusException(
+			HttpStatus.NOT_FOUND, "User not found with uid: " + requesterUid
+		));
+	// if the uid from the AuthenticationPrincipal does not match the requested studentId,
+	// reject the request; EXCEPTION: admins/teachers are allowed
+	if (!p.getUid().equals(requesterUid) && !(requester.hasRole("ROLE_TEACHER") || requester.hasRole("ROLE_ADMIN"))) {
+		throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User does not have access to this resource");
+	}
 
         List<AssignmentSubmissionReturnDto> dtos = Stream.concat(
             submissionRepo.findBySubmitterId(studentId).stream(),
@@ -1081,7 +1109,7 @@ public class AssignmentsApiController {
 
         Stream<AssignmentSubmission> submissions = submissionRepo.findByAssignmentId(assignmentId).stream();
 
-        if (!(user.hasRoleWithName("ROLE_TEACHER") || user.hasRoleWithName("ROLE_ADMIN"))) {
+        if (!(user.hasRole("ROLE_TEACHER") || user.hasRole("ROLE_ADMIN"))) {
             // if they aren't a teacher or admin, only let them see submissions they are assigned to grade
             submissions = submissions
                 .filter(submission -> submission.getAssignedGraders().contains(user));
@@ -1510,7 +1538,7 @@ public class AssignmentsApiController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Authentication required");
         }
         Person user = personRepo.findByUid(userDetails.getUsername());
-        if (user == null || !(user.hasRoleWithName("ROLE_TEACHER") || user.hasRoleWithName("ROLE_ADMIN"))) {
+        if (user == null || !(user.hasRole("ROLE_TEACHER") || user.hasRole("ROLE_ADMIN"))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Teacher or admin role required");
         }
         return user;

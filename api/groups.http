@@ -106,6 +106,33 @@ POST {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/read
 GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files
 Accept: application/json
 
+### 13b. Share a file inside a folder -> 200 (the frame on /topic/group/{id} has no bytes)
+
+POST {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files
+Content-Type: application/json
+
+{"filename": "notes/hello.txt", "base64Data": "aGVsbG8="}
+
+### 13c. List the shared files without their bytes -> 200 with [{path, size, uploadedBy, uploadedAt}]
+
+GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files/index
+Accept: application/json
+
+### 13d. Download one shared file -> 200 with its bytes ("hello")
+
+GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files/content?path=notes/hello.txt
+
+### 13e. A path outside the shared files is refused -> 400
+
+GET {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files/content?path=../messages-images/messages.jsonl
+
+### 13f. Sharing a path that is already shared is refused -> 409, and 13d still answers "hello"
+
+POST {{baseUrl}}/api/groups/chat/{{createGroup.response.body.$.id}}/files
+Content-Type: application/json
+
+{"filename": "notes/hello.txt", "base64Data": "Z29vZGJ5ZQ=="}
+
 ### 14. Remove yourself from the test group -> 200
 
 DELETE {{baseUrl}}/api/groups/{{createGroup.response.body.$.id}}/members/{{me.response.body.$.id}}

@@ -9,6 +9,8 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import com.open.spring.mvc.S3uploads.S3FileHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +34,21 @@ public class GroupChatService {
 
     private final S3FileHandler s3FileHandler;
     private final ObjectMapper objectMapper;
+
+    // One lock per group for the "shared by" sidecar, which is read, changed and written
+    // back on every upload: a folder shared from the page uploads several files at once,
+    // and without this the last write would drop the others' attribution.
+    private final Map<String, Object> fileMetaLocks = new ConcurrentHashMap<>();
+
+    // Every [group, path] being written right now. Two uploads of one path at once would both
+    // find it free and the later would replace the earlier, so the second is refused while the
+    // first is held here (within this server). A pair, not "group/path": group "a/b" sharing
+    // "c" and group "a" sharing "b/c" would read the same.
+    private final Set<List<String>> sharesInFlight = ConcurrentHashMap.newKeySet();
+
+    /** One shared file as the Files list shows it: no bytes, just what to show and fetch. */
+    public record SharedFile(String path, long size, String uploadedBy, String uploadedAt) {
+    }
 
     public void initGroupStorage(String groupName) {
         // Create empty messages.jsonl file
@@ -196,13 +215,82 @@ public class GroupChatService {
         return files;
     }
 
-    public String uploadSharedFile(String groupName, String filename, String base64Data, String uploadedBy) {
-        String result = s3FileHandler.uploadFile(base64Data, SHARED_FILES_PREFIX + filename, groupName);
-        if (result == null) {
+    /**
+     * Every file shared with a group, by path, with its size and who shared it, without
+     * reading any file's bytes. The folder placeholder (an empty name) is left out.
+     */
+    public List<SharedFile> sharedFileIndex(String groupName) {
+        String prefix = groupName + "/" + SHARED_FILES_PREFIX;
+        Map<String, Map<String, String>> meta = readFileMeta(groupName);
+        List<SharedFile> files = new ArrayList<>();
+        s3FileHandler.listFileSizes(prefix).forEach((key, size) -> {
+            String path = key.substring(prefix.length());
+            if (path.isEmpty()) return;
+            Map<String, String> entry = meta.getOrDefault(path, Map.of());
+            files.add(new SharedFile(path, size == null ? 0 : size,
+                    entry.getOrDefault("uploadedBy", ""), entry.getOrDefault("uploadedAt", "")));
+        });
+        files.sort((a, b) -> a.path().compareTo(b.path()));
+        return files;
+    }
+
+    /** One shared file's bytes, or null when the group has no file at that path. */
+    public byte[] readSharedFile(String groupName, String path) {
+        if (!s3FileHandler.fileExists(groupName, SHARED_FILES_PREFIX + path)) {
             return null;
         }
-        recordFileMeta(groupName, filename, uploadedBy);
-        return result;
+        String base64Data = s3FileHandler.decodeFile(groupName, SHARED_FILES_PREFIX + path);
+        if (base64Data == null) {
+            return null;
+        }
+        try {
+            return Base64.getDecoder().decode(base64Data);
+        } catch (IllegalArgumentException e) {
+            log.warn("Shared file {} in group {} is not valid base64", path, groupName, e);
+            return null;
+        }
+    }
+
+    /**
+     * Stores a shared file, never over one already there: that throws SharedFileExistsException.
+     * When S3 can't say for now whether the path is taken, it throws SharedFileCheckFailedException.
+     */
+    public String uploadSharedFile(String groupName, String filename, String base64Data, String uploadedBy) {
+        List<String> key = List.of(groupName, filename);
+        if (!sharesInFlight.add(key)) {
+            throw new SharedFileExistsException(filename);
+        }
+        try {
+            if (isAlreadyShared(groupName, filename)) {
+                throw new SharedFileExistsException(filename);
+            }
+            String result = s3FileHandler.uploadFile(base64Data, SHARED_FILES_PREFIX + filename, groupName);
+            if (result == null) {
+                return null;
+            }
+            recordFileMeta(groupName, filename, uploadedBy);
+            return result;
+        } finally {
+            sharesInFlight.remove(key);
+        }
+    }
+
+    /**
+     * Whether a file is stored at this path. Strict: a check that failed throws, rather than
+     * reading as a free path. S3 out of reach or answering a 5xx is something to wait out, so
+     * that throws SharedFileCheckFailedException; anything else goes up as it is.
+     */
+    private boolean isAlreadyShared(String groupName, String path) {
+        try {
+            return s3FileHandler.fileExistsOrThrow(groupName, SHARED_FILES_PREFIX + path);
+        } catch (SdkClientException | S3Exception e) {
+            if (e instanceof S3Exception answered && answered.statusCode() < 500) {
+                // S3 refused the request (no permission, a bad key): waiting won't fix that.
+                throw e;
+            }
+            log.warn("Could not check whether {} is shared in group {}", path, groupName, e);
+            throw new SharedFileCheckFailedException(path, e);
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -233,6 +321,12 @@ public class GroupChatService {
     }
 
     private void recordFileMeta(String groupName, String filename, String uploadedBy) {
+        synchronized (fileMetaLocks.computeIfAbsent(groupName, name -> new Object())) {
+            writeFileMeta(groupName, filename, uploadedBy);
+        }
+    }
+
+    private void writeFileMeta(String groupName, String filename, String uploadedBy) {
         try {
             Map<String, Map<String, String>> meta = readFileMeta(groupName);
             Map<String, String> entry = new HashMap<>();

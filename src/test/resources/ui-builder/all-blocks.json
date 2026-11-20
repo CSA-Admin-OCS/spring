@@ -13,7 +13,7 @@
     {
       "id": "s-stack01",
       "type": "stack",
-      "settings": {},
+      "settings": { "style": "plain" },
       "hidden": false,
       "cells": [
         {
@@ -108,7 +108,7 @@
     {
       "id": "s-halves01",
       "type": "columns",
-      "settings": { "layout": "halves" },
+      "settings": { "layout": "halves", "style": "plain" },
       "hidden": false,
       "cells": [
         {
@@ -205,7 +205,7 @@
     {
       "id": "s-thirds01",
       "type": "columns",
-      "settings": { "layout": "thirds" },
+      "settings": { "layout": "thirds", "style": "plain" },
       "hidden": false,
       "cells": [
         {
@@ -227,6 +227,7 @@
               "id": "b-linkcards01",
               "type": "link_cards",
               "settings": {
+                "label": "Project links",
                 "items": [
                   { "kicker": "App", "title": "Flood Watch", "text": "The live app.", "url": "https://binary-beasts.github.io/flood-watch/" },
                   { "kicker": "Code", "title": "Frontend repo", "text": "The pages and styles.", "url": "https://github.com/binary-beasts/flood-watch" },
@@ -269,7 +270,7 @@
     {
       "id": "s-sideleft01",
       "type": "columns",
-      "settings": { "layout": "sidebar_left" },
+      "settings": { "layout": "sidebar_left", "style": "plain" },
       "hidden": false,
       "cells": [
         {
@@ -322,7 +323,7 @@
     {
       "id": "s-sideright01",
       "type": "columns",
-      "settings": { "layout": "sidebar_right" },
+      "settings": { "layout": "sidebar_right", "style": "plain" },
       "hidden": false,
       "cells": [
         {

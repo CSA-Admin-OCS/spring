@@ -139,7 +139,7 @@ class SubmissionGradingPersistenceTest {
         if (personRole == null) {
             personRole = roleRepo.save(new PersonRole(role));
         }
-        return personRepo.save(new Person(uid + "@example.com", uid, "password", "sid-" + uid, name, null, false, personRole));
+        return personRepo.save(new Person(uid + "@example.com", uid, "password", "sid-" + uid, name, null, false, role));
     }
 
     private AssignmentSubmission submit(Person student, String url) {

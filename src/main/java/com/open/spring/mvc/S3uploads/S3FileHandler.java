@@ -3,7 +3,9 @@ package com.open.spring.mvc.S3uploads;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +29,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 // TODO: Change the BUCKET NAME from pages-assignments to something else
 
@@ -193,6 +196,34 @@ public class S3FileHandler implements FileHandler {
     }
 
     @Override
+    public Map<String, Long> listFileSizes(String prefix) {
+        Map<String, Long> sizes = new LinkedHashMap<>();
+        if (s3Client == null) {
+            log.warn("S3 list attempted but S3 client is not configured.");
+            return sizes;
+        }
+
+        try {
+            String continuationToken = null;
+            do {
+                ListObjectsV2Request.Builder request = ListObjectsV2Request.builder()
+                        .bucket(bucketName)
+                        .prefix(prefix);
+                if (continuationToken != null) {
+                    request.continuationToken(continuationToken);
+                }
+                ListObjectsV2Response page = s3Client.listObjectsV2(request.build());
+                page.contents().forEach(object -> sizes.put(object.key(), object.size()));
+                continuationToken = Boolean.TRUE.equals(page.isTruncated()) ? page.nextContinuationToken() : null;
+            } while (continuationToken != null);
+            return sizes;
+        } catch (Exception e) {
+            log.warn("S3 list with sizes failed for prefix {}", prefix, e);
+            return new LinkedHashMap<>();
+        }
+    }
+
+    @Override
     public boolean fileExists(String uid, String filename) {
         if (s3Client == null) {
             log.warn("S3 fileExists check attempted but S3 client is not configured.");
@@ -207,6 +238,29 @@ public class S3FileHandler implements FileHandler {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    /**
+     * Like fileExists, but only "not found" (404) reads as false: any other failure to check
+     * (a throttle, a 5xx, no connection) throws. For a caller that must never write over a
+     * file, a check that failed is not a free path.
+     */
+    public boolean fileExistsOrThrow(String uid, String filename) {
+        if (s3Client == null) {
+            throw new IllegalStateException("S3 client is not configured");
+        }
+        try {
+            s3Client.headObject(HeadObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(generateKey(uid, filename))
+                    .build());
+            return true;
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                return false;
+            }
+            throw e;
         }
     }
 
