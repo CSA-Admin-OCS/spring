@@ -17,10 +17,6 @@ public class UrlSafetyValidator {
     private static final Set<String> BLOCKED_HOSTS = Set.of(
             "localhost", "127.0.0.1", "::1", "0.0.0.0"
     );
-    // TEMPORARY TEST OVERRIDE: remove after integration testing is done.
-    private static final Set<String> TEMP_ALLOWED_TEST_HOSTS = Set.of(
-            "the-internet.herokuapp.com"
-    );
 
     private static final Set<String> ALLOWED_HEADERS = Set.of(
             "user-agent", "accept", "accept-language", "referer"
@@ -43,9 +39,6 @@ public class UrlSafetyValidator {
         }
 
         String normalizedHost = host.toLowerCase(Locale.ROOT);
-        if (TEMP_ALLOWED_TEST_HOSTS.contains(normalizedHost)) {
-            return;
-        }
         if (BLOCKED_HOSTS.contains(normalizedHost)) {
             throw new IllegalArgumentException("Local/internal addresses are not allowed");
         }
