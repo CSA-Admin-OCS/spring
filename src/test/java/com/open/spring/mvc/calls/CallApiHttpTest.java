@@ -38,16 +38,21 @@ class CallApiHttpTest {
     private MockMvc mvc;
     private UsernamePasswordAuthenticationToken ada;
     private UsernamePasswordAuthenticationToken niko;
+    private UsernamePasswordAuthenticationToken mentor;
+    private UsernamePasswordAuthenticationToken teacher;
 
     @BeforeEach
     void setUp() {
         store = new CallTestStore();
         Person adaPerson = store.person(1, "ada", "ROLE_USER", "ROLE_STUDENT");
+        Person mentorPerson = store.person(3, "grace", "ROLE_USER", "ROLE_STUDENT", "ROLE_MENTOR");
         ada = CallTestStore.login(adaPerson);
         niko = CallTestStore.login(store.person(2, "niko", "ROLE_USER", "ROLE_STUDENT"));
-        store.group(12, "Binary Beasts", adaPerson);
+        mentor = CallTestStore.login(mentorPerson);
+        teacher = CallTestStore.login(store.person(4, "mort", "ROLE_USER", "ROLE_TEACHER"));
+        store.group(12, "Binary Beasts", adaPerson, mentorPerson);
         CallApiRestController controller = new CallApiRestController(
-                store.properties, new CallRequestGuard(store.properties), store.service, store.people);
+                store.properties, new CallRequestGuard(store.properties), store.service, store.tokens, store.people);
         mvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new CallExceptionHandler(store.properties))
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(json))
@@ -224,6 +229,91 @@ class CallApiHttpTest {
         mvc.perform(fromPages(post("/api/calls")).principal(ada).content("{"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.reason").value("invalid_body"));
+    }
+
+    // ---- join tokens ----
+
+    private org.springframework.test.web.servlet.ResultActions askForToken(int id,
+            UsernamePasswordAuthenticationToken who) throws Exception {
+        return mvc.perform(fromPages(post("/api/calls/" + id + "/token")).principal(who));
+    }
+
+    private static CallParticipant connected(String uid, String... roles) {
+        return new CallParticipant(CallIdentity.of(uid, CallTestStore.LIVEKIT_SECRET), uid, java.util.Set.of(roles));
+    }
+
+    @Test
+    void memberGetsAToken() throws Exception {
+        int id = openGroupRoom();
+
+        String response = askForToken(id, ada)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value(CallTestStore.LIVEKIT_URL))
+                .andExpect(jsonPath("$.expiresIn").value(600))
+                .andExpect(jsonPath("$.canModerate").value(false))
+                .andReturn().getResponse().getContentAsString();
+
+        io.jsonwebtoken.Claims claims = io.jsonwebtoken.Jwts.parser()
+                .verifyWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+                        CallTestStore.LIVEKIT_SECRET.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+                .build().parseSignedClaims(json.readTree(response).get("token").asText()).getPayload();
+        assertEquals("YcP_m_Mq4hQs7ZwUlJgNpI", claims.getSubject()); // ada's identity (CallIdentityTest)
+        assertEquals("ada", claims.get("name"));
+        assertEquals(store.room(id).getRoomName(), ((java.util.Map<?, ?>) claims.get("video")).get("room"));
+        assertEquals("{\"roles\":[]}", claims.get("metadata"));
+    }
+
+    @Test
+    void aTeacherCanModerate() throws Exception {
+        int id = openGroupRoom();
+
+        askForToken(id, teacher)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.canModerate").value(true));
+    }
+
+    @Test
+    void mentorWaitsForATeacher() throws Exception {
+        int id = openGroupRoom();
+        String room = store.room(id).getRoomName();
+        store.presence.joined(room, "PA_ada", connected("ada", "ROLE_USER", "ROLE_STUDENT"));
+
+        askForToken(id, mentor)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.reason").value("WAITING_FOR_SUPERVISOR"));
+
+        store.presence.joined(room, "PA_mort", connected("mort", "ROLE_USER", "ROLE_TEACHER"));
+        askForToken(id, mentor).andExpect(status().isOk());
+    }
+
+    @Test
+    void aRemovedPersonGetsNoNewToken() throws Exception {
+        int id = openGroupRoom();
+        store.presence.markRemoved(store.room(id).getRoomName(), CallIdentity.of("ada", CallTestStore.LIVEKIT_SECRET));
+
+        askForToken(id, ada)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.reason").value("REMOVED"));
+    }
+
+    @Test
+    void nonMemberGetsNoToken() throws Exception {
+        int id = openGroupRoom();
+
+        askForToken(id, niko)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.reason").value("NOT_A_MEMBER"));
+    }
+
+    @Test
+    void unconfiguredLiveKitIs503() throws Exception {
+        int id = openGroupRoom();
+        store.properties.getLivekit().setUrl("");
+
+        askForToken(id, ada)
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(header().string("Retry-After", "30"))
+                .andExpect(jsonPath("$.reason").value("MEDIA_UNAVAILABLE"));
     }
 
     @Test

@@ -22,4 +22,29 @@ public class CallsProperties {
 
     /** What a call can be for, by the names Pages uses; the first is used when a request names none. */
     private List<String> purposes = new ArrayList<>(List.of("meeting"));
+
+    /** How long a join token lasts. LiveKit can't take back a token it has accepted, so keep it short. */
+    private int tokenTtlSeconds = 600;
+
+    /** The LiveKit server that carries the video. */
+    private LiveKit livekit = new LiveKit();
+
+    @Data
+    public static class LiveKit {
+
+        /** Where browsers connect, like wss://rtc.opencodingsociety.com. */
+        private String url = "";
+
+        /** The key pair Spring signs join tokens with; the secret must be at least 32 bytes. */
+        private String apiKey = "";
+        private String apiSecret = "";
+
+        public boolean isConfigured() {
+            return isSet(url) && isSet(apiKey) && isSet(apiSecret);
+        }
+
+        private static boolean isSet(String value) {
+            return value != null && !value.isBlank();
+        }
+    }
 }

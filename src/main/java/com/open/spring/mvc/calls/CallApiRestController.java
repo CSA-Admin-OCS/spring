@@ -38,13 +38,15 @@ public class CallApiRestController {
     private final CallsProperties properties;
     private final CallRequestGuard guard;
     private final CallRoomService rooms;
+    private final CallTokenService tokens;
     private final PersonJpaRepository people;
 
     public CallApiRestController(CallsProperties properties, CallRequestGuard guard, CallRoomService rooms,
-            PersonJpaRepository people) {
+            CallTokenService tokens, PersonJpaRepository people) {
         this.properties = properties;
         this.guard = guard;
         this.rooms = rooms;
+        this.tokens = tokens;
         this.people = people;
     }
 
@@ -71,6 +73,16 @@ public class CallApiRestController {
     public CallView get(@PathVariable long id, Authentication authentication, HttpServletRequest request) {
         Person person = signedIn(authentication, request);
         return CallView.of(rooms.find(person, id));
+    }
+
+    /**
+     * POST /api/calls/{id}/token - a LiveKit join token: 200 {url, token, expiresIn, canModerate}, 403
+     * WAITING_FOR_SUPERVISOR / WAITING_FOR_SECOND_ADULT / REMOVED / NOT_A_MEMBER, or 503 MEDIA_UNAVAILABLE.
+     */
+    @PostMapping("/{id:\\d+}/token")
+    public CallTokenService.JoinToken token(@PathVariable long id, Authentication authentication,
+            HttpServletRequest request) {
+        return tokens.tokenFor(signedIn(authentication, request), id);
     }
 
     private Person signedIn(Authentication authentication, HttpServletRequest request) {

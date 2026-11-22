@@ -62,19 +62,19 @@ public class CallExceptionHandler {
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, String>> databaseFailed(DataAccessException exception) {
         logger.warn("A calls request failed in the database: {}", exception.getMostSpecificCause().getMessage());
-        if (!properties.isEnabled()) {
-            return disabled();
-        }
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .header(HttpHeaders.RETRY_AFTER, "30")
-                .body(Map.of("reason", "CALLS_UNAVAILABLE"));
+        return answer(HttpStatus.SERVICE_UNAVAILABLE, "CALLS_UNAVAILABLE");
     }
 
+    // A 503 means something Spring depends on is down, so the page is told when to try again.
     private ResponseEntity<Map<String, String>> answer(HttpStatus status, String reason) {
         if (!properties.isEnabled()) {
             return disabled();
         }
-        return ResponseEntity.status(status).body(Map.of("reason", reason));
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+        if (status == HttpStatus.SERVICE_UNAVAILABLE) {
+            response.header(HttpHeaders.RETRY_AFTER, "30");
+        }
+        return response.body(Map.of("reason", reason));
     }
 
     private static ResponseEntity<Map<String, String>> disabled() {

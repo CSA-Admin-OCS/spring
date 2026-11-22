@@ -38,6 +38,9 @@ import jakarta.persistence.PersistenceException;
  */
 final class CallTestStore {
 
+    static final String LIVEKIT_URL = "wss://rtc.example.test";
+    static final String LIVEKIT_SECRET = "test-livekit-secret-0123456789abcdef";
+
     final CallRoomJpaRepository rooms = mock(CallRoomJpaRepository.class);
     final GroupsJpaRepository groups = mock(GroupsJpaRepository.class);
     final DirectMessageConversationJpaRepository conversations = mock(DirectMessageConversationJpaRepository.class);
@@ -46,7 +49,9 @@ final class CallTestStore {
     final CourseGroupProperties courses = new CourseGroupProperties();
     final CallsProperties properties = new CallsProperties();
     final CallPolicySettings policy = new CallPolicySettings();
+    final CallPresence presence = new CallPresence();
     final CallRoomService service;
+    final CallTokenService tokens;
 
     private final Map<Long, CallRoomEntity> roomRows = new LinkedHashMap<>();
     private final Map<Long, Groups> groupRows = new LinkedHashMap<>();
@@ -62,7 +67,14 @@ final class CallTestStore {
         properties.setEnabled(true);
         properties.setAllowedOrigins(List.of("https://pages.opencodingsociety.com", "http://localhost:4500"));
         properties.setPurposes(List.of("meeting", "standup"));
+        properties.getLivekit().setUrl(LIVEKIT_URL);
+        properties.getLivekit().setApiKey("APIkey123");
+        properties.getLivekit().setApiSecret(LIVEKIT_SECRET);
         policy.setSupervisorRoles(List.of("ROLE_TEACHER", "ROLE_ADMIN"));
+        policy.setMinorRoles(List.of("ROLE_STUDENT"));
+        policy.setSupervisedRoles(List.of("ROLE_MENTOR"));
+        policy.setModeratorRoles(List.of("ROLE_TEACHER", "ROLE_ADMIN"));
+        policy.setOneAdultOneMinor(CallPolicySettings.OneAdultOneMinor.ALLOW_AND_LIST);
 
         when(people.findByUid(anyString())).thenAnswer(call -> peopleByUid.get(call.<String>getArgument(0)));
         when(groups.findById(anyLong())).thenAnswer(call -> Optional.ofNullable(groupRows.get(call.<Long>getArgument(0))));
@@ -91,6 +103,7 @@ final class CallTestStore {
         when(rooms.save(any(CallRoomEntity.class))).thenAnswer(call -> save(call.getArgument(0)));
 
         service = new CallRoomService(rooms, groups, conversations, directMessages, courses, properties, policy);
+        tokens = new CallTokenService(service, presence, properties, policy);
     }
 
     // ---- people, groups and conversations ----
@@ -131,6 +144,10 @@ final class CallTestStore {
 
     int roomCount() {
         return roomRows.size();
+    }
+
+    CallRoomEntity room(long id) {
+        return roomRows.get(id);
     }
 
     /** As if CallRoomTableInitializer couldn't create call_room: every read of it fails. */

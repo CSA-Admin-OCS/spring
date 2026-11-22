@@ -4,9 +4,8 @@
 
 `mvc/calls` is the Spring side of video calls on OCS. A call happens in a **room**, and each group,
 DM conversation and course has exactly one room, made the first time someone opens it and reused for
-every call after. This first part of the feature stores rooms and decides who may join them. Join
-tokens, the safety rules during a call and the "call is live" frames come in later changes; the
-media itself will go through a LiveKit server, never through Spring.
+every call after. Spring stores the rooms, decides who may join, and hands out short-lived join
+tokens for a LiveKit server, which carries the video. The media never goes through Spring.
 
 Calls are **off by default**. With `calls.enabled=false` every `/api/calls` route answers
 404 `{"reason":"calls_disabled"}`, even to a request that would otherwise be refused, and the
@@ -23,6 +22,10 @@ Calls are **off by default**. With `calls.enabled=false` every `/api/calls` rout
 | `CallRequestGuard` | Only OCS pages may call the routes: `X-Origin: client`, an exact origin from `calls.allowed-origins`, JSON on writes. |
 | `CallExceptionHandler` | Every refusal as `{"reason": ...}`; every answer is 404 `calls_disabled` while calls are off. |
 | `CallsProperties`, `CallPolicySettings` | The `calls.*` and `calls.policy.*` settings. |
+| `CallTokenService` | A join token: who may join, then the safety rules, then the token. |
+| `CallPolicy` | The safety rules, as pure functions of the settings and who is connected. |
+| `CallPresence` | Who is connected to each room and who was removed, in memory, by LiveKit connection. |
+| `LiveKitTokens`, `CallIdentity` | LiveKit's JWT format, and each person's opaque LiveKit identity. |
 
 ## Who may join a room
 
@@ -45,6 +48,7 @@ headers the guard checks. Errors are `{"reason": ...}`.
 |---|---|
 | `POST /api/calls` `{"contextType":"GROUP","contextKey":"12","purpose":"standup"}` | 200 `{"id","state","title","contextType","contextKey","purpose"}`; 400 `UNKNOWN_CONTEXT_TYPE`, `UNKNOWN_PURPOSE` or `invalid_body`; 403 `NOT_A_MEMBER`; 404 `UNKNOWN_CONTEXT` (no such group or DM, or a course not in `courses.class-groups`) |
 | `GET /api/calls/{id}` | 200 the same fields; 403 `NOT_A_MEMBER`; 404 `CALL_NOT_FOUND` |
+| `POST /api/calls/{id}/token` | 200 `{"url","token","expiresIn":600,"canModerate"}`; 403 `WAITING_FOR_SUPERVISOR`, `WAITING_FOR_SECOND_ADULT`, `REMOVED` or `NOT_A_MEMBER`; 503 `MEDIA_UNAVAILABLE` while `calls.livekit.*` isn't set |
 | any route | 401 `unauthorized`, 403 `origin_rejected`, 404 `calls_disabled`; 503 `CALLS_UNAVAILABLE` with `Retry-After: 30` when the database fails (for example, `call_room` couldn't be created) |
 
 - `contextType` is `GROUP`, `DM` or `COURSE`. `contextKey` is the group's or DM's id, or the course
@@ -56,6 +60,39 @@ headers the guard checks. Errors are `{"reason": ...}`.
 - The LiveKit room name (a random UUID) and who first opened the room are never sent.
 - Two people opening a context's first room at the same moment both get the same room: the unique
   key refuses the second insert, and the controller reads the first one's row.
+
+## Join tokens and the safety rules
+
+Students are minors and mentors are adults, so `CallPolicy` applies these rules to every token
+request. The roles come from `calls.policy.*`. Every account starts with `ROLE_STUDENT`, so each
+person counts as the first of these their roles match: a supervisor (`ROLE_TEACHER`,
+`ROLE_ADMIN`), a supervised role (`ROLE_MENTOR`), then a minor (`ROLE_STUDENT`).
+
+- A supervised person gets a token only while a supervisor is connected, whenever a minor is in the
+  room. Otherwise the answer is 403 `WAITING_FOR_SUPERVISOR`, and the page can try again.
+- One adult alone with one minor: `ALLOW_AND_LIST` (the default) allows it and marks the call;
+  `REQUIRE_SECOND_ADULT` makes whoever would start it wait (403 `WAITING_FOR_SECOND_ADULT`). With
+  that setting, adults should join before a student who is alone in the room.
+- A person a moderator removed gets no new token for that room (403 `REMOVED`), because a
+  self-hosted LiveKit can't take back a token it accepted.
+- `CallPolicy.mustPause` names the supervised people to pause when minors are connected and no
+  supervisor is.
+
+The token is a JWT signed HS256 with `calls.livekit.api-secret`, in LiveKit's format: `iss` is the
+API key, `sub` the person's identity, `name` their display name, and `video` the grants. LiveKit
+allows any grant a token leaves out, so every grant is written, and every room power
+(`roomAdmin`, `roomCreate`, `roomList`, `roomRecord`, `canUpdateOwnMetadata`, `hidden`) is false. The
+token lasts `calls.token-ttl-seconds` (600). Its `metadata` lists only the roles the rules name, so the
+page can label a teacher or a mentor.
+
+A person's identity is the first 22 characters of the base64url HMAC-SHA256 of `calls:` + their
+uid, keyed with the API secret. It stays the same on every join, and LiveKit never sees a uid,
+name or email. The room's name is its random UUID.
+
+LiveKit's settings are `calls.livekit.url`, `api-key` and `api-secret`, from `LIVEKIT_URL`,
+`LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET` in `.env`. The secret must be at least 32 characters:
+jjwt refuses shorter HS256 keys, and LiveKit's dev-mode secret `secret` is too short, so a local
+LiveKit server needs a longer key pair.
 
 ## Persistence
 
@@ -71,13 +108,14 @@ On SQLite, Hibernate reports a unique-key failure as `JpaSystemException`; on My
 ## Testing
 
 ```bash
-./mvnw test -Dtest='Call*Test'
+./mvnw test -Dtest='Call*Test,LiveKit*Test'
 ```
 
 - `CallRoomServiceTest`: who may join, and opening rooms (in-memory store, `CallTestStore`).
 - `CallApiHttpTest`: routes, the off switch, the guard, JSON fields and status codes.
 - `CallRoomTableInitializerTest`: the table and its unique keys on in-memory SQLite.
 - `CallRoomPersistenceTest`: the entity through JPA on a SQLite file, against the initializer's table.
+- `CallPolicyTest`, `CallPresenceTest`, `CallIdentityTest`, `LiveKitTokensTest`: the safety rules, presence, identities and the token format.
 
 `api/calls.http` runs the routes against a local server with calls turned on.
 
