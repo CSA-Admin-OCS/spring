@@ -50,8 +50,17 @@ final class CallTestStore {
     final CallsProperties properties = new CallsProperties();
     final CallPolicySettings policy = new CallPolicySettings();
     final CallPresence presence = new CallPresence();
+    final CallAttendanceJpaRepository attendance = mock(CallAttendanceJpaRepository.class);
+    final LiveKitRooms liveKit = mock(LiveKitRooms.class);
+    final ManualCallScheduler scheduler = new ManualCallScheduler();
     final CallRoomService service;
+    final CallSupervisor supervisor;
     final CallTokenService tokens;
+    final CallAttendanceService attendanceService;
+    final CallWebhookService webhooks;
+    final CallModerationService moderation;
+    private final List<CallAttendanceEntity> attendanceRows = new ArrayList<>();
+    private long nextAttendanceId = 1;
 
     private final Map<Long, CallRoomEntity> roomRows = new LinkedHashMap<>();
     private final Map<Long, Groups> groupRows = new LinkedHashMap<>();
@@ -101,9 +110,50 @@ final class CallTestStore {
             return lookUp(call.getArgument(0), call.getArgument(1));
         });
         when(rooms.save(any(CallRoomEntity.class))).thenAnswer(call -> save(call.getArgument(0)));
+        when(rooms.findByRoomName(anyString())).thenAnswer(call -> roomRows.values().stream()
+                .filter(room -> room.getRoomName().equals(call.getArgument(0)))
+                .findFirst());
+        when(attendance.save(any(CallAttendanceEntity.class))).thenAnswer(call -> saveAttendance(call.getArgument(0)));
+        when(attendance.saveAll(any())).thenAnswer(call -> {
+            List<CallAttendanceEntity> saved = new ArrayList<>();
+            for (CallAttendanceEntity row : call.<Iterable<CallAttendanceEntity>>getArgument(0)) {
+                saved.add(saveAttendance(row));
+            }
+            return saved;
+        });
+        when(attendance.findFirstByCallRoomIdAndIdentityAndLeftAtIsNull(anyLong(), anyString()))
+                .thenAnswer(call -> attendanceRows.stream()
+                        .filter(row -> row.getCallRoomId().equals(call.getArgument(0))
+                                && row.getIdentity().equals(call.getArgument(1)) && row.getLeftAt() == null)
+                        .findFirst());
+        when(attendance.findByCallRoomIdAndLeftAtIsNull(anyLong())).thenAnswer(call -> attendanceRows.stream()
+                .filter(row -> row.getCallRoomId().equals(call.getArgument(0)) && row.getLeftAt() == null)
+                .toList());
 
         service = new CallRoomService(rooms, groups, conversations, directMessages, courses, properties, policy);
-        tokens = new CallTokenService(service, presence, properties, policy);
+        supervisor = new CallSupervisor(presence, policy, liveKit, scheduler, scheduler.clock);
+        tokens = new CallTokenService(service, presence, supervisor, properties, policy);
+        attendanceService = new CallAttendanceService(attendance, properties);
+        webhooks = new CallWebhookService(rooms, presence, attendanceService, supervisor);
+        moderation = new CallModerationService(service, presence, liveKit, supervisor, properties, policy);
+    }
+
+    /** The /api/calls controller over this store, as Spring wires it. */
+    CallApiRestController controller() {
+        return new CallApiRestController(properties, new CallRequestGuard(properties), service, tokens, moderation,
+                presence, people);
+    }
+
+    List<CallAttendanceEntity> attendanceRows() {
+        return List.copyOf(attendanceRows);
+    }
+
+    private CallAttendanceEntity saveAttendance(CallAttendanceEntity row) {
+        if (row.getId() == null) {
+            row.setId(nextAttendanceId++);
+            attendanceRows.add(row);
+        }
+        return row;
     }
 
     // ---- people, groups and conversations ----

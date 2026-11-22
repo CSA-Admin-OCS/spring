@@ -26,6 +26,9 @@ public class CallsProperties {
     /** How long a join token lasts. LiveKit can't take back a token it has accepted, so keep it short. */
     private int tokenTtlSeconds = 600;
 
+    /** Days attendance rows are kept before the nightly clean-up deletes them. */
+    private int attendanceDays = 30;
+
     /** The LiveKit server that carries the video. */
     private LiveKit livekit = new LiveKit();
 

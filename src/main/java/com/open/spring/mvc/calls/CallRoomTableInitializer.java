@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -40,12 +39,11 @@ public class CallRoomTableInitializer {
     }
 
     void initialize() {
-        boolean mySql = isMySql();
-        String id = mySql ? "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY" : "id INTEGER PRIMARY KEY AUTOINCREMENT";
-        String timestamp = mySql ? "DATETIME(6)" : "TIMESTAMP";
+        boolean mySql = CallTables.isMySql(jdbcTemplate);
+        String timestamp = CallTables.timestampType(mySql);
         try {
             jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS " + TABLE + " ("
-                    + id + ", "
+                    + CallTables.idColumn(mySql) + ", "
                     + "context_type VARCHAR(16) NOT NULL, "
                     + "context_key VARCHAR(64) NOT NULL, "
                     + "purpose VARCHAR(32) NOT NULL, "
@@ -61,17 +59,6 @@ public class CallRoomTableInitializer {
         } catch (DataAccessException e) {
             // The rest of Spring keeps running; /api/calls answers 503 CALLS_UNAVAILABLE until the table exists.
             logger.error("Could not create the {} table, so calls won't work: {}", TABLE, e.getMessage());
-        }
-    }
-
-    private boolean isMySql() {
-        try {
-            String product = jdbcTemplate.execute(
-                    (ConnectionCallback<String>) connection -> connection.getMetaData().getDatabaseProductName());
-            String name = product == null ? "" : product.toLowerCase();
-            return name.contains("mysql") || name.contains("mariadb");
-        } catch (DataAccessException e) {
-            return false;
         }
     }
 }

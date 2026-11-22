@@ -29,6 +29,9 @@ public class CallPolicySettings {
     /** Roles that may moderate a call. */
     private List<String> moderatorRoles = new ArrayList<>();
 
+    /** Seconds a supervised person keeps their video after the last supervisor leaves; 0 pauses them at once. */
+    private int supervisorGraceSeconds = 0;
+
     /** What happens when a call would be one adult alone with one minor. */
     private OneAdultOneMinor oneAdultOneMinor = OneAdultOneMinor.ALLOW_AND_LIST;
 

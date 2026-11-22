@@ -21,7 +21,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
  * app-wide advice and only for CallApiRestController. While calls.enabled is false every answer is
  * the same 404 calls_disabled, even to a request the guard or the JSON parser would refuse.
  */
-@RestControllerAdvice(assignableTypes = CallApiRestController.class)
+@RestControllerAdvice(assignableTypes = {CallApiRestController.class, CallWebhookController.class})
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CallExceptionHandler {
 

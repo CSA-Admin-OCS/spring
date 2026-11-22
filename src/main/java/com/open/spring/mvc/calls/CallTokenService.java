@@ -26,13 +26,15 @@ public class CallTokenService {
 
     private final CallRoomService rooms;
     private final CallPresence presence;
+    private final CallSupervisor supervisor;
     private final CallsProperties properties;
     private final CallPolicySettings policy;
 
-    public CallTokenService(CallRoomService rooms, CallPresence presence, CallsProperties properties,
-            CallPolicySettings policy) {
+    public CallTokenService(CallRoomService rooms, CallPresence presence, CallSupervisor supervisor,
+            CallsProperties properties, CallPolicySettings policy) {
         this.rooms = rooms;
         this.presence = presence;
+        this.supervisor = supervisor;
         this.properties = properties;
         this.policy = policy;
     }
@@ -52,16 +54,21 @@ public class CallTokenService {
         if (decision.outcome() != CallDecision.Outcome.ALLOW) {
             throw new CallException(HttpStatus.FORBIDDEN, decision.reason());
         }
+        // Someone a moderator paused stays paused when they come back with a new token.
+        CallGrants grants = supervisor.isHeld(room.getRoomName(), joining.identity()) ? CallGrants.PAUSED : decision.grants();
         String token = LiveKitTokens.join(properties, joining.identity(), person.getName(), room.getRoomName(),
-                decision.grants(), metadata(roles));
+                grants, metadata(roles));
+        presence.rememberToken(joining.identity(), person.getUid());
         return new JoinToken(liveKit.getUrl(), token, properties.getTokenTtlSeconds(),
                 CallPolicy.canModerate(policy, joining));
     }
 
-    // Only the roles the call rules name (a teacher, a mentor), which the page turns into labels.
+    // The roles the call rules name, minor roles included: LiveKit's webhooks hand this back, and
+    // it is how Spring knows who is a minor in a call. The page turns them into labels.
     private String metadata(List<String> roles) {
         Set<String> named = new LinkedHashSet<>(policy.getSupervisorRoles());
         named.addAll(policy.getSupervisedRoles());
+        named.addAll(policy.getMinorRoles());
         named.addAll(policy.getModeratorRoles());
         try {
             return JSON.writeValueAsString(Map.of("roles", roles.stream().filter(named::contains).toList()));

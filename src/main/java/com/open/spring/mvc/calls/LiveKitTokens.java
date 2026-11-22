@@ -58,6 +58,26 @@ public final class LiveKitTokens {
                 .compact();
     }
 
+    /**
+     * A one-minute token for Spring's own calls to LiveKit's room service: roomAdmin over one room,
+     * and roomCreate as well when it ends the room.
+     */
+    static String server(CallsProperties properties, String roomName, boolean mayEndRoom) {
+        CallsProperties.LiveKit liveKit = properties.getLivekit();
+        Map<String, Object> video = new LinkedHashMap<>();
+        video.put("room", roomName);
+        video.put("roomAdmin", true);
+        video.put("roomCreate", mayEndRoom);
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .issuer(liveKit.getApiKey())
+                .claim("video", video)
+                .notBefore(Date.from(now))
+                .expiration(Date.from(now.plusSeconds(60)))
+                .signWith(signingKey(liveKit.getApiSecret()), Jwts.SIG.HS256)
+                .compact();
+    }
+
     static SecretKey signingKey(String apiSecret) {
         try {
             return Keys.hmacShaKeyFor(apiSecret.getBytes(StandardCharsets.UTF_8));

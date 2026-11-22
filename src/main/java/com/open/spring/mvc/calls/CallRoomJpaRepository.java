@@ -8,4 +8,7 @@ public interface CallRoomJpaRepository extends JpaRepository<CallRoomEntity, Lon
 
     /** The room of a group, DM or course; there is at most one. */
     Optional<CallRoomEntity> findByContextTypeAndContextKey(CallContextType contextType, String contextKey);
+
+    /** The room LiveKit knows by this name (a UUID); webhooks name rooms this way. */
+    Optional<CallRoomEntity> findByRoomName(String roomName);
 }

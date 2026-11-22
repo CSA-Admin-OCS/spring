@@ -26,15 +26,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * CallRoomEntity through JPA against a real SQLite file, with ddl-auto=none so the table is the one
- * CallRoomTableInitializer creates. Nothing else checks the entity's mapping against that SQL before
- * a live boot. Runs outside a test transaction so each save commits.
+ * The calls entities through JPA against a real SQLite file, with ddl-auto=none so the tables are
+ * the ones the initializers create. Nothing else checks the entities' mappings against that SQL
+ * before a live boot. Runs outside a test transaction so each save commits.
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({CallRoomTableInitializer.class, CallRoomPersistenceTest.Config.class})
+@Import({CallRoomTableInitializer.class, CallAttendanceTableInitializer.class, CallPersistenceTest.Config.class})
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-class CallRoomPersistenceTest {
+class CallPersistenceTest {
 
     private static final Path DATABASE = createDatabaseFile();
 
@@ -61,7 +61,7 @@ class CallRoomPersistenceTest {
         Files.deleteIfExists(Path.of(DATABASE + "-shm"));
     }
 
-    /** The JPA test slice binds no settings, so the initializer gets calls switched on here. */
+    /** The JPA test slice binds no settings, so the initializers get calls switched on here. */
     @TestConfiguration
     static class Config {
         @Bean
@@ -73,13 +73,17 @@ class CallRoomPersistenceTest {
     }
 
     @Autowired private CallRoomTableInitializer initializer;
+    @Autowired private CallAttendanceTableInitializer attendanceInitializer;
     @Autowired private CallRoomJpaRepository rooms;
+    @Autowired private CallAttendanceJpaRepository attendance;
     @Autowired private JdbcTemplate jdbc;
 
     @BeforeEach
     void setUp() {
         initializer.initialize();
+        attendanceInitializer.initialize();
         jdbc.execute("DELETE FROM call_room");
+        jdbc.execute("DELETE FROM call_attendance");
     }
 
     private static CallRoomEntity groupRoom(String key) {
@@ -118,5 +122,28 @@ class CallRoomPersistenceTest {
 
         assertThrows(DataAccessException.class, () -> rooms.save(groupRoom("12")));
         assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM call_room", Integer.class));
+    }
+    @Test
+    void aRoomIsFoundByItsLiveKitName() {
+        CallRoomEntity saved = rooms.save(groupRoom("12"));
+
+        assertEquals(saved.getId(), rooms.findByRoomName(saved.getRoomName()).orElseThrow().getId());
+        assertTrue(rooms.findByRoomName("not-a-room").isEmpty());
+    }
+
+    @Test
+    void attendanceReadsBackAndOldRowsAreDeleted() {
+        CallParticipant ada = new CallParticipant("id-ada", "ada", java.util.Set.of("ROLE_STUDENT"));
+        java.time.Instant now = java.time.Instant.now();
+        attendance.save(CallAttendanceEntity.joined(7L, ada, now.minus(java.time.Duration.ofDays(40))));
+        CallAttendanceEntity recent = attendance.save(CallAttendanceEntity.joined(7L, ada, now.minus(java.time.Duration.ofDays(1))));
+
+        assertEquals(2, attendance.findByCallRoomIdAndLeftAtIsNull(7L).size());
+        assertEquals(1, attendance.deleteJoinedBefore(now.minus(java.time.Duration.ofDays(30))));
+
+        CallAttendanceEntity open = attendance.findFirstByCallRoomIdAndIdentityAndLeftAtIsNull(7L, "id-ada").orElseThrow();
+        assertEquals(recent.getId(), open.getId());
+        assertEquals("ada", open.getUid());
+        assertEquals("ROLE_STUDENT", open.getRoles());
     }
 }

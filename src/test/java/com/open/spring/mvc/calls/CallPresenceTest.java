@@ -1,6 +1,8 @@
 package com.open.spring.mvc.calls;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
@@ -59,6 +61,33 @@ class CallPresenceTest {
 
         presence.left("room-1", "PA_2");
         assertEquals(Set.of(), present("room-1"));
+    }
+
+    @Test
+    void joinedSaysWhetherTheConnectionCounts() {
+        assertTrue(presence.joined("room-1", "PA_1", ADA));
+
+        presence.left("room-1", "PA_2");
+        assertFalse(presence.joined("room-1", "PA_2", NIKO));
+    }
+
+    @Test
+    void aTokenRemembersWhoseIdentityItIs() {
+        presence.rememberToken("id-ada", "ada");
+
+        assertEquals("ada", presence.uidOf("id-ada"));
+        assertNull(presence.uidOf("id-nobody"));
+    }
+
+    @Test
+    void aFinishedRoomForgetsWhoWasInIt() {
+        presence.joined("room-1", "PA_1", ADA);
+        presence.markRemoved("room-1", "id-niko");
+
+        presence.clear("room-1");
+
+        assertEquals(Set.of(), present("room-1"));
+        assertTrue(presence.removed("room-1").isEmpty());
     }
 
     @Test

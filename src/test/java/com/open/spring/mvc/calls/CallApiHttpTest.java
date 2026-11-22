@@ -51,9 +51,7 @@ class CallApiHttpTest {
         mentor = CallTestStore.login(mentorPerson);
         teacher = CallTestStore.login(store.person(4, "mort", "ROLE_USER", "ROLE_TEACHER"));
         store.group(12, "Binary Beasts", adaPerson, mentorPerson);
-        CallApiRestController controller = new CallApiRestController(
-                store.properties, new CallRequestGuard(store.properties), store.service, store.tokens, store.people);
-        mvc = MockMvcBuilders.standaloneSetup(controller)
+        mvc = MockMvcBuilders.standaloneSetup(store.controller())
                 .setControllerAdvice(new CallExceptionHandler(store.properties))
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(json))
                 .build();
@@ -260,7 +258,20 @@ class CallApiHttpTest {
         assertEquals("YcP_m_Mq4hQs7ZwUlJgNpI", claims.getSubject()); // ada's identity (CallIdentityTest)
         assertEquals("ada", claims.get("name"));
         assertEquals(store.room(id).getRoomName(), ((java.util.Map<?, ?>) claims.get("video")).get("room"));
-        assertEquals("{\"roles\":[]}", claims.get("metadata"));
+        // Every role the rules name, the minor role too, so LiveKit's webhooks tell Spring who is a minor.
+        assertEquals("{\"roles\":[\"ROLE_STUDENT\"]}", claims.get("metadata"));
+        assertEquals("ada", store.presence.uidOf("YcP_m_Mq4hQs7ZwUlJgNpI"));
+    }
+
+    @Test
+    void theRoomCountsWhoIsConnected() throws Exception {
+        int id = openGroupRoom();
+        store.presence.joined(store.room(id).getRoomName(), "PA_ada", connected("ada", "ROLE_USER", "ROLE_STUDENT"));
+        store.presence.joined(store.room(id).getRoomName(), "PA_ada2", connected("ada", "ROLE_USER", "ROLE_STUDENT"));
+
+        mvc.perform(fromPages(get("/api/calls/" + id)).principal(ada))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participantCount").value(1));
     }
 
     @Test

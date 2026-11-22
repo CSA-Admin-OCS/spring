@@ -244,6 +244,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ui-builder/published", "/api/ui-builder/published/*").permitAll()
                         // ================================================
 
+                        // ========== VIDEO CALL WEBHOOK ==========
+                        // LiveKit's server reports who joined and left a call. It has no login cookie, so
+                        // CallWebhookController checks LiveKit's signature over the body instead.
+                        .requestMatchers(HttpMethod.POST, "/api/calls/webhook").permitAll()
+                        // ========================================
+
                         // ========== DEFAULT: ALL OTHER API ENDPOINTS ==========
                         // Secure by default - any endpoint not explicitly listed above requires authentication
                         .requestMatchers("/api/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN", "ROLE_TEACHER", "ROLE_STUDENT")
@@ -305,6 +311,7 @@ public class SecurityConfig {
         policy.put("/api/imports/**", "ROLE_ADMIN");
         policy.put("GET /api/ui-builder/published", "permitAll");
         policy.put("GET /api/ui-builder/published/*", "permitAll");
+        policy.put("POST /api/calls/webhook", "permitAll");
         policy.put("/api/**", "ROLE_USER|ROLE_ADMIN|ROLE_TEACHER|ROLE_STUDENT");
         return Map.copyOf(policy);
     }
