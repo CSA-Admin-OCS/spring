@@ -3,6 +3,7 @@ package com.open.spring.mvc.calls;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,7 +92,37 @@ public class CallSupervisor {
         watches.remove(room);
     }
 
-    synchronized void reconcile(String room) {
+    /** What to send to LiveKit for one room, worked out while holding the lock. */
+    private record Plan(List<String> resume, List<String> pause) {}
+
+    void reconcile(String room) {
+        Plan plan = plan(room);
+        // LiveKit is called without the lock, so a slow LiveKit holds up only this thread, not a
+        // token request or a webhook.
+        List<String> resumed = new ArrayList<>();
+        List<String> paused = new ArrayList<>();
+        boolean failed = false;
+        for (String identity : plan.resume()) {
+            if (send(room, identity, CallGrants.FULL)) {
+                resumed.add(identity);
+            } else {
+                failed = true;
+            }
+        }
+        for (String identity : plan.pause()) {
+            if (send(room, identity, CallGrants.PAUSED)) {
+                paused.add(identity);
+            } else {
+                failed = true;
+            }
+        }
+        record(room, resumed, paused);
+        if (failed) {
+            scheduler.schedule(() -> reconcile(room), RETRY_AFTER_FAILURE);
+        }
+    }
+
+    private synchronized Plan plan(String room) {
         Watch watch = watch(room);
         Collection<CallParticipant> present = presence.present(room);
         Set<String> here = present.stream().map(CallParticipant::identity).collect(Collectors.toSet());
@@ -102,37 +133,26 @@ public class CallSupervisor {
         } else if (watch.unsupervisedSince == null) {
             watch.unsupervisedSince = now;
         }
-        boolean failed = false;
-        for (String identity : List.copyOf(watch.paused)) {
-            if (!here.contains(identity)) {
-                watch.paused.remove(identity); // they left; a new token decides their grants
-            } else if (!byRules.contains(identity) && !watch.heldByModerator.contains(identity)) {
-                if (send(room, identity, CallGrants.FULL)) {
-                    watch.paused.remove(identity);
-                } else {
-                    failed = true;
-                }
-            }
-        }
-        Set<String> toPause = byRules.stream().filter(identity -> !watch.paused.contains(identity))
-                .collect(Collectors.toSet());
-        if (!toPause.isEmpty()) {
+        watch.paused.retainAll(here); // anyone who left gets their grants from a new token
+        List<String> resume = watch.paused.stream()
+                .filter(identity -> !byRules.contains(identity) && !watch.heldByModerator.contains(identity))
+                .sorted()
+                .toList();
+        List<String> pause = byRules.stream().filter(identity -> !watch.paused.contains(identity)).sorted().toList();
+        if (!pause.isEmpty()) {
             Instant due = watch.unsupervisedSince.plusSeconds(policy.getSupervisorGraceSeconds());
             if (now.isBefore(due)) {
                 scheduler.schedule(() -> reconcile(room), Duration.between(now, due));
-            } else {
-                for (String identity : toPause) {
-                    if (send(room, identity, CallGrants.PAUSED)) {
-                        watch.paused.add(identity);
-                    } else {
-                        failed = true;
-                    }
-                }
+                pause = List.of();
             }
         }
-        if (failed) {
-            scheduler.schedule(() -> reconcile(room), RETRY_AFTER_FAILURE);
-        }
+        return new Plan(resume, pause);
+    }
+
+    private synchronized void record(String room, List<String> resumed, List<String> paused) {
+        Watch watch = watch(room);
+        resumed.forEach(watch.paused::remove);
+        watch.paused.addAll(paused);
     }
 
     private boolean send(String room, String identity, CallGrants grants) {

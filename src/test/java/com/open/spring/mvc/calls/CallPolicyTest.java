@@ -70,6 +70,12 @@ class CallPolicyTest {
     }
 
     @Test
+    void aMinorWaitsWhileAnUnsupervisedMentorIsThere() {
+        assertEquals(new CallDecision(WAIT, "WAITING_FOR_SUPERVISOR", CallGrants.PAUSED, false), decide(List.of(M), S1));
+        assertEquals(ALLOW, decide(List.of(M, T), S1).outcome());
+    }
+
+    @Test
     void supervisorRoleWinsOverSupervisedRole() {
         assertEquals(ALLOW, decide(List.of(S1), TEACHER_WHO_IS_ALSO_MENTOR).outcome());
     }

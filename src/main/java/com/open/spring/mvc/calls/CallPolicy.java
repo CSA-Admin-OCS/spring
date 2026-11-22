@@ -36,8 +36,12 @@ public final class CallPolicy {
         List<CallParticipant> others = present.stream()
                 .filter(participant -> !participant.identity().equals(joining.identity()))
                 .toList();
-        if (kindOf(settings, joining) == Kind.SUPERVISED
-                && has(settings, others, Kind.MINOR) && !has(settings, others, Kind.SUPERVISOR)) {
+        // A supervised person and a minor are never connected without a supervisor: whichever of
+        // them comes second waits, so neither sees or hears the other before Spring could pause anyone.
+        Kind kind = kindOf(settings, joining);
+        boolean unsupervisedPair = (kind == Kind.SUPERVISED && has(settings, others, Kind.MINOR))
+                || (kind == Kind.MINOR && has(settings, others, Kind.SUPERVISED));
+        if (unsupervisedPair && !has(settings, others, Kind.SUPERVISOR)) {
             return CallDecision.refused(Outcome.WAIT, "WAITING_FOR_SUPERVISOR");
         }
         List<CallParticipant> after = new ArrayList<>(others);

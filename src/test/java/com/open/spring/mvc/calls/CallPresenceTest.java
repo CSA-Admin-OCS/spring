@@ -91,6 +91,18 @@ class CallPresenceTest {
     }
 
     @Test
+    void aLateJoinAfterTheRoomFinishedIsIgnored() {
+        presence.joined("room-1", "PA_1", ADA);
+        presence.left("room-1", "PA_2");
+        presence.clear("room-1");
+
+        presence.joined("room-1", "PA_1", ADA); // LiveKit retrying joins from the call that finished
+        presence.joined("room-1", "PA_2", NIKO);
+
+        assertEquals(Set.of(), present("room-1"));
+    }
+
+    @Test
     void removalIsPerRoom() {
         presence.markRemoved("room-1", "id-ada");
 

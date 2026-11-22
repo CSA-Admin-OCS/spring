@@ -62,7 +62,7 @@ Every route but the webhook needs a signed-in person (the default `/api/**` rule
 | `POST /api/calls/{id}/participants/{identity}/pause`, `/resume`, `/remove` | 204; 403 `NOT_A_MODERATOR`; 404 `PARTICIPANT_NOT_FOUND` (pause, resume); 409 `WAITING_FOR_SUPERVISOR` (resume while the rules keep them paused); 503 `MEDIA_UNAVAILABLE` |
 | `POST /api/calls/{id}/end` | 204; 403 `NOT_A_MODERATOR`; 503 `MEDIA_UNAVAILABLE` |
 | `GET /api/calls/live?course=csa` | 200 `[{"id","title","contextType","count","oneOnOne"}]`: the live calls with someone in them that the caller may join; with `course`, that course's room and its teams' group rooms |
-| `POST /api/calls/webhook` (LiveKit only, no login) | 200; 401 `bad_signature` |
+| `POST /api/calls/webhook` (LiveKit only, no login) | 200; 401 `bad_signature`; 413 `body_too_large` (over 64 KB, refused before it is read) |
 | any route | 401 `unauthorized`, 403 `origin_rejected`, 404 `calls_disabled`; 503 `CALLS_UNAVAILABLE` when the database fails (for example, a table couldn't be created) |
 
 - `contextType` is `GROUP`, `DM` or `COURSE`. `contextKey` is the group's or DM's id, or the course
@@ -83,11 +83,13 @@ request. The roles come from `calls.policy.*`. Every account starts with `ROLE_S
 person counts as the first of these their roles match: a supervisor (`ROLE_TEACHER`,
 `ROLE_ADMIN`), a supervised role (`ROLE_MENTOR`), then a minor (`ROLE_STUDENT`).
 
-- A supervised person gets a token only while a supervisor is connected, whenever a minor is in the
-  room. Otherwise the answer is 403 `WAITING_FOR_SUPERVISOR`, and the page can try again.
+- A supervised person and a minor are never connected without a supervisor. Whichever of them asks
+  second while no supervisor is connected gets 403 `WAITING_FOR_SUPERVISOR`, and the page can try
+  again, so neither can see or hear the other before Spring could pause anyone.
 - One adult alone with one minor: `ALLOW_AND_LIST` (the default) allows it and marks the call;
-  `REQUIRE_SECOND_ADULT` makes whoever would start it wait (403 `WAITING_FOR_SECOND_ADULT`). With
-  that setting, adults should join before a student who is alone in the room.
+  `REQUIRE_SECOND_ADULT` makes whoever would start it wait (403 `WAITING_FOR_SECOND_ADULT`). That
+  setting applies when someone joins: if the second adult later leaves, the call goes on. With it,
+  adults should join before a student who is alone in the room.
 - A person a moderator removed gets no new token for that call (403 `REMOVED`), because a
   self-hosted LiveKit can't take back a token it accepted.
 
@@ -109,7 +111,8 @@ LiveKit posts to `/api/calls/webhook` when someone joins or leaves and when a ro
 request carries a JWT in `Authorization` (LiveKit 1.13 sends it without `Bearer `) whose `sha256`
 claim is the base64 SHA-256 of the body; `LiveKitWebhookVerifier` checks both, and anything else is
 401. LiveKit retries and may send events out of order, so each step can run twice: a connection
-(LiveKit's `sid`) that already left can't come back, and two tabs count as one person.
+(LiveKit's `sid`) that already left, or was in a room that finished, can't come back, and two tabs
+count as one person.
 
 - `participant_joined`: the person is present, gets an attendance row (one per person), and the room
   turns `LIVE`.
@@ -118,10 +121,12 @@ claim is the base64 SHA-256 of the body; `LiveKitWebhookVerifier` checks both, a
   room turns `IDLE` with `endedAt` set.
 
 After each change `CallSupervisor` checks the rules on its own thread, so the webhook answers 200
-at once. When minors are connected and no supervisor is, supervised people are paused through
-LiveKit's room service (no publish, no subscribe, no data), at once, or after
+at once; it calls LiveKit outside its lock, so a slow LiveKit never holds up a token request. When
+minors are connected and no supervisor is (the last teacher left), supervised people are paused
+through LiveKit's room service (no publish, no subscribe, no data), at once, or after
 `calls.policy.supervisor-grace-seconds` when that is above 0. When a supervisor is back they get
-full grants again. A LiveKit failure is tried again 5 seconds later.
+full grants again. A LiveKit failure is tried again 5 seconds later. The room service's 404 counts
+as done only when LiveKit says `not_found`; a 404 from a wrong route or a proxy is a failure.
 
 Moderators (`calls.policy.moderator-roles`) can pause, resume and remove someone, or end the call.
 A moderator's pause lasts until the moderator resumes them, even through a new token; resuming

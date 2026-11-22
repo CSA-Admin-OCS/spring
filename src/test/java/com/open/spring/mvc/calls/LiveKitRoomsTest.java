@@ -162,6 +162,18 @@ class LiveKitRoomsTest {
     }
 
     @Test
+    void aRoutingErrorIsNotTakenForSuccess() {
+        status = 404;
+        answer = "{\"code\":\"bad_route\",\"msg\":\"no handler for path\"}";
+        assertEquals("MEDIA_UNAVAILABLE", assertThrows(CallException.class,
+                () -> rooms.updateParticipant("room-1", "ident-ada", CallGrants.PAUSED)).getReason());
+
+        answer = "<html><body>404 Not Found</body></html>"; // a proxy in front of LiveKit, not LiveKit
+        assertEquals("MEDIA_UNAVAILABLE", assertThrows(CallException.class,
+                () -> rooms.removeParticipant("room-1", "ident-ada")).getReason());
+    }
+
+    @Test
     void theApiIsTheSameHostOverHttp() {
         assertEquals("https://rtc.example.test", LiveKitRooms.apiBase("wss://rtc.example.test"));
         assertEquals("http://127.0.0.1:7880", LiveKitRooms.apiBase("ws://127.0.0.1:7880/"));

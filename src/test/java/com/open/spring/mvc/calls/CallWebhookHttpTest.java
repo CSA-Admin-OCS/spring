@@ -189,6 +189,17 @@ class CallWebhookHttpTest {
     }
 
     @Test
+    void anOversizedBodyIsRefusedWithoutReadingItAll() throws Exception {
+        byte[] huge = new byte[CallWebhookController.MAX_BODY_BYTES + 1];
+        java.util.Arrays.fill(huge, (byte) ' ');
+
+        mvc.perform(post("/api/calls/webhook").contentType("application/webhook+json").content(huge)
+                        .header("Authorization", "not-checked-yet"))
+                .andExpect(status().isPayloadTooLarge())
+                .andExpect(jsonPath("$.reason").value("body_too_large"));
+    }
+
+    @Test
     void disabledIs404() throws Exception {
         store.properties.setEnabled(false);
 

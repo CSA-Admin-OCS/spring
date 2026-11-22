@@ -97,7 +97,7 @@ public class LiveKitRooms {
             throw new IllegalStateException("Could not write a LiveKit request", e);
         }
         try (Response response = client.newCall(request).execute()) {
-            if (response.isSuccessful() || response.code() == 404) {
+            if (response.isSuccessful() || isAlreadyGone(response)) {
                 return;
             }
             logger.warn("LiveKit {} answered {}", method, response.code());
@@ -105,5 +105,18 @@ public class LiveKitRooms {
             logger.warn("LiveKit {} failed: {}", method, e.getMessage());
         }
         throw new CallException(HttpStatus.SERVICE_UNAVAILABLE, "MEDIA_UNAVAILABLE");
+    }
+
+    // Twirp answers a participant or room that is gone with 404 {"code":"not_found"}. Any other 404
+    // (a wrong route, a proxy in front of LiveKit) means the request never reached the room service.
+    private static boolean isAlreadyGone(Response response) throws IOException {
+        if (response.code() != 404 || response.body() == null) {
+            return false;
+        }
+        try {
+            return "not_found".equals(JSON.readTree(response.body().string()).path("code").asText());
+        } catch (JsonProcessingException e) {
+            return false;
+        }
     }
 }

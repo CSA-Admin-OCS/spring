@@ -18,6 +18,9 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestController
 public class CallWebhookController {
 
+    /** LiveKit's events are a few kilobytes; anything far bigger isn't LiveKit. */
+    static final int MAX_BODY_BYTES = 64 * 1024;
+
     private final CallsProperties properties;
     private final CallWebhookService webhooks;
 
@@ -32,7 +35,7 @@ public class CallWebhookController {
         if (!properties.isEnabled()) {
             throw new CallException(HttpStatus.NOT_FOUND, "calls_disabled");
         }
-        byte[] body = request.getInputStream().readAllBytes();
+        byte[] body = readAtMost(request, MAX_BODY_BYTES);
         CallsProperties.LiveKit liveKit = properties.getLivekit();
         if (!liveKit.isConfigured()
                 || !LiveKitWebhookVerifier.verify(body, authorization, liveKit.getApiKey(), liveKit.getApiSecret())) {
@@ -40,5 +43,17 @@ public class CallWebhookController {
         }
         webhooks.handle(body);
         return ResponseEntity.ok().build();
+    }
+
+    // Anyone can post here before the signature is checked, so read no more than LiveKit would send.
+    private static byte[] readAtMost(HttpServletRequest request, int limit) throws IOException {
+        if (request.getContentLengthLong() > limit) {
+            throw new CallException(HttpStatus.PAYLOAD_TOO_LARGE, "body_too_large");
+        }
+        byte[] body = request.getInputStream().readNBytes(limit + 1);
+        if (body.length > limit) {
+            throw new CallException(HttpStatus.PAYLOAD_TOO_LARGE, "body_too_large");
+        }
+        return body;
     }
 }

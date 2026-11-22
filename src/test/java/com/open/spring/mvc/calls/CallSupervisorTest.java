@@ -143,6 +143,32 @@ class CallSupervisorTest {
     }
 
     @Test
+    void aSlowLiveKitDoesNotHoldUpOtherCallers() throws Exception {
+        java.util.concurrent.CountDownLatch inLiveKit = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        org.mockito.Mockito.doAnswer(call -> {
+            inLiveKit.countDown();
+            release.await(5, java.util.concurrent.TimeUnit.SECONDS);
+            return null;
+        }).when(rooms).updateParticipant(any(), any(), any());
+        presence.joined(ROOM, "PA_s1", S1);
+        presence.joined(ROOM, "PA_m", M);
+        Thread schedulerThread = new Thread(() -> supervisor.reconcile(ROOM));
+        schedulerThread.start();
+        org.junit.jupiter.api.Assertions.assertTrue(inLiveKit.await(5, java.util.concurrent.TimeUnit.SECONDS));
+
+        // While the scheduler's thread waits on LiveKit, a token request and a finished room don't wait with it.
+        org.junit.jupiter.api.Assertions.assertTimeoutPreemptively(Duration.ofSeconds(1), () -> {
+            supervisor.isHeld(ROOM, M.identity());
+            supervisor.forget("room-2");
+        });
+
+        release.countDown();
+        schedulerThread.join(5000);
+        verify(rooms).updateParticipant(ROOM, M.identity(), CallGrants.PAUSED);
+    }
+
+    @Test
     void aModeratorsPauseOutlastsTheTeacherComingBack() {
         supervisedCall();
         doNothing().when(rooms).updateParticipant(any(), any(), any());

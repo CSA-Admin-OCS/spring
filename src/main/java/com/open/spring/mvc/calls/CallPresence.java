@@ -3,7 +3,9 @@ package com.open.spring.mvc.calls;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,6 +23,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class CallPresence {
 
+    static final int MAX_ENDED_CONNECTIONS_PER_ROOM = 10_000;
+
     private final Map<String, Map<String, CallParticipant>> connections = new HashMap<>();
     private final Map<String, Set<String>> leftConnections = new HashMap<>();
     private final Map<String, Set<String>> removedIdentities = new HashMap<>();
@@ -36,7 +40,7 @@ public class CallPresence {
     }
 
     public synchronized void left(String room, String sid) {
-        leftConnections.computeIfAbsent(room, key -> new HashSet<>()).add(sid);
+        markLeft(room, sid);
         Map<String, CallParticipant> sids = connections.get(room);
         if (sids != null) {
             sids.remove(sid);
@@ -68,10 +72,26 @@ public class CallPresence {
         return uidsByIdentity.get(identity);
     }
 
-    /** The room finished: its connections and removals end with it. */
+    /**
+     * The room finished: its connections and removals end with it. The connections are kept as
+     * ended, so a join LiveKit retries from that call can't bring anyone back.
+     */
     public synchronized void clear(String room) {
-        connections.remove(room);
-        leftConnections.remove(room);
+        Map<String, CallParticipant> sids = connections.remove(room);
+        if (sids != null) {
+            sids.keySet().forEach(sid -> markLeft(room, sid));
+        }
         removedIdentities.remove(room);
+    }
+
+    // LiveKit retries a webhook for minutes, so only recent ended connections need remembering.
+    private void markLeft(String room, String sid) {
+        Set<String> left = leftConnections.computeIfAbsent(room, key -> new LinkedHashSet<>());
+        left.add(sid);
+        if (left.size() > MAX_ENDED_CONNECTIONS_PER_ROOM) {
+            Iterator<String> oldest = left.iterator();
+            oldest.next();
+            oldest.remove();
+        }
     }
 }
