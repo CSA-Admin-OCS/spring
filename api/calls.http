@@ -1,7 +1,9 @@
 ### Calls API Tests
 
-This file exercises the call-room routes under `/api/calls`. See
-docs/calls-architecture.md for how they work and what each returns.
+This file exercises the routes under `/api/calls`: opening and reading a
+room, a join token and the live calls list. See docs/calls-architecture.md
+for how they work and what each returns, and docs/calls-deployment.md for
+running a local LiveKit server.
 
 Calls are off by default, so set `calls.enabled=true` for the local server
 first; otherwise every request below answers 404 `calls_disabled`.
@@ -65,7 +67,23 @@ Accept: application/json
   "contextKey": "csa"
 }
 
-### 5. A purpose calls.purposes doesn't list -> 400 UNKNOWN_PURPOSE
+### 5. A join token for the group's room -> 200 {url, token, expiresIn, canModerate}
+# 503 MEDIA_UNAVAILABLE until LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET are set.
+
+POST {{baseUrl}}/api/calls/{{openCall.response.body.id}}/token
+Origin: {{pageOrigin}}
+X-Origin: client
+Content-Type: application/json
+Accept: application/json
+
+### 6. The live calls on the CSA course page -> 200 with a JSON array (empty until someone joins)
+
+GET {{baseUrl}}/api/calls/live?course=csa
+Origin: {{pageOrigin}}
+X-Origin: client
+Accept: application/json
+
+### 7. A purpose calls.purposes doesn't list -> 400 UNKNOWN_PURPOSE
 
 POST {{baseUrl}}/api/calls
 Origin: {{pageOrigin}}
@@ -79,7 +97,7 @@ Accept: application/json
   "purpose": "party"
 }
 
-### 6. Without the page headers -> 403 origin_rejected
+### 8. Without the page headers -> 403 origin_rejected
 
 GET {{baseUrl}}/api/calls/{{openCall.response.body.id}}
 Accept: application/json

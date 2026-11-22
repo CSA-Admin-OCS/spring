@@ -1,5 +1,6 @@
 package com.open.spring.mvc.calls;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,4 +12,6 @@ public interface CallRoomJpaRepository extends JpaRepository<CallRoomEntity, Lon
 
     /** The room LiveKit knows by this name (a UUID); webhooks name rooms this way. */
     Optional<CallRoomEntity> findByRoomName(String roomName);
+
+    List<CallRoomEntity> findByState(CallState state);
 }

@@ -64,7 +64,8 @@ public final class CallPolicy {
         return holdsAny(participant, settings.getModeratorRoles());
     }
 
-    private static boolean isOneAdultWithOneMinor(CallPolicySettings settings, List<CallParticipant> people) {
+    /** Exactly two people: one adult (a supervisor or a supervised role) and one minor. */
+    public static boolean isOneAdultWithOneMinor(CallPolicySettings settings, Collection<CallParticipant> people) {
         if (people.size() != 2) {
             return false;
         }

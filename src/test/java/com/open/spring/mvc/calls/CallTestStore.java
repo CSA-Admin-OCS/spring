@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -53,12 +54,15 @@ final class CallTestStore {
     final CallAttendanceJpaRepository attendance = mock(CallAttendanceJpaRepository.class);
     final LiveKitRooms liveKit = mock(LiveKitRooms.class);
     final ManualCallScheduler scheduler = new ManualCallScheduler();
+    final SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+    final CallEvents events = new CallEvents(messaging);
     final CallRoomService service;
     final CallSupervisor supervisor;
     final CallTokenService tokens;
     final CallAttendanceService attendanceService;
     final CallWebhookService webhooks;
     final CallModerationService moderation;
+    final CallLiveService live;
     private final List<CallAttendanceEntity> attendanceRows = new ArrayList<>();
     private long nextAttendanceId = 1;
 
@@ -134,14 +138,18 @@ final class CallTestStore {
         supervisor = new CallSupervisor(presence, policy, liveKit, scheduler, scheduler.clock);
         tokens = new CallTokenService(service, presence, supervisor, properties, policy);
         attendanceService = new CallAttendanceService(attendance, properties);
-        webhooks = new CallWebhookService(rooms, presence, attendanceService, supervisor);
+        webhooks = new CallWebhookService(rooms, presence, attendanceService, supervisor, events);
         moderation = new CallModerationService(service, presence, liveKit, supervisor, properties, policy);
+        live = new CallLiveService(rooms, service, presence, groups, policy);
+        when(rooms.findByState(any())).thenAnswer(call -> roomRows.values().stream()
+                .filter(room -> room.getState() == call.getArgument(0))
+                .toList());
     }
 
     /** The /api/calls controller over this store, as Spring wires it. */
     CallApiRestController controller() {
         return new CallApiRestController(properties, new CallRequestGuard(properties), service, tokens, moderation,
-                presence, people);
+                live, presence, people);
     }
 
     List<CallAttendanceEntity> attendanceRows() {

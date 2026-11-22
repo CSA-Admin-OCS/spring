@@ -25,6 +25,8 @@ created, and nothing runs at night. Nothing changes on a server until someone tu
 | `CallSupervisor` | Keeps the rules during a call: pauses and resumes people through LiveKit, on its own thread. |
 | `CallModerationService` | A moderator pausing, resuming or removing someone, or ending the call. |
 | `CallAttendanceService` | Attendance rows from webhooks, and the nightly clean-up. |
+| `CallEvents`, `CallEvent` | "A call is live" frames on the group's or DM's chat topic. |
+| `CallLiveService` | The live calls a person may join, for course pages. |
 | `CallPolicy` | The safety rules, as pure functions of the settings and who is connected. |
 | `CallPresence` | Who is connected to each room and who was removed, in memory, by LiveKit connection. |
 | `LiveKitTokens`, `CallIdentity` | LiveKit's JWT format, and each person's opaque LiveKit identity. |
@@ -59,6 +61,7 @@ Every route but the webhook needs a signed-in person (the default `/api/**` rule
 | `POST /api/calls/{id}/token` | 200 `{"url","token","expiresIn":600,"canModerate"}`; 403 `WAITING_FOR_SUPERVISOR`, `WAITING_FOR_SECOND_ADULT`, `REMOVED` or `NOT_A_MEMBER`; 503 `MEDIA_UNAVAILABLE` while `calls.livekit.*` isn't set |
 | `POST /api/calls/{id}/participants/{identity}/pause`, `/resume`, `/remove` | 204; 403 `NOT_A_MODERATOR`; 404 `PARTICIPANT_NOT_FOUND` (pause, resume); 409 `WAITING_FOR_SUPERVISOR` (resume while the rules keep them paused); 503 `MEDIA_UNAVAILABLE` |
 | `POST /api/calls/{id}/end` | 204; 403 `NOT_A_MODERATOR`; 503 `MEDIA_UNAVAILABLE` |
+| `GET /api/calls/live?course=csa` | 200 `[{"id","title","contextType","count","oneOnOne"}]`: the live calls with someone in them that the caller may join; with `course`, that course's room and its teams' group rooms |
 | `POST /api/calls/webhook` (LiveKit only, no login) | 200; 401 `bad_signature` |
 | any route | 401 `unauthorized`, 403 `origin_rejected`, 404 `calls_disabled`; 503 `CALLS_UNAVAILABLE` when the database fails (for example, a table couldn't be created) |
 
@@ -125,6 +128,16 @@ A moderator's pause lasts until the moderator resumes them, even through a new t
 while the rules still keep the person paused is 409. A removal is kept before LiveKit is called,
 so it holds even when LiveKit is down.
 
+## Live in the chats
+
+After each join or leave, the group's chat topic (`/topic/group/{id}`) or the DM's
+(`/topic/dm/{id}`) gets `{"context":"callServer","callId":5,"state":"live","count":2}`, and
+`"state":"ended"` when the room finishes. Chat pages ignore a frame `context` they don't know, so
+today's pages are unchanged. The frame has no names and no links, because a client can fake a
+frame on a group topic: a page that shows "live" asks `GET /api/calls/{id}` first. Course rooms send
+no frame; course pages ask `GET /api/calls/live?course=`. A supervisor may join any room, so
+supervisors see every live call there, with the one-adult-one-minor calls marked `oneOnOne`.
+
 ## Persistence
 
 - `call_room`: `context_type` and `context_key` unique together, and `room_name` unique.
@@ -147,8 +160,9 @@ On SQLite, Hibernate reports a unique-key failure as `JpaSystemException`; on My
 ```
 
 - `CallRoomServiceTest`: who may join, and opening rooms (in-memory store, `CallTestStore`).
-- `CallApiHttpTest`, `CallModerationHttpTest`, `CallWebhookHttpTest`: the routes, the off switch,
-  the guard, JSON fields and status codes.
+- `CallApiHttpTest`, `CallModerationHttpTest`, `CallWebhookHttpTest`, `CallLiveHttpTest`: the
+  routes, the off switch, the guard, JSON fields and status codes.
+- `CallEventsTest`: the chat frames and their topics.
 - `CallPolicyTest`, `CallSupervisorTest`: the safety rules, and pausing during a call (with a
   scheduler and clock the test moves, `ManualCallScheduler`).
 - `CallPresenceTest`, `CallIdentityTest`, `LiveKitTokensTest`, `LiveKitWebhookVerifierTest`:

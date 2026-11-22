@@ -1,5 +1,7 @@
 package com.open.spring.mvc.calls;
 
+import java.util.List;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.open.spring.mvc.person.Person;
@@ -41,16 +44,19 @@ public class CallApiRestController {
     private final CallRoomService rooms;
     private final CallTokenService tokens;
     private final CallModerationService moderation;
+    private final CallLiveService live;
     private final CallPresence presence;
     private final PersonJpaRepository people;
 
     public CallApiRestController(CallsProperties properties, CallRequestGuard guard, CallRoomService rooms,
-            CallTokenService tokens, CallModerationService moderation, CallPresence presence, PersonJpaRepository people) {
+            CallTokenService tokens, CallModerationService moderation, CallLiveService live, CallPresence presence,
+            PersonJpaRepository people) {
         this.properties = properties;
         this.guard = guard;
         this.rooms = rooms;
         this.tokens = tokens;
         this.moderation = moderation;
+        this.live = live;
         this.presence = presence;
         this.people = people;
     }
@@ -83,6 +89,16 @@ public class CallApiRestController {
     public CallView get(@PathVariable long id, Authentication authentication, HttpServletRequest request) {
         Person person = signedIn(authentication, request);
         return view(rooms.find(person, id));
+    }
+
+    /**
+     * GET /api/calls/live?course=csa - the live calls with someone in them that the caller may join,
+     * [{id, title, contextType, count, oneOnOne}]; with course, only that course's room and its teams'.
+     */
+    @GetMapping("/live")
+    public List<CallLiveService.LiveCall> live(@RequestParam(value = "course", required = false) String course,
+            Authentication authentication, HttpServletRequest request) {
+        return live.liveFor(signedIn(authentication, request), course);
     }
 
     /** POST /api/calls/{id}/participants/{identity}/pause - a moderator cuts someone off: 204, or 404 PARTICIPANT_NOT_FOUND. */

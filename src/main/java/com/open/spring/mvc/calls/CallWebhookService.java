@@ -27,13 +27,15 @@ public class CallWebhookService {
     private final CallPresence presence;
     private final CallAttendanceService attendance;
     private final CallSupervisor supervisor;
+    private final CallEvents events;
 
     public CallWebhookService(CallRoomJpaRepository rooms, CallPresence presence, CallAttendanceService attendance,
-            CallSupervisor supervisor) {
+            CallSupervisor supervisor, CallEvents events) {
         this.rooms = rooms;
         this.presence = presence;
         this.attendance = attendance;
         this.supervisor = supervisor;
+        this.events = events;
     }
 
     @Transactional
@@ -78,6 +80,7 @@ public class CallWebhookService {
             }
         }
         supervisor.onPresenceChanged(room.getRoomName());
+        events.live(room, presence.present(room.getRoomName()).size());
     }
 
     private void left(CallRoomEntity room, JsonNode participant) {
@@ -93,6 +96,7 @@ public class CallWebhookService {
             attendance.left(room, identity);
         }
         supervisor.onPresenceChanged(room.getRoomName());
+        events.live(room, presence.present(room.getRoomName()).size());
     }
 
     private void finished(CallRoomEntity room) {
@@ -102,6 +106,7 @@ public class CallWebhookService {
         room.setEndedAt(Instant.now());
         rooms.save(room);
         supervisor.forget(room.getRoomName());
+        events.ended(room);
     }
 
     // The roles the join token listed. A participant can't change their own metadata (canUpdateOwnMetadata is false).

@@ -169,6 +169,18 @@ class CallWebhookHttpTest {
     }
 
     @Test
+    void theGroupChatHearsThatTheCallIsLiveAndThenOver() throws Exception {
+        joined("PA_1", "id-ada", "ROLE_STUDENT");
+        verify(store.messaging).convertAndSend("/topic/group/12", new CallEvent("callServer", room.getId(), "live", 1));
+
+        left("PA_1", "id-ada");
+        verify(store.messaging).convertAndSend("/topic/group/12", new CallEvent("callServer", room.getId(), "live", 0));
+
+        send(event("room_finished", room.getRoomName(), null, null));
+        verify(store.messaging).convertAndSend("/topic/group/12", new CallEvent("callServer", room.getId(), "ended", 0));
+    }
+
+    @Test
     void aRoomThatIsNotOursIsIgnored() throws Exception {
         send(event("participant_joined", "someone-elses-room", "PA_1", "id-ada", "ROLE_STUDENT")).andExpect(status().isOk());
 
