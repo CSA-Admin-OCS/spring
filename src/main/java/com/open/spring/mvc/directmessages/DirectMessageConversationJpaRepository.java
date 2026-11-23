@@ -13,4 +13,11 @@ public interface DirectMessageConversationJpaRepository extends JpaRepository<Di
      * "my conversations" and to look for an existing 1:1 thread to reuse.
      */
     List<DirectMessageConversation> findByParticipantsContaining(Person person);
+
+    /**
+     * Whether the person with {@code uid} is a participant of conversation {@code id}. One
+     * query, no lazy loading, so the chat socket's {@code DirectMessageTopicGuard} can ask it
+     * outside a transaction.
+     */
+    boolean existsByIdAndParticipantsUid(Long id, String uid);
 }
