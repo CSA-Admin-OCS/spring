@@ -1,0 +1,103 @@
+### Calls API Tests
+
+This file exercises the routes under `/api/calls`: opening and reading a
+room, a join token and the live calls list. See docs/calls-architecture.md
+for how they work and what each returns, and docs/calls-deployment.md for
+running a local LiveKit server.
+
+Calls are off by default, so set `calls.enabled=true` for the local server
+first; otherwise every request below answers 404 `calls_disabled`.
+
+Install the **REST Client** extension in VS Code and select the `local`
+environment. Configure the same `baseUrl`, `adminUid`, and `adminPassword`
+variables used by `toolchain.http` in the Git-ignored
+`.vscode/settings.json`. Never put passwords in this file.
+
+The routes only answer requests that look like they come from an OCS page,
+so each one sends `Origin` and `X-Origin: client`. Set `groupId` to a group
+that exists on your server; the admin may open any group's room.
+
+@pageOrigin = http://localhost:4500
+@groupId = 1
+
+### 1. Sign in
+
+# @name loginCalls
+POST {{baseUrl}}/authenticate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "uid": "{{adminUid}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Open the group's room -> 200 with the room (made the first time)
+
+# @name openCall
+POST {{baseUrl}}/api/calls
+Origin: {{pageOrigin}}
+X-Origin: client
+Content-Type: application/json
+Accept: application/json
+
+{
+  "contextType": "GROUP",
+  "contextKey": "{{groupId}}",
+  "purpose": "standup"
+}
+
+### 3. Read the room -> 200 with the same id, state IDLE
+
+GET {{baseUrl}}/api/calls/{{openCall.response.body.id}}
+Origin: {{pageOrigin}}
+X-Origin: client
+Accept: application/json
+
+### 4. Open the CSA course room -> 200, contextKey "CSA"
+
+POST {{baseUrl}}/api/calls
+Origin: {{pageOrigin}}
+X-Origin: client
+Content-Type: application/json
+Accept: application/json
+
+{
+  "contextType": "COURSE",
+  "contextKey": "csa"
+}
+
+### 5. A join token for the group's room -> 200 {url, token, expiresIn, canModerate}
+# 503 MEDIA_UNAVAILABLE until LIVEKIT_URL, LIVEKIT_API_KEY and LIVEKIT_API_SECRET are set.
+
+POST {{baseUrl}}/api/calls/{{openCall.response.body.id}}/token
+Origin: {{pageOrigin}}
+X-Origin: client
+Content-Type: application/json
+Accept: application/json
+
+### 6. The live calls on the CSA course page -> 200 with a JSON array (empty until someone joins)
+
+GET {{baseUrl}}/api/calls/live?course=csa
+Origin: {{pageOrigin}}
+X-Origin: client
+Accept: application/json
+
+### 7. A purpose calls.purposes doesn't list -> 400 UNKNOWN_PURPOSE
+
+POST {{baseUrl}}/api/calls
+Origin: {{pageOrigin}}
+X-Origin: client
+Content-Type: application/json
+Accept: application/json
+
+{
+  "contextType": "GROUP",
+  "contextKey": "{{groupId}}",
+  "purpose": "party"
+}
+
+### 8. Without the page headers -> 403 origin_rejected
+
+GET {{baseUrl}}/api/calls/{{openCall.response.body.id}}
+Accept: application/json
