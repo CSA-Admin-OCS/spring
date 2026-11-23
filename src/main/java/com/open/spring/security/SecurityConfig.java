@@ -100,6 +100,10 @@ public class SecurityConfig {
                         // Admin-only writes are listed FIRST: rules are first-match-wins, and a
                         // method-less permitAll on /api/person/create would otherwise also permit
                         // DELETE and PUT on that path, shadowing the ROLE_ADMIN rules below.
+                        // Capstone mentoring comes first so a mentor's own PUT and DELETE are not caught by
+                        // the Admin-only rules below. Only these paths change; the public read is names only.
+                        .requestMatchers(HttpMethod.GET, "/api/person/capstones/mentors").permitAll()
+                        .requestMatchers("/api/person/capstones", "/api/person/capstones/**").hasAuthority("ROLE_MENTOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/person/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/person/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/person/create").permitAll()
@@ -277,6 +281,8 @@ public class SecurityConfig {
         policy.put("/api/person/create", "permitAll");
         policy.put("/api/person/create/", "permitAll");
         policy.put("POST /api/person/create", "permitAll");
+        policy.put("GET /api/person/capstones/mentors", "permitAll");
+        policy.put("/api/person/capstones/**", "ROLE_MENTOR");
         policy.put("DELETE /api/person/**", "ROLE_ADMIN");
         policy.put("PUT /api/person/**", "ROLE_ADMIN");
         policy.put("GET /api/person/uid/**", "permitAll");
