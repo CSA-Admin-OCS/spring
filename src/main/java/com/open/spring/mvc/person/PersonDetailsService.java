@@ -2,7 +2,11 @@ package com.open.spring.mvc.person;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,6 +17,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /*
 This class has an instance of Java Persistence API (JPA)
@@ -31,6 +38,8 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
     private PersonRoleJpaRepository personRoleJpaRepository;
     @Autowired // Inject PasswordEncoder
     private PasswordEncoder passwordEncoder;
+
+    private static final ObjectMapper CAPSTONE_JSON = new ObjectMapper();
 
     /*
      * loadUserByUsername Overrides and maps Person & Roles POJO into Spring
@@ -86,6 +95,84 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
     private void hashNewPassword(Person person) {
         person.setNewPassword(person.getPassword());
         person.setPassword(passwordEncoder.encode(person.getPassword()));
+    }
+
+    /** Applies one Capstone state change to the signed-in mentor, in one locked transaction. */
+    public <T> T changeCapstoneMentoring(String uid, Function<Person, T> change) {
+        return applyCapstoneChange(personJpaRepository.findByUidForCapstoneChange(uid), change);
+    }
+
+    /** Reads a mentor's Capstone choices without locking or writing. */
+    @Transactional(readOnly = true)
+    public <T> T readCapstoneMentoring(String uid, Function<Person, T> read) {
+        Person person = personJpaRepository.findByUid(uid);
+        if (person == null) {
+            throw new IllegalArgumentException("Person not found.");
+        }
+        return read.apply(person);
+    }
+
+    /** Applies a Teacher or Admin decision to the mentor with this id. */
+    public void decideCapstoneRequest(Long personId, String project, String deciderUid, boolean approve) {
+        applyCapstoneChange(personJpaRepository.findByIdForCapstoneChange(personId), person -> {
+            if (approve) {
+                person.approveCapstone(project, deciderUid);
+            } else {
+                person.denyCapstone(project, deciderUid);
+            }
+            return null;
+        });
+    }
+
+    private <T> T applyCapstoneChange(Person person, Function<Person, T> change) {
+        if (person == null) {
+            throw new IllegalArgumentException("Person not found.");
+        }
+        T result = change.apply(person);
+        Map<String, Map<String, Object>> choices = person.getCapstoneMentoring();
+        try {
+            String json = choices == null || choices.isEmpty() ? null : CAPSTONE_JSON.writeValueAsString(choices);
+            personJpaRepository.writeCapstoneMentoring(person.getId(), json);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Could not save the Capstone choice.", e);
+        }
+        return result;
+    }
+
+    /** Project permalink to the names of its approved mentors who still hold ROLE_MENTOR. */
+    @Transactional(readOnly = true)
+    public Map<String, List<String>> approvedCapstoneMentorNames() {
+        Map<String, List<String>> names = new TreeMap<>();
+        for (Person person : personJpaRepository.findByCapstoneMentoringIsNotNull()) {
+            if (!person.hasRole("ROLE_MENTOR")) {
+                continue;
+            }
+            person.getCapstoneMentoring().forEach((project, entry) -> {
+                if (Person.CAPSTONE_APPROVED.equals(entry.get("status"))) {
+                    names.computeIfAbsent(project, key -> new ArrayList<>()).add(person.getName());
+                }
+            });
+        }
+        return names;
+    }
+
+    /** Pending requests for the Teacher/Admin table, with no email or uid. */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> pendingCapstoneRequests() {
+        List<Map<String, Object>> requests = new ArrayList<>();
+        for (Person person : personJpaRepository.findByCapstoneMentoringIsNotNull()) {
+            person.getCapstoneMentoring().forEach((project, entry) -> {
+                if (Person.CAPSTONE_PENDING.equals(entry.get("status"))) {
+                    Map<String, Object> request = new LinkedHashMap<>();
+                    request.put("personId", person.getId());
+                    request.put("mentor", person.getName());
+                    request.put("project", project);
+                    request.put("requestedAt", entry.get("updatedAt"));
+                    requests.add(request);
+                }
+            });
+        }
+        return requests;
     }
 
     // Saves and flushes, so JPA validates now and a weak password throws

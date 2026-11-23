@@ -1,10 +1,12 @@
 package com.open.spring.mvc.person;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -175,6 +177,19 @@ public class Person extends Submitter implements Comparable<Person> {
     private Map<String, Map<String, Object>> stats = new HashMap<>();
 
     /**
+     * This mentor's choice on each Capstone project, keyed by the project's permalink:
+     * {"/capstone/example/": {"status": "pending", "updatedAt": "2026-11-22T19:00:00Z"}}
+     * updatable = false keeps an ordinary save of a stale Person from overwriting a choice or an
+     * approval; only PersonDetailsService.changeCapstoneMentoring writes this column.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "capstone_mentoring", columnDefinition = "json", updatable = false)
+    @JsonIgnore
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<String, Map<String, Object>> capstoneMentoring;
+
+    /**
      * gradesJson stores this person's grades as a JSON blob in a TEXT column.
      * Example entry: {"id":12345, "assignment":"hw1", "score":95.0,
      * "course":"CS101", "submission":"..."}
@@ -336,6 +351,118 @@ public class Person extends Submitter implements Comparable<Person> {
      */
     public boolean hasRole(String roleName) {
         return roles != null && roles.contains(roleName);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////
+    /// Capstone mentoring: the state of each project for this mentor
+
+    public static final String CAPSTONE_INTERESTED = "interested";
+    public static final String CAPSTONE_SKIPPED = "skipped";
+    public static final String CAPSTONE_PENDING = "pending";
+    public static final String CAPSTONE_APPROVED = "approved";
+    public static final String CAPSTONE_DENIED = "denied";
+    private static final java.util.regex.Pattern CAPSTONE_PERMALINK = java.util.regex.Pattern.compile("/capstone/[a-z0-9-]+/");
+    private static final int CAPSTONE_PERMALINK_MAX_LENGTH = 120;
+    private static final int CAPSTONE_MAX_ENTRIES = 200;
+
+    /** The status of a project for this mentor, or null when they have made no choice. */
+    public String capstoneStatus(String project) {
+        Map<String, Object> entry = capstoneMentoring == null ? null : capstoneMentoring.get(project);
+        return entry == null ? null : String.valueOf(entry.get("status"));
+    }
+
+    public void markCapstoneInterested(String project) {
+        requireCapstoneStatus(project, "Undo skip or finish the request first.", null, CAPSTONE_INTERESTED, CAPSTONE_DENIED);
+        putCapstone(project, CAPSTONE_INTERESTED, null);
+    }
+
+    public void skipCapstone(String project) {
+        requireCapstoneStatus(project, "This project already has your request or approval.",
+                null, CAPSTONE_INTERESTED, CAPSTONE_SKIPPED, CAPSTONE_DENIED);
+        putCapstone(project, CAPSTONE_SKIPPED, null);
+    }
+
+    /** Returns a project to no choice. Only Interested and Skipped can be cleared. */
+    public void clearCapstoneChoice(String project) {
+        requireCapstoneStatus(project, "Only Interested or Skipped can be cleared.",
+                null, CAPSTONE_INTERESTED, CAPSTONE_SKIPPED);
+        removeCapstone(project);
+    }
+
+    public void requestCapstone(String project) {
+        requireCapstoneStatus(project, "Undo skip before applying, or wait for your current request.",
+                null, CAPSTONE_INTERESTED, CAPSTONE_DENIED, CAPSTONE_PENDING);
+        if (!CAPSTONE_PENDING.equals(capstoneStatus(project))) {
+            putCapstone(project, CAPSTONE_PENDING, null);
+        }
+    }
+
+    public void cancelCapstoneRequest(String project) {
+        requireCapstoneStatus(project, "Only a pending request can be cancelled.", CAPSTONE_PENDING);
+        removeCapstone(project);
+    }
+
+    public void approveCapstone(String project, String deciderUid) {
+        decideCapstone(project, deciderUid, CAPSTONE_APPROVED);
+    }
+
+    public void denyCapstone(String project, String deciderUid) {
+        decideCapstone(project, deciderUid, CAPSTONE_DENIED);
+    }
+
+    /** Clears Interested and Skipped only, and returns how many projects changed. */
+    public int resetCapstoneChoices() {
+        if (capstoneMentoring == null) {
+            return 0;
+        }
+        int before = capstoneMentoring.size();
+        Map<String, Map<String, Object>> kept = new LinkedHashMap<>(capstoneMentoring);
+        kept.values().removeIf(entry -> CAPSTONE_INTERESTED.equals(entry.get("status"))
+                || CAPSTONE_SKIPPED.equals(entry.get("status")));
+        capstoneMentoring = kept;
+        return before - kept.size();
+    }
+
+    private void decideCapstone(String project, String deciderUid, String decision) {
+        if (deciderUid == null || deciderUid.equals(uid)) {
+            throw new IllegalStateException("You cannot decide your own request.");
+        }
+        requireCapstoneStatus(project, "This request is no longer pending.", CAPSTONE_PENDING);
+        putCapstone(project, decision, deciderUid);
+    }
+
+    private void requireCapstoneStatus(String project, String refusal, String... allowed) {
+        if (project == null || project.length() > CAPSTONE_PERMALINK_MAX_LENGTH
+                || !CAPSTONE_PERMALINK.matcher(project).matches()) {
+            throw new IllegalArgumentException("That is not a Capstone project permalink.");
+        }
+        if (!Arrays.asList(allowed).contains(capstoneStatus(project))) {
+            throw new IllegalStateException(refusal);
+        }
+    }
+
+    private void putCapstone(String project, String status, String decidedBy) {
+        Map<String, Map<String, Object>> updated = capstoneMentoring == null
+                ? new LinkedHashMap<>() : new LinkedHashMap<>(capstoneMentoring);
+        if (!updated.containsKey(project) && updated.size() >= CAPSTONE_MAX_ENTRIES) {
+            throw new IllegalStateException("You have reached the limit of saved projects.");
+        }
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("status", status);
+        entry.put("updatedAt", Instant.now().toString());
+        if (decidedBy != null) {
+            entry.put("decidedBy", decidedBy);
+        }
+        updated.put(project, entry);
+        capstoneMentoring = updated;
+    }
+
+    private void removeCapstone(String project) {
+        if (capstoneMentoring != null) {
+            Map<String, Map<String, Object>> updated = new LinkedHashMap<>(capstoneMentoring);
+            updated.remove(project);
+            capstoneMentoring = updated;
+        }
     }
 
     /**

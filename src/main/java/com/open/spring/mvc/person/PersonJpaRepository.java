@@ -3,8 +3,12 @@ package com.open.spring.mvc.person;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import jakarta.persistence.LockModeType;
 
 /**
  * The PersonJpaRepository interface is automatically implemented by Spring Data JPA at runtime.
@@ -37,6 +41,22 @@ public interface PersonJpaRepository extends JpaRepository<Person, Long> {
     Person findByUid(String uid);
     Person findByName(String name);
     List<Person> findAllByOrderByNameAsc();
+
+    // Capstone mentoring: lock the row so overlapping requests cannot lose a choice or an approval.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Person p WHERE p.uid = :uid")
+    Person findByUidForCapstoneChange(@Param("uid") String uid);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Person p WHERE p.id = :id")
+    Person findByIdForCapstoneChange(@Param("id") Long id);
+
+    // The column is updatable = false, so this is the only statement that changes it.
+    @Modifying
+    @Query(value = "UPDATE person SET capstone_mentoring = :json WHERE id = :id", nativeQuery = true)
+    int writeCapstoneMentoring(@Param("id") Long id, @Param("json") String json);
+
+    List<Person> findByCapstoneMentoringIsNotNull();
 
     List<Person> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email);
     List<Person> findByNameContainingIgnoreCaseOrUidContainingIgnoreCase(String name, String uid);
