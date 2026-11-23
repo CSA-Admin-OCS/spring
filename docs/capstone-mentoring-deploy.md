@@ -2,43 +2,32 @@
 
 For Dhyan. This release adds one nullable column, `person.capstone_mentoring` (JSON). It adds no tables.
 
-**The column must exist before the new code starts.** Spring runs with `ddl-auto=none`, so without the column
-every Person query fails, including login.
+**No schema rebuild is needed.** At startup, before Hibernate or any Person query runs, Spring adds the column if it
+is missing. It never drops, rebuilds, or rewrites data. If the column cannot be added, Spring stops with a clear
+error rather than starting with broken logins, so the database user needs `ALTER` permission on `person`.
 
 ## Steps
 
-Use the normal schema-change sequence:
-
 1. `python3 scripts/db_migrate.py status`, and confirm the target is the one you mean.
 2. `python3 scripts/db_migrate.py backup`. It must exit 0. Keep the printed backup path.
-3. `docker compose down && git pull`
-4. `python3 scripts/db_migrate.py init`. This rebuilds the schema and is destructive.
-5. `python3 scripts/db_migrate.py restore --backup-file <path>`. On MySQL, add `--keep-target-schema`.
-6. `docker compose up -d --build`
+3. `docker compose down`
+4. `git pull`
+5. `docker compose up -d --build`
 
-The restore report will say `person: new columns left at default: capstone_mentoring` on the first deploy. That is
-expected: every existing person starts with `NULL`, which means no choices.
+Do not run `db_migrate.py init` or `restore` for this release.
 
 ## Verify
 
-- The restore report shows no row-count failures.
+- The startup log shows `Added nullable person.capstone_mentoring column` once. Later restarts do not.
 - An existing account can log in and save its profile.
 - `/mvc/person/read` loads for an Admin and for a Teacher.
-- `GET /api/person/capstones/mentors` returns `{}` when signed out.
+- `GET /api/person/capstones/mentors` returns `{}` when signed out, until a mentor is approved.
 - A mentor can request a project, and a Teacher can approve it from `/mvc/person/read`.
 
 ## Rollback
 
-Redeploy the previous image. Leave the column in place: old code ignores a nullable column, so no data step is
-needed. Restore from the step 2 backup only if the data itself is damaged.
-
-## What was tested
-
-Backup, `init`, and restore were run twice on a local SQLite copy with 19 people. Row counts for every table in the
-new schema matched, as did `uid`, `name`, `email`, `sid`, `password`, `roles_json`, `stats`, and `grades_json`. An
-approved and a pending request both survived the second round unchanged.
-
-**Not tested on MySQL.** If production uses MySQL, run the same sequence on a copy first.
+Run `docker compose down`, check out the previous commit, and run `docker compose up -d --build`. Leave the column in
+place: the previous code ignores it. Restore the step 2 backup only if the data itself is damaged.
 
 ## Backups
 
