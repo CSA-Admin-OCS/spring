@@ -117,6 +117,7 @@ public class MvcSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/mvc/person/reset/oauth/verify").permitAll()
                 .requestMatchers(HttpMethod.POST, "/mvc/person/reset/oauth/complete").permitAll()
                 .requestMatchers("/mvc/person/read/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/mvc/person/capstones/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_TEACHER")
                 .requestMatchers("/mvc/person/cookie-clicker").authenticated()
                 .requestMatchers(HttpMethod.GET,"/mvc/person/update/user").authenticated()
                 .requestMatchers(HttpMethod.GET,"/mvc/person/update/**").hasAuthority("ROLE_ADMIN")
@@ -211,6 +212,7 @@ public class MvcSecurityConfig {
         policy.put("POST /mvc/person/update", "authenticated (+ controller ownership checks)");
         policy.put("POST /mvc/person/update/role", "ROLE_ADMIN");
         policy.put("POST /mvc/person/update/roles", "ROLE_ADMIN");
+        policy.put("POST /mvc/person/capstones/**", "ROLE_ADMIN|ROLE_TEACHER");
         policy.put("/mvc/person/delete/**", "ROLE_ADMIN");
         return Map.copyOf(policy);
     }

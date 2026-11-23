@@ -62,6 +62,9 @@ public class PersonViewController {
     @Value("${person.default-password}")
     private String defaultPassword;
 
+    @Value("${pages.site.url:https://pages.opencodingsociety.com}")
+    private String pagesSiteUrl;
+
     //@Autowired
     //private PersonJpaRepository find;
 
@@ -87,6 +90,10 @@ public class PersonViewController {
             Person person = repository.getByUid(userDetails.getUsername());  // Fetch the person by email
             List<Person> list = Collections.singletonList(person);  // Create a single element list
             model.addAttribute("list", list);  // Add the list to the model for the view 
+        }
+        if (isCapstoneDecider(authentication)) {
+            model.addAttribute("capstoneRequests", repository.pendingCapstoneRequests());
+            model.addAttribute("capstonePagesUrl", pagesSiteUrl);
         }
         return "person/read";  // Return the template for displaying persons
     }
@@ -487,6 +494,42 @@ public class PersonViewController {
     @GetMapping("/reset/check")
     public String resetCheck() {
         return "person/resetCheck";
+    }
+
+    // JSON plus the custom header forces a CORS preflight, because this chain has CSRF disabled
+    // and its session cookie is SameSite=None: a plain cross-site form cannot reach these.
+    @PostMapping(value = "/capstones/{personId}/approve", consumes = MediaType.APPLICATION_JSON_VALUE, headers = "X-Origin=client")
+    public ResponseEntity<Object> approveCapstone(@PathVariable Long personId, @RequestBody java.util.Map<String, String> body,
+                                                  Authentication authentication) {
+        return decideCapstone(personId, body.get("project"), authentication, true);
+    }
+
+    @PostMapping(value = "/capstones/{personId}/deny", consumes = MediaType.APPLICATION_JSON_VALUE, headers = "X-Origin=client")
+    public ResponseEntity<Object> denyCapstone(@PathVariable Long personId, @RequestBody java.util.Map<String, String> body,
+                                               Authentication authentication) {
+        return decideCapstone(personId, body.get("project"), authentication, false);
+    }
+
+    private ResponseEntity<Object> decideCapstone(Long personId, String project, Authentication authentication, boolean approve) {
+        if (!isCapstoneDecider(authentication)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        try {
+            repository.decideCapstoneRequest(personId, project, authentication.getName(), approve);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException invalid) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", invalid.getMessage()));
+        } catch (IllegalStateException refused) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(java.util.Map.of("message", refused.getMessage()));
+        } catch (org.springframework.dao.ConcurrencyFailureException overlap) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of("message", "Another change was saving at the same time. Try again."));
+        }
+    }
+
+    private boolean isCapstoneDecider(Authentication authentication) {
+        return authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(granted -> "ROLE_ADMIN".equals(granted.getAuthority()) || "ROLE_TEACHER".equals(granted.getAuthority()));
     }
 
     @PostMapping("/reset/admin/{id}")

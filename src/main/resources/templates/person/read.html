@@ -34,6 +34,30 @@
 
         <h3>Person Viewer</h3>
 
+        <!-- Shown to Teachers and Admins. Thymeleaf's th:text and th:href escape every value. -->
+        <section id="capstoneRequests" class="mb-4" th:if="${capstoneRequests != null}">
+            <h5>Mentor project requests</h5>
+            <div id="capstoneRequestError" class="alert alert-danger d-none" role="alert"></div>
+            <p id="capstoneRequestsEmpty" th:classappend="${capstoneRequests.isEmpty()} ? '' : 'd-none'">No mentor project requests are waiting.</p>
+            <div class="table-responsive" th:unless="${capstoneRequests.isEmpty()}">
+                <table class="table table-sm">
+                    <thead><tr><th>Mentor</th><th>Project</th><th>Requested</th><th>Decision</th></tr></thead>
+                    <tbody>
+                        <tr th:each="capstoneRequest : ${capstoneRequests}"
+                            th:attr="data-person-id=${capstoneRequest.personId},data-project=${capstoneRequest.project}">
+                            <td th:text="${capstoneRequest.mentor}"></td>
+                            <td><a target="_blank" rel="noopener noreferrer" th:href="${capstonePagesUrl + capstoneRequest.project}" th:text="${capstoneRequest.project}"></a></td>
+                            <td th:text="${capstoneRequest.requestedAt}"></td>
+                            <td>
+                                <button type="button" class="btn btn-success btn-sm" data-capstone-decision="approve">Approve</button>
+                                <button type="button" class="btn btn-danger btn-sm" data-capstone-decision="deny">Deny</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- Column visibility toggle buttons -->
         <div class="d-flex flex-wrap mb-3">
             <button class="btn btn-secondary toggle-column active" data-column="0">ID#</button>
@@ -147,6 +171,38 @@
 
     <script>
         let resetPersonId = null;
+
+        document.getElementById('capstoneRequests')?.addEventListener('click', async (event) => {
+            const button = event.target.closest('[data-capstone-decision]');
+            if (!button) return;
+            const row = button.closest('tr');
+            const errorBox = document.getElementById('capstoneRequestError');
+            const buttons = row.querySelectorAll('button');
+            buttons.forEach((control) => { control.disabled = true; });
+            errorBox.classList.add('d-none');
+            try {
+                const response = await fetch(`/mvc/person/capstones/${row.dataset.personId}/${button.dataset.capstoneDecision}`, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json', 'X-Origin': 'client' },
+                    body: JSON.stringify({ project: row.dataset.project }),
+                });
+                if (!response.ok) {
+                    const body = await response.json().catch(() => ({}));
+                    throw new Error(body.message || `The server could not save that (${response.status}).`);
+                }
+                const rows = row.parentElement;
+                row.remove();
+                if (!rows.children.length) {
+                    rows.closest('.table-responsive').classList.add('d-none');
+                    document.getElementById('capstoneRequestsEmpty').classList.remove('d-none');
+                }
+            } catch (error) {
+                errorBox.textContent = error.message;
+                errorBox.classList.remove('d-none');
+                buttons.forEach((control) => { control.disabled = false; });
+            }
+        });
 
         function openResetModal(btn) {
             resetPersonId = btn.getAttribute('data-id');
