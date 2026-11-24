@@ -2,11 +2,11 @@
 
 Spring decides who may make a request in three places that nobody reads together: two filter chains in
 `SecurityConfig` and `MvcSecurityConfig` (first-match-wins lists of rules), annotations such as `@PreAuthorize` on
-some handlers, and checks written inside the handlers themselves. This folder collects what is written down, so that a
-policy (one file that says who may make each request) can later be checked against it.
+some handlers, and checks written inside the handlers themselves. This folder collects what is written down, and checks
+the policy against it: `src/main/resources/data/permissions.json`, one file that says who may make each request.
 
-This is evidence. Nothing here changes what the application does: it is test code, it never starts the application,
-and it never calls a controller.
+Nothing here changes what the application does. This is test code and one data file that nothing reads while the
+application runs: it never starts the application, and it never calls a controller.
 
 ## The checks
 
@@ -16,6 +16,7 @@ and it never calls a controller.
 | `ProbeFixtureTest` | Checks the prober on two small filter chains written to have known answers: an open rule, a signed-in rule, a list of roles, one role, the default rule, a page chain that sends a caller with no login to the login page, and that a bad or expired token is treated as no login. | The prober is a tool, and a tool checked only against the application proves nothing: here the right answer is known. | After changing `ProbeContext` or `Probe`. | about 5 s |
 | `ReadingTest` | Checks how answers and annotations are read into one vocabulary (`anyone`, `signed_in`, `roles:...`, `nobody`): a single guard call, calls joined by `or` and `and`, a guard on the method over one on the class, `@Secured` and `@RolesAllowed`, and a guard too complex to read, which is listed for a person and not guessed at. Also each kind of finding. | The comparison between the chain, the annotations and the code is only as good as these rules. | After changing `Reading`. | about 2 s |
 | `RealChainsProbeTest` | Builds this application's real `SecurityConfig` and `MvcSecurityConfig` in a small context and asks them about every request in the inventory as ten kinds of caller. Checks that no real controller was reached, that every answer is one a chain gives, that the inventory's chain for each path is the chain that takes it, that a bad token is always treated as no login, and that the reading agrees with every route in `SampleLabels`. | This is where the filter chains' rules are read as they run, not as they are written: the rules are first-match-wins, so two lines that look the same can answer differently. `SampleLabels` holds about 80 routes worked out by hand from the rules, so the tool is checked against a person, not against itself. | After changing a rule in either security config, a controller path, or the probe; and before using the report to write or check a policy. | about 15 s, most of it the build |
+| `PermissionsPolicyTest` | Checks `permissions.json` against this application: every request the controllers answer is in the file and nothing else is, each request's list says who can make it today (the filter chain's answer, narrowed by the guard annotation), no guard is too complex to read, no request is left that nobody can make, and every role a rule names is declared. Also checks the loader's own rules on small examples: a request in two lists, an undeclared role, a `legacy_open` group with no owner, and a malformed entry are refused. | So the file stays true: a new route, a changed rule or a changed annotation fails here until the file says the same. | After adding or changing a route, a rule in either security config or a guard annotation, and after editing `permissions.json`. | about 15 s, most of it the build |
 
 ```
 ./mvnw test -Dtest=ControllerInventoryTest
@@ -29,6 +30,36 @@ To also write the whole inventory (one record for each method and path) so a per
 
 The file shows which requests carry no guard. **Write it outside the repository, and do not commit or post it.** The
 test refuses a path inside the repository.
+
+## The policy file
+
+`src/main/resources/data/permissions.json` says who may make each request. A request is written `"METHOD /path"`, with
+the path as Spring matches it, and is in exactly one list. **Nothing reads the file while the application runs**:
+changing it changes nothing that a caller sees. The rules in `SecurityConfig` and `MvcSecurityConfig` still decide.
+
+| List | Who may make the request |
+|---|---|
+| `public` | Anyone, with or without an account, on purpose. A person puts a request here. |
+| `public_restricted` | Anyone, on purpose, but the route runs code or spends a provider's credit, and has been reviewed to run in a sandbox and under a rate limit. |
+| `legacy_open` | Anyone, because it is open today and nobody has yet decided that it should be. Groups of requests, each with an `owner`. The aim is for this list to get shorter. |
+| `signed_in` | Any signed-in account, whatever its roles. |
+| `roles` | Groups of roles with the requests only those roles may make. |
+
+`role_names` declares the roles the file may use, in Spring's own names. The probe asks as each of them, so a role that
+is added to the rules has to be declared here.
+
+What the file records is what the application does today: the filter chain's answer, narrowed by `@PreAuthorize` or
+another guard annotation on the handler. A check written inside a handler (an account may change only its own record)
+stays in the code and is not in the file.
+
+**When you add or change a route:** put its request in the list that says who may make it, and make the security rules
+say the same. A new route that anyone can make goes in `legacy_open`, never straight into `public`. Then run
+`./mvnw test -Dtest=PermissionsPolicyTest`. To see what the application does today written as a file, to compare with
+the committed one:
+
+```
+./mvnw test -Dtest=PermissionsPolicyTest -Drbac.policy.draft=/a/folder/outside/the/repo/permissions.json
+```
 
 ## The probe
 
