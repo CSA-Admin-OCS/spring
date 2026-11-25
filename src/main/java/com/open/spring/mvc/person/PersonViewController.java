@@ -1,5 +1,6 @@
 package com.open.spring.mvc.person;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -123,6 +126,14 @@ public class PersonViewController {
     }
 
 
+    /** The fields of the sign-up form. */
+    static final List<String> SIGNUP_FIELDS = List.of("email", "kasmServerNeeded", "name", "password", "sid", "uid");
+
+    @InitBinder("person")
+    public void limitSignupFields(WebDataBinder binder) {
+        binder.setAllowedFields(SIGNUP_FIELDS.toArray(String[]::new));
+    }
+
     /* Gathers the attributes filled out in the form, tests for and retrieves validation error
     @param - Person object with @Valid
     @param - BindingResult object
@@ -133,12 +144,10 @@ public class PersonViewController {
         if (bindingResult.hasErrors()) {
             return "person/create";
         }
+        person.setRoles(new ArrayList<>());
         repository.save(person);
+        repository.addRoleToPerson(person.getUid(), "ROLE_STUDENT");
 
-        if (!(person.hasRole("ROLE_ADMIN") || person.hasRole("ROLE_TEACHER"))) {
-            repository.addRoleToPerson(person.getUid(), "ROLE_STUDENT");
-        }
-        
         // Redirect to next step
         return "redirect:/mvc/person/read";
     }
